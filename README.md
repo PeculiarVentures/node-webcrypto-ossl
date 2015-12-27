@@ -1,2 +1,2 @@
 # node-webcrypto-ossl
-A WebCrypto polyfill based on OpenSSL
+A WebCrypto Polyfill for Node in typescript built on OpenSSL
