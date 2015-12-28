@@ -1,4 +1,5 @@
 var assert = require('assert');
+var crypto = require('crypto');
 
 describe("EC", function () {
     var webcrypto;
@@ -53,7 +54,7 @@ describe("EC", function () {
             })
             .then(done, done);
     })
-
+    
 /*
     it("Ecdh", function (done) {
 
