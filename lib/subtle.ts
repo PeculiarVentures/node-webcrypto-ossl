@@ -101,7 +101,7 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                     throw new TypeError("Unsupported algorithm in use");
             }
             let signature = AlgClass.sign(_alg, key, _data);
-            resolve(signature);
+            resolve(new Uint8Array(signature).buffer);
         });
     }
 
@@ -156,7 +156,7 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                     throw new TypeError("Unsupported algorithm in use");
             }
             let msg = AlgClass.encrypt(_alg, key, _data);
-            resolve(msg);
+            resolve(new Uint8Array(msg).buffer);
         });
     }
 
@@ -185,7 +185,7 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                     throw new TypeError("Unsupported algorithm in use");
             }
             let msg = AlgClass.decrypt(_alg, key, _data);
-            resolve(msg);
+            resolve(new Uint8Array(msg).buffer);
         });
     }
 
@@ -212,7 +212,7 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                     throw new TypeError("Unsupported algorithm in use");
             }
             let wrappedKey = AlgClass.wrapKey(key, wrappingKey, _alg);
-            resolve(wrappedKey);
+            resolve(new Uint8Array(wrappedKey).buffer);
         });
     }
 
@@ -264,6 +264,16 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
             }
             let key: CryptoKey = AlgClass.deriveKey(algorithm, baseKey, derivedKeyType, extractable, keyUsages);
             resolve(key);
+        });
+    }
+
+    exportKey(format: string, key: CryptoKey): Promise {
+        let that = this;
+
+        return new Promise(function(resolve, reject) {
+            let data = alg.AlgorithmBase.exportKey(format, key);
+            let ubuf = new Uint8Array(<any> data);
+            resolve(ubuf.buffer);
         });
     }
 

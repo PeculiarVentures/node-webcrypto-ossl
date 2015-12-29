@@ -10,6 +10,7 @@ export interface IAlgorithmBase {
     wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer;
     unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey;
     deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): key.CryptoKey;
+    exportKey(format: string, key: CryptoKey): Buffer;
 }
 
 export class AlgorithmBase {
@@ -45,6 +46,55 @@ export class AlgorithmBase {
 
     static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
         throw new Error("Method is not supported");
+    }
+
+    static exportKey(format: string, key: key.CryptoKey): Buffer {
+        this.checkKeyType(format);
+        let _format = format.toLowerCase();
+        let res: Buffer;
+        switch (_format) {
+            case "spki":
+                res = key.key.writeSpki("der");
+                break;
+            case "pkcs8":
+                res = key.key.writePkcs8("der");
+                break;
+        }
+        return res;
+    }
+
+    static checkKeyType(type: string) {
+        const ERROR_TYPE = "KeyType";
+        let _type = type.toLowerCase();
+        switch (type) {
+            case "spki":
+            case "pkcs8":
+                break;
+            case "raw":
+            case "jwk":
+                throw new TypeError(`${ERROR_TYPE}: '${_type}' is not supported yet`);
+            default:
+                throw new TypeError(`${ERROR_TYPE}: Unknown key type in use '${_type}'`);
+        }
+    }
+
+    static checkExportKey(format: string, key: CryptoKey) {
+        const ERROR_TYPE = "ExportKey";
+
+        let _format = format.toLowerCase();
+        this.checkKeyType(format);
+
+        if (key.type === "private") {
+            if (_format !== "pkcs8")
+                throw new TypeError(`${ERROR_TYPE}: Only 'pkcs8' is allowed`);
+        }
+        else if (key.type === "public") {
+            if (_format !== "spki")
+                throw new TypeError(`${ERROR_TYPE}: Only 'spki' is allowed`);
+        }
+        else {
+            throw new TypeError(`${ERROR_TYPE}: Only for 'private' and 'public' key allowed`);
+        }
     }
 
     static checkAlgorithmIdentifier(alg) {
