@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "install": "tsd install && tsc && node-gyp rebuild"
   },
   "author": "msu",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "mocha": "^2.3.4",
     "nan": "^2.1.0"
