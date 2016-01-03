@@ -11,6 +11,10 @@
 #define DATA_FORMAT_DER 0
 #define DATA_FORMAT_PEM 1
 
+#ifndef byte
+typedef unsigned char byte; 
+#endif
+
 X509_SIG *PKCS8_set0_pbe(const char *pass, int passlen,
 	PKCS8_PRIV_KEY_INFO *p8inf, X509_ALGOR *pbe)
 {
@@ -50,7 +54,7 @@ static std::string OPENSSL_get_errors() {
 	return res;
 }
 
-#define THROW_OPENSSL(text) {puts(text);throw std::exception(OPENSSL_get_errors().c_str());}
+#define THROW_OPENSSL(text) {puts(text);throw std::runtime_error(OPENSSL_get_errors().c_str());}
 
 #define V8_CATCH_OPENSSL()\
 	catch (std::exception& e) {Nan::ThrowError(e.what());return;}
@@ -219,7 +223,7 @@ static std::string RSA_OAEP_encrypt(
 	size_t datalen)
 {
 	if (!pkey) {
-		throw std::exception("pkey is NULL");
+		throw std::runtime_error("pkey is NULL");
 	}
 
 	EVP_PKEY_CTX *rctx = EVP_PKEY_CTX_new(pkey, NULL);
@@ -336,7 +340,7 @@ static std::string k2pkcs8(
 	}
 
 	if (cipher) {
-		throw std::exception("Method is not implemented");
+		throw std::runtime_error("Method is not implemented");
 	}
 	else {
 		//no encrypt
@@ -416,7 +420,7 @@ public:
 		out = BIO_new(BIO_s_mem());
 		if (i2d_PKCS8PrivateKeyInfo_bio(out, this->internal()) <= 0) {
 			BIO_free(out);
-			throw std::exception("i2d_PKCS8PrivateKeyInfo_bio");
+			throw std::runtime_error("i2d_PKCS8PrivateKeyInfo_bio");
 		}
 
 		int buflen = BIO_get_mem_data(out, &buf);

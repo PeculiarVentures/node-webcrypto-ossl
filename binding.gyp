@@ -11,6 +11,7 @@
             "sources": [
                 "src/key.cpp"
             ],
+            "cflags_cc": ["-fexceptions"],
             "conditions": [
                 [
                     "OS=='win'",
