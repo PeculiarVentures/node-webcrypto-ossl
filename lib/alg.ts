@@ -1,5 +1,6 @@
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
+import * as native from "./native_key";
 
 export interface IAlgorithmBase {
     generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey | iwc.ICryptoKeyPair;
@@ -11,6 +12,12 @@ export interface IAlgorithmBase {
     unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey;
     deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): key.CryptoKey;
     exportKey(format: string, key: CryptoKey): Buffer;
+    importKey(
+        format: string,
+        keyData: Buffer,
+        algorithm: iwc.IAlgorithmIdentifier,
+        extractable: boolean,
+        keyUsages: string[]): CryptoKey;
 }
 
 export class AlgorithmBase {
@@ -61,6 +68,29 @@ export class AlgorithmBase {
                 break;
         }
         return res;
+    }
+
+    static importKey(
+        format: string,
+        keyData: Buffer,
+        algorithm: iwc.IAlgorithmIdentifier,
+        extractable: boolean,
+        keyUsages: string[]
+    ): CryptoKey {
+        let _format = format.toLowerCase();
+        let _key;
+        switch (_format) {
+            case "spki":
+                _key = native.KeyPair.readSpki(keyData, "der");
+                return new key.CryptoKey(_key, algorithm, "public");
+                break;
+            case "pkcs8":
+                _key = native.KeyPair.readPkcs8(keyData, "der");
+                return new key.CryptoKey(_key, algorithm, "private");
+                break;
+            default:
+                throw new Error(`Unsupported format in use '${format}'`);
+        }
     }
 
     static checkKeyType(type: string) {
