@@ -10,7 +10,7 @@ git clone https://github.com/PeculiarVentures/node-webcrypto-ossl
 cd node-webcrypto-ossl
 ```
 
-## Install Global Dependencies
+## Install Dependencies
 - node-gyp (node native module compiler)
 - typescript (TypeScript compiler)
 - tsd (TypeScript Defenition compiler)
