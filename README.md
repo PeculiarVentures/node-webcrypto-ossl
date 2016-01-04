@@ -27,25 +27,13 @@ npm install mocha -g
 
 ```
 npm install
+tsd install
+tsc
+node-gyp configure build
 ```
 
 * If you experience any errors make sure you have downloaded TypeScript dependencies
 
-```
-tsd install
-```
-
-**Compile TypeScript**
-  
-```
-tsc
-```
-
-**Compile Native Module**
-
-```
-node-gyp configure build
-```
 
 # Test
 
