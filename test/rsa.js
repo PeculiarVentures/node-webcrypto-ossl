@@ -66,7 +66,11 @@ describe("RSA", function () {
             return webcrypto.subtle.decrypt({name: "RSA-OAEP"}, key.privateKey, enc);
         })
         .then(function(dec){
-            assert.equal(dec.toString(), TEST_MESSAGE.toString(), "Rsa OAEP encrypt/decrypt is not valid")
+            var str = "";
+            var buf = new Uint8Array(dec);
+            for (var i=0; i<buf.length; i++)
+                str+=String.fromCharCode(buf[i]);
+            assert.equal(str, TEST_MESSAGE.toString(), "Rsa OAEP encrypt/decrypt is not valid")
         })
         .then(done, done);
     })

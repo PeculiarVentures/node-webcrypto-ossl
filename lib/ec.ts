@@ -116,9 +116,6 @@ export class Ecdsa extends Ec {
         this.checkPrivateKey(key);
         let _alg = this.wc2ssl(alg);
 
-        console.log("key:", key.key)
-        console.log("data:", data);
-        console.log("alg:", _alg);
         let sig = native.sign(key.key, data, _alg);
 
         return sig;

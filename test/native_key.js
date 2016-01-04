@@ -59,7 +59,7 @@ describe("Key", function () {
                 key.decryptRsaOAEP(dec, "SHA256");
             },
             Error);
-        assert.equal(msg.toString(), data.toString());
+            
     })
 
     it("AES", function(){
@@ -71,13 +71,11 @@ describe("Key", function () {
         var buf = cipher.update(new Buffer("Hello world"));
         buf = Buffer.concat([buf, cipher.final()]);
         var tag = cipher.getAuthTag();
-        console.log("Tag:", tag.toString("hex"));
         
         var decipher = crypto.createDecipheriv("aes-256-gcm", aes, iv);
         decipher.setAuthTag(tag);
         var msg = decipher.update(buf.toString("hex"), "hex", "utf8");
         msg += decipher.final("utf8");
-        console.log("msg", msg.toString());
     })
 
 })

@@ -97,7 +97,7 @@ static std::string OPENSSL_get_errors() {
 	return res;
 }
 
-#define THROW_OPENSSL(text) {puts(text);throw std::runtime_error(OPENSSL_get_errors().c_str());}
+#define THROW_OPENSSL(text) {LOG_INFO(text);throw std::runtime_error(OPENSSL_get_errors().c_str());}
 
 #define V8_CATCH_OPENSSL()\
 	catch (std::exception& e) {Nan::ThrowError(e.what());return;}
@@ -114,24 +114,9 @@ static v8::Local<v8::Object>s2b(std::string& buf) {
 
 #define V8_RETURN_BUFFER(strbuf) info.GetReturnValue().Set(s2b(strbuf));
 
-
-std::string get(v8::Local<v8::Value> value, const char *fallback = "") {
-    if (value->IsString()) {
-        v8::String::Utf8Value strValue(value);
-        puts("strValue");
-        puts(*strValue);
-        return std::string(*strValue, strValue.length());
-    }
-    return std::string(fallback);
-}
-
-
 static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKEY* pkey, char* digestName)
 {
-    puts("function sign init");
-    puts(digestName);
 	LOG_FUNC();
-    puts(digestName);
 
 	/* Returned to caller */
 	int result = -1;
@@ -154,8 +139,6 @@ static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKE
 			break;
 		}
 
-        fprintf(stdout, "digestName: %s\n", digestName);
-        fprintf(stdout, "digestName: %p\n", digestName);
 		const EVP_MD* md = EVP_get_digestbyname(digestName);
 		if (md == NULL) {
 			err = "EVP_get_digestbyname failed";
@@ -761,8 +744,8 @@ private:
 
 		std::string res;
 		int format = DATA_FORMAT_DER;
-		char *formatStr = (char *)get(info[0]).c_str();
-		if (strcmp(formatStr, "pem") == 0)
+		v8::String::Utf8Value formatStr(info[0]->ToString());
+		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 
 		try {
@@ -772,13 +755,13 @@ private:
 			}
 			else {
 				//crypto
-				char *pass = (char *)get(info[1]).c_str();
+				v8::String::Utf8Value pass(info[1]->ToString());
 				int passlen = info[1]->ToString()->Length();
 				byte *salt = (byte *)node::Buffer::Data(info[2]->ToObject());
 				int saltlen = node::Buffer::Length(info[2]->ToObject());
 				int iter = info[3]->ToNumber()->Int32Value();
 
-				res = k2pkcs8(obj->data.internal(), format, EVP_aes_256_gcm(), "", pass, passlen, salt, saltlen, iter);
+				res = k2pkcs8(obj->data.internal(), format, EVP_aes_256_gcm(), "", *pass, passlen, salt, saltlen, iter);
 			}
 		}
 		V8_CATCH_OPENSSL();
@@ -796,8 +779,8 @@ private:
 
 		std::string res;
 		int format = DATA_FORMAT_DER;
-		char *formatStr = (char*)get(info[0]).c_str();
-		if (strcmp(formatStr, "pem") == 0)
+		v8::String::Utf8Value formatStr(info[0]->ToString());
+		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 		try {
 			res = k2spki(obj->data.internal(), format);
@@ -823,9 +806,9 @@ private:
 
 		//format
 		int format = DATA_FORMAT_DER;
-		char *formatStr = (char*)get(info[1]).c_str();
+		v8::String::Utf8Value formatStr(info[1]->ToString());
 
-		if (strcmp(formatStr, "pem") == 0)
+		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 		try {
 			pkey = spki2k(buf, buflen, format);
@@ -852,9 +835,9 @@ private:
 
 		//format
 		int format = DATA_FORMAT_DER;
-		char *formatStr = (char*)get(info[1]).c_str();
+		v8::String::Utf8Value formatStr (info[1]->ToString());
 
-		if (strcmp(formatStr, "pem") == 0)
+		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 		try {
 			pkey = pkcs82k(buf, buflen, format);
@@ -878,11 +861,11 @@ private:
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
 		//hash
-		char *hash = (char*)get(info[1]).c_str();
+		v8::String::Utf8Value hash(info[1]->ToString());
 
 		std::string enc;
 		try {
-			enc = RSA_OAEP_encrypt(obj->data.internal(), hash, (const byte*)data, datalen);
+			enc = RSA_OAEP_encrypt(obj->data.internal(), *hash, (const byte*)data, datalen);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -902,11 +885,11 @@ private:
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
 		//hash
-		char *hash = (char*)get(info[1]).c_str();
+		v8::String::Utf8Value hash(info[1]->ToString());
 
 		std::string dec;
 		try {
-			dec = RSA_OAEP_decrypt(obj->data.internal(), hash, (const byte*)data, datalen);
+			dec = RSA_OAEP_decrypt(obj->data.internal(), *hash, (const byte*)data, datalen);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -969,14 +952,10 @@ NAN_METHOD(Sign) {
 	uint32_t siglen = 0;
 
 	LOG_INFO("get digest name");
-	char * digestName = (char *)get(info[2]).c_str();
-    puts ("digestName");
-    puts (digestName);
-    fprintf(stdout, "digestName p: %p\n", digestName);
+	v8::String::Utf8Value digestName(info[2]->ToString());
 	try
 	{
-        puts("function sign");
-		sign(buf, buflen, &sig, (size_t*)&siglen, key, digestName);
+		sign(buf, buflen, &sig, (size_t*)&siglen, key, *digestName);
 	}
 	V8_CATCH_OPENSSL();
 
@@ -1008,13 +987,13 @@ NAN_METHOD(Verify) {
 	size_t sigdatalen = node::Buffer::Length(info[2]);
 
 	LOG_INFO("get digest name");
-	char * digestName = (char *)get(info[3]).c_str();
+	v8::String::Utf8Value digestName(info[3]->ToString());
 
 	int res = 0;
 
 	try
 	{
-		res = verify(buf, buflen, sigdata, sigdatalen, key, digestName);
+		res = verify(buf, buflen, sigdata, sigdatalen, key, *digestName);
 	}
 	V8_CATCH_OPENSSL();
 
