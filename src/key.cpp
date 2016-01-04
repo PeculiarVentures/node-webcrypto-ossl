@@ -118,19 +118,20 @@ static v8::Local<v8::Object>s2b(std::string& buf) {
 std::string get(v8::Local<v8::Value> value, const char *fallback = "") {
     if (value->IsString()) {
         v8::String::Utf8Value strValue(value);
-        char *str = (char *) malloc(strValue.length() + 1);
-        strcpy(str, *strValue);
-        return str;
+        puts("strValue");
+        puts(*strValue);
+        return std::string(*strValue, strValue.length());
     }
-    char *str = (char *) malloc(strlen(fallback) + 1);
-    strcpy(str, fallback);
-    return str;
+    return std::string(fallback);
 }
 
 
 static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKEY* pkey, char* digestName)
 {
+    puts("function sign init");
+    puts(digestName);
 	LOG_FUNC();
+    puts(digestName);
 
 	/* Returned to caller */
 	int result = -1;
@@ -153,8 +154,8 @@ static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKE
 			break;
 		}
 
-        puts("EVP_get_digestbyname");
-        puts(digestName);
+        fprintf(stdout, "digestName: %s\n", digestName);
+        fprintf(stdout, "digestName: %p\n", digestName);
 		const EVP_MD* md = EVP_get_digestbyname(digestName);
 		if (md == NULL) {
 			err = "EVP_get_digestbyname failed";
@@ -760,7 +761,7 @@ private:
 
 		std::string res;
 		int format = DATA_FORMAT_DER;
-		char *formatStr = *v8::String::Utf8Value(info[0]->ToString());
+		char *formatStr = (char *)get(info[0]).c_str();
 		if (strcmp(formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 
@@ -771,7 +772,7 @@ private:
 			}
 			else {
 				//crypto
-				char *pass = *v8::String::Utf8Value(info[1]->ToString());
+				char *pass = (char *)get(info[1]).c_str();
 				int passlen = info[1]->ToString()->Length();
 				byte *salt = (byte *)node::Buffer::Data(info[2]->ToObject());
 				int saltlen = node::Buffer::Length(info[2]->ToObject());
@@ -795,7 +796,7 @@ private:
 
 		std::string res;
 		int format = DATA_FORMAT_DER;
-		char *formatStr = *v8::String::Utf8Value(info[0]->ToString());
+		char *formatStr = (char*)get(info[0]).c_str();
 		if (strcmp(formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 		try {
@@ -822,7 +823,7 @@ private:
 
 		//format
 		int format = DATA_FORMAT_DER;
-		char *formatStr = *v8::String::Utf8Value(info[1]->ToString());
+		char *formatStr = (char*)get(info[1]).c_str();
 
 		if (strcmp(formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
@@ -851,7 +852,7 @@ private:
 
 		//format
 		int format = DATA_FORMAT_DER;
-		char *formatStr = *v8::String::Utf8Value(info[1]->ToString());
+		char *formatStr = (char*)get(info[1]).c_str();
 
 		if (strcmp(formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
@@ -877,7 +878,7 @@ private:
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
 		//hash
-		char *hash = *v8::String::Utf8Value(info[1]->ToString());
+		char *hash = (char*)get(info[1]).c_str();
 
 		std::string enc;
 		try {
@@ -901,7 +902,7 @@ private:
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
 		//hash
-		char *hash = *v8::String::Utf8Value(info[1]->ToString());
+		char *hash = (char*)get(info[1]).c_str();
 
 		std::string dec;
 		try {
@@ -968,13 +969,13 @@ NAN_METHOD(Sign) {
 	uint32_t siglen = 0;
 
 	LOG_INFO("get digest name");
-	//char * digestName = *v8::String::Utf8Value(info[2]->ToString());
-	char * digestName = get(info[2]);
-    fprintf(stdout, "digestName: %s\n", digestName);
-    fprintf(stdout, "digestName length: %d\n", info[2]->ToString()->Length());
-
+	char * digestName = (char *)get(info[2]).c_str();
+    puts ("digestName");
+    puts (digestName);
+    fprintf(stdout, "digestName p: %p\n", digestName);
 	try
 	{
+        puts("function sign");
 		sign(buf, buflen, &sig, (size_t*)&siglen, key, digestName);
 	}
 	V8_CATCH_OPENSSL();
@@ -1007,7 +1008,7 @@ NAN_METHOD(Verify) {
 	size_t sigdatalen = node::Buffer::Length(info[2]);
 
 	LOG_INFO("get digest name");
-	char * digestName = *v8::String::Utf8Value(info[3]->ToString());
+	char * digestName = (char *)get(info[3]).c_str();
 
 	int res = 0;
 
