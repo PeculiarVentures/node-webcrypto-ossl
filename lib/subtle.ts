@@ -37,6 +37,14 @@ function ab2b(ab: ArrayBuffer) {
     return new Buffer(buf);
 }
 
+/**
+ * Converts Buffer to ArrayBuffer
+ * @param b Buffer value wich must be converted to ArrayBuffer
+ */
+function b2ab(b: Buffer): ArrayBuffer {
+    return new Uint8Array(b).buffer;
+}
+
 export class SubtleCrypto implements iwc.ISubtleCrypto {
 
     generateKey(algorithm: iwc.AlgorithmType, extractable: boolean, keyUsages: string[]): Promise {
@@ -272,8 +280,35 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
 
         return new Promise(function(resolve, reject) {
             let data = alg.AlgorithmBase.exportKey(format, key);
-            let ubuf = new Uint8Array(<any> data);
+            let ubuf = new Uint8Array(<any>data);
             resolve(ubuf.buffer);
+        });
+    }
+
+    importKey(
+        format: string,
+        keyData: iwc.TBuffer,
+        algorithm: iwc.IAlgorithmIdentifier,
+        extractable: boolean,
+        keyUsages: string[]
+    ): Promise {
+        return new Promise(function(resolve, reject) {
+            let _alg = prepare_algorithm(algorithm);
+            let _data = prepare_data(keyData);
+
+            let AlgClass: alg.IAlgorithmBase = null;
+            switch (_alg.name.toLowerCase()) {
+                case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = rsa.RsaPKCS1;
+                    break;
+                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = rsa.RsaOAEP;
+                    break;
+                default:
+                    throw new TypeError("Unsupported algorithm in use");
+            }
+            let key = AlgClass.importKey(format, _data, _alg, extractable, keyUsages);
+            resolve(key);
         });
     }
 

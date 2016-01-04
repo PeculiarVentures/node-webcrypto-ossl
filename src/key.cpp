@@ -15,9 +15,50 @@
 typedef unsigned char byte; 
 #endif
 
-X509_SIG *PKCS8_set0_pbe(const char *pass, int passlen,
-	PKCS8_PRIV_KEY_INFO *p8inf, X509_ALGOR *pbe)
+//#define V8_DEBUG
+
+class FunctionLog {
+public:
+	FunctionLog(const char *name) {
+		name_ = std::string(name);
+#ifdef V8_DEBUG
+		std::string res = "begin " + name_;
+		puts(res.c_str());
+#endif 
+	}
+
+	~FunctionLog() {
+#ifdef V8_DEBUG
+		std::string res = "end   " + name_;
+		puts(res.c_str());
+#endif 
+	}
+protected:
+	std::string name_;
+};
+
+void MessageLog(char* type, char* name) {
+	fprintf(stdout, "%s: %s\n", type, name);
+}
+
+#ifdef V8_DEBUG
+#define LOG_INFO(name) MessageLog("info ", name)
+#else
+#define LOG_INFO(name)
+#endif
+
+#define LOG_FUNC() \
+	FunctionLog __v8_func(__FUNCTION__);
+
+
+X509_SIG *PKCS8_set0_pbe(
+	const char *pass,
+	int passlen,
+	PKCS8_PRIV_KEY_INFO *p8inf,
+	X509_ALGOR *pbe)
 {
+	LOG_FUNC();
+
 	X509_SIG *p8;
 	ASN1_OCTET_STRING *enckey;
 
@@ -43,6 +84,8 @@ X509_SIG *PKCS8_set0_pbe(const char *pass, int passlen,
 }
 
 static std::string OPENSSL_get_errors() {
+	LOG_FUNC();
+
 	BIO* bio = BIO_new(BIO_s_mem());
 	char *str;
 	ERR_print_errors(bio);
@@ -60,6 +103,8 @@ static std::string OPENSSL_get_errors() {
 	catch (std::exception& e) {Nan::ThrowError(e.what());return;}
 
 static v8::Local<v8::Object>s2b(std::string& buf) {
+	LOG_FUNC();
+
 	v8::Local<v8::Object> v8Buf = Nan::NewBuffer(buf.length()).ToLocalChecked();
 	char *data = node::Buffer::Data(v8Buf);
 	memcpy(data, buf.c_str(), buf.length());
@@ -69,8 +114,24 @@ static v8::Local<v8::Object>s2b(std::string& buf) {
 
 #define V8_RETURN_BUFFER(strbuf) info.GetReturnValue().Set(s2b(strbuf));
 
+
+std::string get(v8::Local<v8::Value> value, const char *fallback = "") {
+    if (value->IsString()) {
+        v8::String::Utf8Value strValue(value);
+        char *str = (char *) malloc(strValue.length() + 1);
+        strcpy(str, *strValue);
+        return str;
+    }
+    char *str = (char *) malloc(strlen(fallback) + 1);
+    strcpy(str, fallback);
+    return str;
+}
+
+
 static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKEY* pkey, char* digestName)
 {
+	LOG_FUNC();
+
 	/* Returned to caller */
 	int result = -1;
 
@@ -91,7 +152,9 @@ static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKE
 			err = "EVP_MD_CTX_create failed";
 			break;
 		}
-		
+
+        puts("EVP_get_digestbyname");
+        puts(digestName);
 		const EVP_MD* md = EVP_get_digestbyname(digestName);
 		if (md == NULL) {
 			err = "EVP_get_digestbyname failed";
@@ -145,28 +208,30 @@ static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKE
 
 	} while (0);
 
+	BIO_free(bmd);
+
 	if (err) {
-		BIO_free(bmd);
 		THROW_OPENSSL(err);
 	}
-
-	BIO_free(bmd);
 }
 
 int verify(const byte* msg, size_t mlen, const byte* sig, size_t slen, EVP_PKEY* pkey, char* digestName)
 {
+	LOG_FUNC();
+
 	/* Returned to caller */
 	int result = -1;
 
 	EVP_MD_CTX* ctx = NULL;
 	char* err = NULL;
+	BIO *bmd = BIO_new(BIO_f_md());
 
 	do
 	{
-		ctx = EVP_MD_CTX_create();
+		BIO_get_md_ctx(bmd, &ctx);
 		if (ctx == NULL) {
 			err = "EVP_MD_CTX_create failed";
-			break; /* failed */
+			break;
 		}
 
 		const EVP_MD* md = EVP_get_digestbyname(digestName);
@@ -180,7 +245,7 @@ int verify(const byte* msg, size_t mlen, const byte* sig, size_t slen, EVP_PKEY*
 			err = "EVP_DigestInit_ex failed";
 			break; /* failed */
 		}
-
+		
 		rc = EVP_DigestVerifyInit(ctx, NULL, md, NULL, pkey);
 		if (rc != 1) {
 			err = "EVP_DigestVerifyInit failed";
@@ -204,10 +269,7 @@ int verify(const byte* msg, size_t mlen, const byte* sig, size_t slen, EVP_PKEY*
 
 	} while (0);
 
-	if (ctx) {
-		EVP_MD_CTX_destroy(ctx);
-		ctx = NULL;
-	}
+	BIO_free(bmd);
 
 	if (err) {
 		THROW_OPENSSL(err);
@@ -222,6 +284,8 @@ static std::string RSA_OAEP_encrypt(
 	const byte *data,
 	size_t datalen)
 {
+	LOG_FUNC();
+
 	if (!pkey) {
 		throw std::runtime_error("pkey is NULL");
 	}
@@ -274,6 +338,8 @@ static std::string RSA_OAEP_decrypt(
 	const byte *data,
 	size_t datalen)
 {
+	LOG_FUNC();
+
 	EVP_PKEY_CTX *rctx = EVP_PKEY_CTX_new(pkey, NULL);
 
 	const EVP_MD *md = EVP_get_digestbyname(digestName);
@@ -328,6 +394,8 @@ static std::string k2pkcs8(
 	int iter
 	)
 {
+	LOG_FUNC();
+
 	std::string res;
 	PKCS8_PRIV_KEY_INFO *p8info = NULL;
 	BIO *out;
@@ -374,6 +442,8 @@ static std::string k2pkcs8(
 }
 
 static std::string k2spki(EVP_PKEY* pkey, int dataFormat) {
+	LOG_FUNC();
+
 	char *buf;
 	int buflen;
 	std::string res;
@@ -399,21 +469,91 @@ static std::string k2spki(EVP_PKEY* pkey, int dataFormat) {
 	return res;
 }
 
+EVP_PKEY* pkcs82k(char *buf, int buflen, int dataFormat) {
+	LOG_FUNC();
+
+	BIO *in = BIO_new(BIO_s_mem());
+	EVP_PKEY* pubkey = NULL;
+
+	char *d = (char *)OPENSSL_malloc(buflen);
+	memcpy(d, buf, buflen);
+	BIO_write(in, d, buflen);
+
+	BIO_seek(in, 0);
+
+	switch (dataFormat) {
+	case DATA_FORMAT_PEM:
+		pubkey = PEM_read_bio_PrivateKey(in, NULL, 0, NULL);
+		if (pubkey == NULL) {
+			BIO_free(in);
+			THROW_OPENSSL("PEM_read_bio_PrivateKey");
+		}
+		break;
+	default:
+		pubkey = d2i_PrivateKey_bio(in, NULL);
+		if (pubkey == NULL) {
+			BIO_free(in);
+			THROW_OPENSSL("d2i_PrivateKey_bio");
+		}
+	}
+
+	BIO_free(in);
+
+	return pubkey;
+}
+
+EVP_PKEY* spki2k(char *buf, int buflen, int dataFormat) {
+	LOG_FUNC();
+
+	BIO *in = BIO_new(BIO_s_mem());
+	BIO_write(in, buf, buflen);
+	EVP_PKEY* pubkey = NULL;
+
+	BIO_seek(in, 0);
+
+	switch (dataFormat) {
+	case DATA_FORMAT_PEM:
+		pubkey = PEM_read_bio_PUBKEY(in, NULL, 0, NULL);
+		if (pubkey == NULL) {
+			BIO_free(in);
+			THROW_OPENSSL("PEM_read_bio_PUBKEY");
+		}
+		break;
+	default:
+		pubkey = d2i_PUBKEY_bio(in, NULL);
+		if (pubkey == NULL) {
+			BIO_free(in);
+			THROW_OPENSSL("d2i_PUBKEY_bio");
+		}
+	}
+
+	BIO_free(in);
+
+	return pubkey;
+}
+
 class Key {
 public:
 	Key() {
+		LOG_FUNC();
+
 		this->_internal = EVP_PKEY_new();
 	}
 	Key(EVP_PKEY *key) {
+		LOG_FUNC();
+
 		this->_internal = key;
 	}
 	~Key() {
+		LOG_FUNC();
+
 		this->dispose();
 		this->_internal = NULL;
 	}
 
 	//Returns in PKCS8
 	std::string writePrivateKey() {
+		LOG_FUNC();
 
 		BIO *out;
 		char *buf;
@@ -432,17 +572,25 @@ public:
 	}
 
 	int type() {
+		LOG_FUNC();
+
 		return this->internal()->type;
 	}
 
 	void dispose() {
-		if (this->_internal)
+		LOG_FUNC();
+
+		if (this->_internal) {
 			EVP_PKEY_free(this->_internal);
+			this->_internal = NULL;
+		}
 	}
 
 
 
 	int generateRsa(int modulus, int publicExponent) {
+		LOG_FUNC();
+
 		EVP_PKEY *pkey = EVP_PKEY_new();
 		RSA *rsa = NULL;
 		unsigned long e = RSA_3;
@@ -488,6 +636,8 @@ public:
 	}
 
 	int generateEc(int nidEc) {
+		LOG_FUNC();
+
 		EVP_PKEY *pkey = NULL;
 
 		EC_KEY *eckey = EC_KEY_new_by_curve_name(nidEc);
@@ -514,7 +664,16 @@ public:
 	}
 
 	EVP_PKEY* internal() {
+		LOG_FUNC();
+
 		return this->_internal;
+	}
+
+	void internal(EVP_PKEY *pkey) {
+		LOG_FUNC();
+
+		this->dispose();
+		this->_internal = pkey;
 	}
 
 protected:
@@ -537,6 +696,10 @@ public:
 		SetPrototypeMethod(tpl, "writePKCS8", WritePKCS8);
 		SetPrototypeMethod(tpl, "writeSPKI", WriteSPKI);
 
+		//read
+		SetPrototypeMethod(tpl, "readPKCS8", ReadPKCS8);
+		SetPrototypeMethod(tpl, "readSPKI", ReadSPKI);
+
 		//OAEP
 		SetPrototypeMethod(tpl, "encryptRsaOAEP", encryptRsaOAEP);
 		SetPrototypeMethod(tpl, "decryptRsaOAEP", decryptRsaOAEP);
@@ -558,10 +721,16 @@ public:
 	Key data;
 private:
 
-	explicit WKey() : data(Key()) {}
-	~WKey() {}
+	explicit WKey() : data(Key()) {
+		LOG_FUNC();
+	}
+	~WKey() {
+		LOG_FUNC();
+	}
 
 	static NAN_METHOD(New) {
+		LOG_FUNC();
+
 		if (info.IsConstructCall()) {
 
 			WKey * obj = new WKey();
@@ -585,6 +754,8 @@ private:
 	iter: Number
 	*/
 	static NAN_METHOD(WritePKCS8) {
+		LOG_FUNC();
+
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		std::string res;
@@ -618,6 +789,8 @@ private:
 	format: String
 	*/
 	static NAN_METHOD(WriteSPKI) {
+		LOG_FUNC();
+
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		std::string res;
@@ -634,10 +807,70 @@ private:
 	}
 
 	/*
+	buffer: Buffer
+	format: String
+	*/
+	static NAN_METHOD(ReadSPKI) {
+		LOG_FUNC();
+
+		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
+		
+		EVP_PKEY* pkey;
+		//buffer
+		char *buf = node::Buffer::Data(info[0]->ToObject());
+		int buflen = node::Buffer::Length(info[0]->ToObject());
+
+		//format
+		int format = DATA_FORMAT_DER;
+		char *formatStr = *v8::String::Utf8Value(info[1]->ToString());
+
+		if (strcmp(formatStr, "pem") == 0)
+			format = DATA_FORMAT_PEM;
+		try {
+			pkey = spki2k(buf, buflen, format);
+		}
+		V8_CATCH_OPENSSL();
+
+		obj->data.internal(pkey);
+	
+		info.GetReturnValue().SetUndefined();
+	}
+
+	/*
+	buffer: Buffer
+	format: String
+	*/
+	static NAN_METHOD(ReadPKCS8) {
+		LOG_FUNC();
+		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
+
+		EVP_PKEY* pkey;
+		//buffer
+		char *buf = node::Buffer::Data(info[0]->ToObject());
+		int buflen = node::Buffer::Length(info[0]->ToObject());
+
+		//format
+		int format = DATA_FORMAT_DER;
+		char *formatStr = *v8::String::Utf8Value(info[1]->ToString());
+
+		if (strcmp(formatStr, "pem") == 0)
+			format = DATA_FORMAT_PEM;
+		try {
+			pkey = pkcs82k(buf, buflen, format);
+		}
+		V8_CATCH_OPENSSL();
+
+		obj->data.internal(pkey);
+
+		info.GetReturnValue().SetUndefined();
+	}
+
+	/*
 	data: Buffer
 	hash: String
 	*/
 	static NAN_METHOD(encryptRsaOAEP) {
+		LOG_FUNC();
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		//data
@@ -660,6 +893,8 @@ private:
 	hash: String
 	*/
 	static NAN_METHOD(decryptRsaOAEP) {
+		LOG_FUNC();
+
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		//data
@@ -678,6 +913,8 @@ private:
 	}
 
 	static NAN_METHOD(GenerateRsa) {
+		LOG_FUNC();
+
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		int modulus = info[0]->Uint32Value();
@@ -716,20 +953,25 @@ private:
 };
 
 NAN_METHOD(Sign) {
+	LOG_FUNC();
 
 	EVP_PKEY * key = NULL;
+	LOG_INFO("Unwrap Wkey");
 	WKey* obj = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
 	key = obj->data.internal();
 
-	//get data from buffer
+	LOG_INFO("get data from buffer"); 
 	const byte * buf = (byte*)node::Buffer::Data(info[1]);
 	size_t buflen = node::Buffer::Length(info[1]);
 
 	byte *sig = NULL;
 	uint32_t siglen = 0;
 
-	//get digest name
-	char * digestName = (*v8::String::Utf8Value(info[2]->ToString()));
+	LOG_INFO("get digest name");
+	//char * digestName = *v8::String::Utf8Value(info[2]->ToString());
+	char * digestName = get(info[2]);
+    fprintf(stdout, "digestName: %s\n", digestName);
+    fprintf(stdout, "digestName length: %d\n", info[2]->ToString()->Length());
 
 	try
 	{
@@ -737,32 +979,35 @@ NAN_METHOD(Sign) {
 	}
 	V8_CATCH_OPENSSL();
 
+	LOG_INFO("copy signature to Buffer");
 	v8::Local<v8::Object> v8Buf = Nan::NewBuffer(siglen).ToLocalChecked();
 	char *pbuf = node::Buffer::Data(v8Buf);
 	memcpy(pbuf, sig, siglen);
 
 	if (sig) OPENSSL_free(sig);
 
+	LOG_INFO("return value");
 	info.GetReturnValue().Set(v8Buf);
 }
 
 NAN_METHOD(Verify) {
+	LOG_FUNC();
 
-	//get key
+	LOG_INFO("get key");
 	EVP_PKEY * key = NULL;
 	WKey* obj = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
 	key = obj->data.internal();
 
-	//get data from buffer
+	LOG_INFO("get data from buffer");
 	const byte * buf = (byte*)node::Buffer::Data(info[1]);
 	size_t buflen = node::Buffer::Length(info[1]);
 
-	//get sigdata from buffer
+	LOG_INFO("get sigdata from buffer");
 	const byte * sigdata = (byte*)node::Buffer::Data(info[2]);
 	size_t sigdatalen = node::Buffer::Length(info[2]);
 
-	//get digest name
-	char * digestName = (*v8::String::Utf8Value(info[3]->ToString()));
+	LOG_INFO("get digest name");
+	char * digestName = *v8::String::Utf8Value(info[3]->ToString());
 
 	int res = 0;
 
@@ -772,11 +1017,14 @@ NAN_METHOD(Verify) {
 	}
 	V8_CATCH_OPENSSL();
 
+	LOG_INFO("return value");
 	info.GetReturnValue().Set(Nan::New<v8::Boolean>(res));
 }
 
 
 NAN_MODULE_INIT(Init) {
+	LOG_FUNC();
+
 	Nan::HandleScope scope;
 
 	ERR_load_crypto_strings();

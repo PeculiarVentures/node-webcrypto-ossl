@@ -137,6 +137,28 @@ export class KeyPair extends BaseObject {
         }
     }
 
+    static readSpki(buf: Buffer, format: string): KeyPair {
+        let key = new KeyPair();
+        key.readSpki(buf, format);
+        return key;
+    }
+
+    readSpki(buf: Buffer, format: string) {
+        format = format.toLowerCase();
+        this.handle.readSPKI(buf, format);
+    }
+
+    static readPkcs8(buf: Buffer, format: string): KeyPair {
+        let key = new KeyPair();
+        key.readPkcs8(buf, format);
+        return key;
+    }
+
+    readPkcs8(buf: Buffer, format: string) {
+        format = format.toLowerCase();
+        this.handle.readPKCS8(buf, format);
+    }
+
     encryptRsaOAEP(data: Buffer, hash: string = "SHA1") {
         this.checkType("RSA");
         return this.handle.encryptRsaOAEP(data, hash);
