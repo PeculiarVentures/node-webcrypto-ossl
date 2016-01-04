@@ -301,7 +301,7 @@ static std::string RSA_OAEP_encrypt(
 		THROW_OPENSSL("EVP_PKEY_encrypt");
 	}
 
-	byte *enc = (byte*)OPENSSL_malloc(enclen);
+	byte *enc = static_cast<byte*>(OPENSSL_malloc(enclen));
 
 	if (EVP_PKEY_encrypt(rctx, enc, &enclen, data, datalen) <= 0) {
 		OPENSSL_free(enc);
@@ -459,7 +459,7 @@ EVP_PKEY* pkcs82k(char *buf, int buflen, int dataFormat) {
 	BIO *in = BIO_new(BIO_s_mem());
 	EVP_PKEY* pubkey = NULL;
 
-	char *d = (char *)OPENSSL_malloc(buflen);
+	char *d = static_cast<char *>(OPENSSL_malloc(buflen));
 	memcpy(d, buf, buflen);
 	BIO_write(in, d, buflen);
 
