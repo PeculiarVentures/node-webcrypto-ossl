@@ -35,13 +35,13 @@ npm install
 tsd install
 ```
 
-- Compile TypeScript
+**Compile TypeScript**
   
 ```
 tsc
 ```
 
-- Compile native module
+**Compile Native Module**
 
 ```
 node-gyp configure build
