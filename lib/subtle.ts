@@ -63,11 +63,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                /*
-            case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                AlgClass = aes.AesGCM;
-                break;
-              */
+                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = aes.AesGCM;
+                    break;
                 case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                     AlgClass = aes.AesCBC;
                     break;
@@ -150,11 +148,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                /*
-            case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                AlgClass = aes.AesGCM;
-                break;
-                */
+                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = aes.AesGCM;
+                    break;
                 case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                     AlgClass = aes.AesCBC;
                     break;
@@ -178,11 +174,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                /*
-            case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                AlgClass = aes.AesGCM;
-                break;
-                */
+                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = aes.AesGCM;
+                    break;
                 case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                     AlgClass = aes.AesCBC;
                     break;

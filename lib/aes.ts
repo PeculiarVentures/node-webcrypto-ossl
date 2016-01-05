@@ -13,6 +13,23 @@ export var ALG_NAME_AES_KW = "AES-KW";
 
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
 
+/**
+ * Prepare array of data before it's using 
+ * @param data Array which must be prepared
+ */
+function prepare_data(data: Buffer | ArrayBuffer) {
+    return (!Buffer.isBuffer(data)) ? ab2b(data) : data;
+}
+
+/**
+ * Converts ArrayBuffer to Buffer
+ * @param ab ArrayBuffer value wich must be converted to Buffer
+ */
+function ab2b(ab: ArrayBuffer) {
+    let buf = new Uint8Array(ab);
+    return new Buffer(buf);
+}
+
 export class Aes extends alg.AlgorithmBase {
     static generateKey(alg: IAesKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKey {
         this.checkAlgorithmIdentifier(alg);
@@ -81,66 +98,74 @@ export class AesKey extends CryptoKey {
     }
 }
 
-/*
 export class AesGCM extends Aes {
     static ALGORITHM_NAME: string = ALG_NAME_AES_GCM;
 
-    static wc2ssl(alg: IAesAlgorithmParams) {
-        let params = new graphene.AES.AesGCMParams(alg.iv, alg.additionalData, alg.tagLength);
-        return { name: "AES_GCM", params: params };
+    static wc2ssl(alg: any) {
+        let ret = "";
+        switch (alg.length) {
+            case 128:
+            case 192:
+            case 256:
+                ret = `aes-${alg.length}-gcm`;
+                break;
+            default:
+                throw new Error(`Unknown AES key length in use '${alg.length}'`);
+        }
+        return ret;
     }
 
     static encrypt(alg: IAesAlgorithmParams, key: CryptoKey, data: Buffer): Buffer {
+        this.checkAlgorithmIdentifier(key.algorithm);
+        this.checkKeyGenParams(key.algorithm);
+        let _alg = this.wc2ssl(key.algorithm);
         this.checkAlgorithmParams(alg);
         this.checkSecretKey(key);
-        let _alg = this.wc2pk11(alg);
 
-        // TODO: Remove <any>
-        let enc = session.createEncrypt(<any>_alg, key.key);
-        let msg = new Buffer(0);
-        msg = Buffer.concat([msg, enc.update(data)]);
-        msg = Buffer.concat([msg, enc.final()]);
-        return msg;
+        let cipher: any = crypto.createCipheriv(_alg, key.key.handle, alg.iv);
+        cipher.setAAD(prepare_data(alg.additionalData));
+
+        let enc = cipher.update(data).toString("binary");
+        enc += cipher.final("binary");
+
+        let tag = cipher.getAuthTag().toString("binary");
+
+        let msg = enc + tag;
+
+        return new Buffer(msg, "binary");
     }
 
     static decrypt(alg: IAesAlgorithmParams, key: CryptoKey, data: Buffer): Buffer {
+        this.checkAlgorithmIdentifier(key.algorithm);
+        this.checkKeyGenParams(key.algorithm);
+        let _alg = this.wc2ssl(key.algorithm);
         this.checkAlgorithmParams(alg);
         this.checkSecretKey(key);
-        let _alg = this.wc2pk11(alg);
 
-        // TODO: Remove <any>
-        let dec = session.createDecrypt(<any>_alg, key.key);
-        let msg = new Buffer(0);
-        msg = Buffer.concat([msg, dec.update(data)]);
-        msg = Buffer.concat([msg, dec.final()]);
-        return msg;
+        let strData = data.toString("binary");
+        let _data = strData.substr(0, (strData.length - (alg.tagLength / 8)));
+        let tag = strData.substr(strData.length - (alg.tagLength / 8));
+
+        let decipher: any = crypto.createDecipheriv(_alg, key.key.handle, alg.iv);
+        decipher.setAAD(prepare_data(alg.additionalData));
+        decipher.setAuthTag(new Buffer(tag, "binary"));
+
+        let dec = decipher.update(_data, "binary", "binary");
+        dec += decipher.final("binary");
+
+        return new Buffer(dec, "binary");
     }
 
     static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: IAesAlgorithmParams): Buffer {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkAlgorithmHashedParams(alg);
-        this.checkSecretKey(key);
+        this.checkAlgorithmParams(alg);
         this.checkPublicKey(wrappingKey);
-        let _alg = this.wc2pk11(alg);
-
-        let wrappedKey: Buffer = session.wrapKey(wrappingKey.key, <any>_alg, key.key);
-        return wrappedKey;
+        return this.encrypt(alg, key, new Buffer("No data"));
     }
 
     static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: IAesAlgorithmParams, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
-        this.checkAlgorithmIdentifier(unwrapAlgorithm);
-        this.checkAlgorithmHashedParams(unwrapAlgorithm);
-        this.checkPrivateKey(unwrappingKey);
-        let _alg = this.wc2pk11(unwrapAlgorithm);
-
-        // TODO: convert unwrappedAlgorithm to PKCS11 Algorithm 
-
-        let unwrappedKey: graphene.Key = session.unwrapKey(unwrappingKey.key, <any>_alg, { name: "" }, wrappedKey);
-        // TODO: WrapKey with known AlgKey 
-        return new CryptoKey(unwrappedKey, { name: "" });
+        throw new Error("Unsupported yet");
     }
 }
-*/
 
 export class AesCBC extends Aes {
     static ALGORITHM_NAME: string = ALG_NAME_AES_CBC;

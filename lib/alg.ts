@@ -77,6 +77,7 @@ export class AlgorithmBase {
         extractable: boolean,
         keyUsages: string[]
     ): CryptoKey {
+        this.checkKeyType(format);
         let _format = format.toLowerCase();
         let _key;
         switch (_format) {
