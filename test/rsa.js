@@ -75,7 +75,6 @@ describe("RSA", function () {
         .then(done, done);
     })
     
-    /*
     it("RSA OAEP wrap/unwrap", function (done) {
         var key = null;
         var skey = null;
@@ -95,7 +94,7 @@ describe("RSA", function () {
             key = k;
             keys.push(key);
             return webcrypto.subtle.generateKey({
-                name: "AES-GCM",
+                name: "AES-CBC",
                 length: 128, //can be  128, 192, or 256
             },
             true, //whether the key is extractable (i.e. can be used in exportKey)
@@ -125,7 +124,7 @@ describe("RSA", function () {
                     hash: {name: "SHA-1"},
                 },
                 {   //this what you want the wrapped key to become (same as when wrapping)
-                    name: "AES-GCM",
+                    name: "AES-CBC",
                     length: 128
                 },
                 false, //whether the key is extractable (i.e. can be used in exportKey)
@@ -137,5 +136,4 @@ describe("RSA", function () {
         })
         .then(done, done);
     })
-    */
 })

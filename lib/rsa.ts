@@ -2,7 +2,7 @@ import * as alg from "./alg";
 import * as iwc from "./iwebcrypto";
 import {CryptoKey} from "./key";
 import * as native from "./native_key";
-// import * as aes from "./aes";
+import * as aes from "./aes";
 
 let ALG_NAME_RSA_PKCS1 = "RSASSA-PKCS1-v1_5";
 let ALG_NAME_RSA_PSS = "RSA-PSS";
@@ -160,71 +160,47 @@ export class RsaOAEP extends Rsa {
 
         return msg;
     }
+    static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer {
+        this.checkAlgorithmIdentifier(alg);
+        this.checkAlgorithmHashedParams(alg);
+        this.checkSecretKey(key);
+        this.checkPublicKey(wrappingKey);
+        let _alg = this.wc2ssl(alg);
 
-    /*
-        static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer {
-            throw new Error("Unsupported in curremt implementation");
-            this.checkAlgorithmIdentifier(alg);
-            this.checkAlgorithmHashedParams(alg);
-            this.checkSecretKey(key);
-            this.checkPublicKey(wrappingKey);
-            let _alg = this.wc2ssl(alg);
-    
-            let wrappedKey: Buffer = session.wrapKey(wrappingKey.key, _alg, key.key);
-            return wrappedKey;
+        let wrappedKey: Buffer = wrappingKey.key.encryptRsaOAEP(key.key.handle, _alg);
+        return wrappedKey;
+    }
+
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
+        this.checkAlgorithmIdentifier(unwrapAlgorithm);
+        this.checkAlgorithmHashedParams(unwrapAlgorithm);
+        this.checkPrivateKey(unwrappingKey);
+
+        let _alg = this.wc2ssl(unwrapAlgorithm);
+
+        // convert unwrappedAlgorithm to PKCS11 Algorithm
+        let AlgClass = null;
+        switch (unwrappedAlgorithm.name) {
+            // case aes.ALG_NAME_AES_CTR:
+            // case aes.ALG_NAME_AES_CMAC:
+            // case aes.ALG_NAME_AES_CFB:
+            // case aes.ALG_NAME_AES_KW:
+            case aes.ALG_NAME_AES_CBC:
+                aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                AlgClass = aes.AesCBC;
+                break;
+            /*
+            case aes.ALG_NAME_AES_GCM:
+                aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                AlgClass = aes.AesGCM;
+                break;
+            */
+            default:
+                throw new Error("Unsupported algorithm in use");
+
         }
-    
-        static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
-            throw new Error("Unsupported in curremt implementation");
-            this.checkAlgorithmIdentifier(unwrapAlgorithm);
-            this.checkAlgorithmHashedParams(unwrapAlgorithm);
-            this.checkPrivateKey(unwrappingKey);
-    
-            let _alg = this.wc2pk11(unwrapAlgorithm);
-    
-            // convert unwrappedAlgorithm to PKCS11 Algorithm
-            let AlgClass = null;
-            switch (unwrappedAlgorithm.name) {
-                // case aes.ALG_NAME_AES_CTR:
-                // case aes.ALG_NAME_AES_CMAC:
-                // case aes.ALG_NAME_AES_CFB:
-                // case aes.ALG_NAME_AES_KW:
-                case aes.ALG_NAME_AES_CBC:
-                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-                    AlgClass = aes.AesCBC;
-                    break;
-                case aes.ALG_NAME_AES_GCM:
-                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-                    AlgClass = aes.AesGCM;
-                    break;
-                default:
-                    throw new Error("Unsupported algorithm in use");
-                    
-            }
-    
-    
-            let unwrappedKey: graphene.Key = session.unwrapKey(
-                unwrappingKey.key,
-                _alg,
-                {
-                    "class": Enums.ObjectClass.SecretKey,
-                    "sensitive": true,
-                    "private": true,
-                    "token": false,
-                    "keyType": Enums.KeyType.AES,
-                    "valueLen": unwrappedAlgorithm.length / 8,
-                    "encrypt": keyUsages.indexOf["encrypt"] > -1,
-                    "decrypt": keyUsages.indexOf["decrypt"] > -1,
-                    "sign": keyUsages.indexOf["sign"] > -1,
-                    "verify": keyUsages.indexOf["verify"] > -1,
-                    "wrap": keyUsages.indexOf["wrapKey"] > -1,
-                    "unwrap": keyUsages.indexOf["unwrapKey"] > -1,
-                    "derive": keyUsages.indexOf["deriveKey"] > -1
-                },
-                wrappedKey
-            );
-            return new AlgClass(unwrappedKey, unwrappedAlgorithm);
-            
-        }
-     */
+
+        let unwrappedKey: Buffer = unwrappingKey.key.decryptRsaOAEP(wrappedKey, _alg);
+        return new AlgClass(unwrappedKey, unwrappedAlgorithm);
+    }
 }
