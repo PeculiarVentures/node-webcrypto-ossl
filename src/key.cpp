@@ -12,7 +12,7 @@
 #define DATA_FORMAT_PEM 1
 
 #ifndef byte
-typedef unsigned char byte; 
+typedef unsigned char byte;
 #endif
 
 //#define V8_DEBUG
@@ -229,7 +229,7 @@ int verify(const byte* msg, size_t mlen, const byte* sig, size_t slen, EVP_PKEY*
 			err = "EVP_DigestInit_ex failed";
 			break; /* failed */
 		}
-		
+
 		rc = EVP_DigestVerifyInit(ctx, NULL, md, NULL, pkey);
 		if (rc != 1) {
 			err = "EVP_DigestVerifyInit failed";
@@ -260,6 +260,60 @@ int verify(const byte* msg, size_t mlen, const byte* sig, size_t slen, EVP_PKEY*
 	}
 
 	return result;
+}
+
+std::string deriveKey(EVP_PKEY *pkey, EVP_PKEY* pubkey, size_t &secret_len)
+{
+	LOG_FUNC();
+
+	EVP_PKEY_CTX *ctx;
+	unsigned char *secret;
+	std::string res;
+
+	LOG_INFO("Create the context for the shared secret derivation");
+	if (NULL == (ctx = EVP_PKEY_CTX_new(pkey, NULL)))
+		THROW_OPENSSL("EVP_PKEY_CTX_new");
+
+	LOG_INFO("Initialise");
+	if (1 != EVP_PKEY_derive_init(ctx)) {
+		EVP_PKEY_CTX_free(ctx);
+		THROW_OPENSSL("EVP_PKEY_derive_init");
+	}
+
+	LOG_INFO("Provide the peer public key");
+	if (1 != EVP_PKEY_derive_set_peer(ctx, pubkey)) {
+		EVP_PKEY_CTX_free(ctx);
+		THROW_OPENSSL("EVP_PKEY_derive_set_peer");
+	}
+
+	LOG_INFO("Determine buffer length for shared secret");
+	if (1 != EVP_PKEY_derive(ctx, NULL, &secret_len)) {
+		EVP_PKEY_CTX_free(ctx);
+		THROW_OPENSSL("EVP_PKEY_derive");
+	}
+
+	LOG_INFO("Create the buffer");
+	if (NULL == (secret = static_cast<unsigned char*>(OPENSSL_malloc(secret_len)))) {
+		EVP_PKEY_CTX_free(ctx);
+		THROW_OPENSSL("EVP_PKEY_derive_init");
+	}
+
+	LOG_INFO("Derive the shared secret");
+	if (1 != (EVP_PKEY_derive(ctx, secret, &secret_len))) {
+		OPENSSL_free(secret);
+		EVP_PKEY_CTX_free(ctx);
+		THROW_OPENSSL("EVP_PKEY_derive_init");
+	}
+
+	res = std::string((char *)secret, (int)secret_len);
+
+	LOG_INFO("Free data");
+	EVP_PKEY_CTX_free(ctx);
+	OPENSSL_free(secret);
+
+	/* Never use a derived secret directly. Typically it is passed
+	* through some hash function to produce a key */
+	return res;
 }
 
 static std::string RSA_OAEP_encrypt(
@@ -798,7 +852,7 @@ private:
 		LOG_FUNC();
 
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
-		
+
 		EVP_PKEY* pkey;
 		//buffer
 		char *buf = node::Buffer::Data(info[0]->ToObject());
@@ -816,7 +870,7 @@ private:
 		V8_CATCH_OPENSSL();
 
 		obj->data.internal(pkey);
-	
+
 		info.GetReturnValue().SetUndefined();
 	}
 
@@ -835,7 +889,7 @@ private:
 
 		//format
 		int format = DATA_FORMAT_DER;
-		v8::String::Utf8Value formatStr (info[1]->ToString());
+		v8::String::Utf8Value formatStr(info[1]->ToString());
 
 		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
@@ -944,7 +998,7 @@ NAN_METHOD(Sign) {
 	WKey* obj = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
 	key = obj->data.internal();
 
-	LOG_INFO("get data from buffer"); 
+	LOG_INFO("get data from buffer");
 	const byte * buf = (byte*)node::Buffer::Data(info[1]);
 	size_t buflen = node::Buffer::Length(info[1]);
 
@@ -1001,6 +1055,38 @@ NAN_METHOD(Verify) {
 	info.GetReturnValue().Set(Nan::New<v8::Boolean>(res));
 }
 
+NAN_METHOD(DeriveKey) {
+	LOG_FUNC();
+
+	LOG_INFO("get private key");
+	EVP_PKEY * pkey = NULL;
+	WKey* obj1 = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
+	pkey = obj1->data.internal();
+
+	LOG_INFO("get public key");
+	EVP_PKEY * pubkey = NULL;
+	WKey* obj2 = Nan::ObjectWrap::Unwrap<WKey>(info[1]->ToObject());
+	pubkey = obj2->data.internal();
+
+	LOG_INFO("get secret size");
+	size_t secret_len = info[2]->ToNumber()->Int32Value();                                                                                                                         
+
+	std::string res;
+
+	try
+	{
+		res = deriveKey(pkey, pubkey, secret_len);
+	}
+	V8_CATCH_OPENSSL();
+
+	LOG_INFO("copy signature to Buffer");
+	v8::Local<v8::Object> v8Buf = Nan::NewBuffer(res.length()).ToLocalChecked();
+	char *pbuf = node::Buffer::Data(v8Buf);
+	memcpy(pbuf, res.c_str(), res.length());
+
+	info.GetReturnValue().Set(v8Buf);
+}
+
 
 NAN_MODULE_INIT(Init) {
 	LOG_FUNC();
@@ -1025,6 +1111,10 @@ NAN_MODULE_INIT(Init) {
 		, Nan::New<v8::FunctionTemplate>(Verify)->GetFunction()
 		);
 
+	Nan::Set(pki
+		, Nan::New<v8::String>("deriveKey").ToLocalChecked()
+		, Nan::New<v8::FunctionTemplate>(DeriveKey)->GetFunction()
+		);
 }
 
 NODE_MODULE(nodessl, Init)

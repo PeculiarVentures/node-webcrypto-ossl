@@ -1,4 +1,4 @@
-// import * as Aes from "./aes";
+import * as Aes from "./aes";
 
 import * as alg from "./alg";
 import * as iwc from "./iwebcrypto";
@@ -133,7 +133,6 @@ export class Ecdsa extends Ec {
     }
 }
 
-/*
 export class Ecdh extends Ec {
     static ALGORITHM_NAME: string = ALG_NAME_ECDH;
 
@@ -154,43 +153,17 @@ export class Ecdh extends Ec {
             throw TypeError("derivedKeyType: AlgorithmIdentifier: Missing required property name");
         let AesClass = null;
         switch (derivedKeyType.name.toLowerCase()) {
-            case Aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                Aes.AesGCM.checkKeyGenParams(<Aes.IAesKeyGenParams>derivedKeyType);
-                AesClass = Aes.AesGCM;
+            case Aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                Aes.AesCBC.checkKeyGenParams(<Aes.IAesKeyGenParams>derivedKeyType);
+                AesClass = Aes.AesKey;
                 break;
             default:
                 throw new Error("derivedKeyType: Unknown Algorithm name in use");
         }
 
         // derive key
-        let dKey: graphene.Key = session.deriveKey(
-            {
-                name: "ECDH1_DERIVE",
-                params: new graphene.ECDSA.EcdhParams(
-                    0x00000001, // CKD_NULL
-                    null,
-                    alg.public.key.getBinaryAttribute(0x00000181) // CKA_EC_POINT
-                )
-            },
-            baseKey.key,
-            {
-                "class": Enums.ObjectClass.SecretKey,
-                "sensitive": true,
-                "private": true,
-                "token": false,
-                "keyType": Enums.KeyType.AES,
-                "valueLen": derivedKeyType.length / 8,
-                "encrypt": keyUsages.indexOf["encrypt"] > -1,
-                "decrypt": keyUsages.indexOf["decrypt"] > -1,
-                "sign": keyUsages.indexOf["sign"] > -1,
-                "verify": keyUsages.indexOf["verify"] > -1,
-                "wrap": keyUsages.indexOf["wrapKey"] > -1,
-                "unwrap": keyUsages.indexOf["unwrapKey"] > -1,
-                "derive": keyUsages.indexOf["deriveKey"] > -1
-            }
-        );
+        let dKey: Buffer = native.deriveKey(baseKey.key, alg.public.key, derivedKeyType.length);
 
         return new AesClass(dKey, derivedKeyType);
     }
 }
-*/

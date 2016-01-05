@@ -46,8 +46,14 @@ enum EcNamedCurves {
 
 export class SecretKey extends BaseObject {
     private _key: Buffer;
-    constructor() {
+    constructor();
+    constructor(buf: Buffer);
+    constructor(buf?: Buffer) {
         super();
+
+        if (buf) {
+            this._key = buf;
+        }
     }
 
     /**
@@ -180,4 +186,8 @@ export function sign(key: KeyPair, data: Buffer, digestName: string = "SHA1"): B
 
 export function verify(key: KeyPair, data: Buffer, sig: Buffer, digestName: string = "SHA1"): boolean {
     return native.Pki.verify(key.handle, data, sig, digestName);
+}
+
+export function deriveKey(privateKey: KeyPair, publicKey: KeyPair, keySize: number): Buffer {
+    return native.Pki.deriveKey(privateKey.handle, publicKey.handle, keySize);
 }

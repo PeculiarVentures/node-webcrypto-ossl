@@ -27,7 +27,7 @@ describe("EC", function () {
             .then(function (k) {
                 assert.equal(k.privateKey !== null, true, "Has no private key");
                 assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;                
+                key = k;
                 return webcrypto.subtle.sign(
                     {
                         name: "ECDSA",
@@ -54,10 +54,8 @@ describe("EC", function () {
             })
             .then(done, done);
     })
-    
-/*
-    it("Ecdh", function (done) {
 
+    it("Ecdh", function (done) {
         var key = null;
         webcrypto.subtle.generateKey(
             {
@@ -80,7 +78,7 @@ describe("EC", function () {
                     },
                     k.privateKey, //your ECDH private key from generateKey or importKey
                     { //the key type you want to create based on the derived bits
-                        name: "AES-GCM", //can be any AES algorithm ("AES-CTR", "AES-CBC", "AES-CMAC", "AES-GCM", "AES-CFB", "AES-KW", "ECDH", "DH", or "HMAC")
+                        name: "AES-CBC", //can be any AES algorithm ("AES-CTR", "AES-CBC", "AES-CMAC", "AES-GCM", "AES-CFB", "AES-KW", "ECDH", "DH", or "HMAC")
                         //the generateKey parameters for that type of algorithm
                         length: 128, //can be  128, 192, or 256
                     },
@@ -89,9 +87,9 @@ describe("EC", function () {
                     )
             })
             .then(function (key) {
-                assert.equal(key !== null, true, "Has no derived Key value");
+                assert.equal(key != null , true, "Has no derived Key value");
+                assert.equal(key._key != null , true, "Has no derived Key value");
             })
             .then(done, done);
     })
-*/
 })

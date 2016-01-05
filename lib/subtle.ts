@@ -74,11 +74,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
                     AlgClass = ec.Ecdsa;
                     break;
-                /*
-            case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                AlgClass = ec.Ecdh;
-                break;
-                */
+                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdh;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
@@ -262,11 +260,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
 
             let AlgClass: alg.IAlgorithmBase = null;
             switch (_alg1.name.toLowerCase()) {
-                /*
                 case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
                     AlgClass = ec.Ecdh;
                     break;
-                    */
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
