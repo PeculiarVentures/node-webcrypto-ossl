@@ -46,3 +46,4 @@ mocha
  - [MSR WebCrypto Polyfill](http://research.microsoft.com/en-us/downloads/29f9385d-da4c-479a-b2ea-2a7bb335d727/)
  - [OpenSSL](https://github.com/openssl/openssl)
  - [WebCrypto Examples](https://github.com/diafygi/webcrypto-examples)
+ - [OpenSSL AES GCM encrypt/decrypt](https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption)
