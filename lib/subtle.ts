@@ -270,8 +270,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
 
         return new Promise(function(resolve, reject) {
             let data = alg.AlgorithmBase.exportKey(format, key);
-            let ubuf = new Uint8Array(<any>data);
-            resolve(ubuf.buffer);
+            if (Buffer.isBuffer(data)) {
+                let ubuf = new Uint8Array(<any>data);
+                resolve(ubuf.buffer);
+            }
+            else
+                resolve(data);
         });
     }
 

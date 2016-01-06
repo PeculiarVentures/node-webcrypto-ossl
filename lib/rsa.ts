@@ -96,6 +96,8 @@ export class RsaPKCS1 extends Rsa {
         this.checkAlgorithmHashedParams(alg);
 
         let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
+        keyPair.privateKey.usages = ["sign"];
+        keyPair.publicKey.usages = ["verify"];
         return keyPair;
     }
 
@@ -138,6 +140,8 @@ export class RsaOAEP extends Rsa {
         this.checkAlgorithmHashedParams(alg);
 
         let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
+        keyPair.privateKey.usages = ["decrypt", "unwrapKey"];
+        keyPair.publicKey.usages = ["encrypt", "wrapKey"];
         return keyPair;
     }
 

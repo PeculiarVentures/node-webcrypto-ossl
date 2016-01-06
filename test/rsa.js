@@ -42,6 +42,34 @@ describe("RSA", function () {
         .then(done, done);
     })
     
+    it("RSA OAEP export JWK", function (done) {
+        var key = null;
+		webcrypto.subtle.generateKey({
+            name:"RSASSA-PKCS1-v1_5",
+            modulusLength: 1024,
+            publicExponent: new Uint8Array([1, 0, 1]), 
+            hash: {
+                name: "SHA-256"
+            }}, 
+            false, 
+            ["encrypt", "decrypt"]
+        )
+        .then(function(k){
+            assert.equal(k.privateKey !== null, true, "Has no private key");
+            assert.equal(k.publicKey !== null, true, "Has no public key");
+            key = k;
+            return webcrypto.subtle.exportKey("jwk", key.publicKey)  
+        })
+        .then(function(jwk){
+            console.log(jwk);
+            return webcrypto.subtle.exportKey("jwk", key.privateKey) 
+        })
+        .then(function(jwk){
+            console.log(jwk);
+        })
+        .then(done, done);
+    })
+    
     it("RSA OAEP encrypt/decrypt", function (done) {
         var key = null;
 		webcrypto.subtle.generateKey({

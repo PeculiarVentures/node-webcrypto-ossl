@@ -10,6 +10,7 @@
   "author": "msu",
   "license": "MIT",
   "dependencies": {
+    "base64url": "^1.0.5",
     "mocha": "^2.3.4",
     "nan": "^2.1.0"
   }

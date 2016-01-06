@@ -11,7 +11,7 @@ export interface IAlgorithmBase {
     wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer;
     unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey;
     deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): key.CryptoKey;
-    exportKey(format: string, key: CryptoKey): Buffer;
+    exportKey(format: string, key: CryptoKey): Buffer | Object;
     importKey(
         format: string,
         keyData: Buffer,
@@ -55,7 +55,7 @@ export class AlgorithmBase {
         throw new Error("Method is not supported");
     }
 
-    static exportKey(format: string, key: key.CryptoKey): Buffer {
+    static exportKey(format: string, key: key.CryptoKey): Buffer | Object {
         this.checkKeyType(format);
         let _format = format.toLowerCase();
         let res: Buffer;
@@ -66,6 +66,37 @@ export class AlgorithmBase {
             case "pkcs8":
                 res = key.key.writePkcs8("der");
                 break;
+            case "jwk":
+                switch (key.type) {
+                    case "public":
+                    case "private":
+                        let jwk = key.key.exportJwk(key.type);
+                        switch (key.algorithm.name) {
+                            case "RSA-OAEP":
+                                let hash = /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
+                                jwk.alg = "RSA-OAEP" + ((hash !== "1") ? "-" + hash : "");
+                                break;
+                            case "RSASSA-PKCS1-v1_5":
+                                jwk.alg = "RS" + /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
+                                break;
+                            case "ECDSA":
+                            case "ECDH":
+                                jwk.alg = key.algorithm.namedCurve;
+                                break;
+                        }
+                        jwk.key_opt = key.usages;
+                        jwk.ext = true;
+                        return jwk;
+                        break;
+                    case "secret":
+                        throw new Error(`export JWK for secret key is not unsupported yet`);
+                        break;
+                    default:
+                        throw new Error(`Unknown key type ${key.type}`);
+                }
+                break;
+            default:
+                throw new Error(`Unknown key export format ${_format}`);
         }
         return res;
     }
@@ -100,9 +131,9 @@ export class AlgorithmBase {
         switch (type) {
             case "spki":
             case "pkcs8":
+            case "jwk":
                 break;
             case "raw":
-            case "jwk":
                 throw new TypeError(`${ERROR_TYPE}: '${_type}' is not supported yet`);
             default:
                 throw new TypeError(`${ERROR_TYPE}: Unknown key type in use '${_type}'`);

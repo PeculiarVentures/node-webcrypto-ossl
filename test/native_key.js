@@ -12,7 +12,16 @@ describe("Key", function () {
 
     it("Generate Rsa key", function () {
         var key = nodessl.Key.generateRsa(1024, 1);    
-        //console.log("Rsa type:", key.type);    
+        console.log("Rsa type:", key.type);    
+        console.log("JWK private:", key.exportJwk("private"));    
+        console.log("JWK public:", key.exportJwk("public"));    
+    })
+    
+    it("Generate Ec key", function () {
+        var key = nodessl.Key.generateEc("secp192k1");    
+        console.log("Ec type:", key.type);    
+        console.log("JWK private:", key.exportJwk("private"));    
+        console.log("JWK public:", key.exportJwk("public"));    
     })
 
     it("Sign", function () {

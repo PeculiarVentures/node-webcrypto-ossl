@@ -50,7 +50,6 @@ void MessageLog(char* type, char* name) {
 #define LOG_FUNC() \
 	FunctionLog __v8_func(__FUNCTION__);
 
-
 X509_SIG *PKCS8_set0_pbe(
 	const char *pass,
 	int passlen,
@@ -101,6 +100,19 @@ static std::string OPENSSL_get_errors() {
 
 #define V8_CATCH_OPENSSL()\
 	catch (std::exception& e) {Nan::ThrowError(e.what());return;}
+
+static v8::Local<v8::Object> bn2bin(BIGNUM* bn) {
+	LOG_FUNC();
+	int n = BN_num_bytes(bn);
+
+	v8::Local<v8::Object> v8Buf = Nan::NewBuffer(n).ToLocalChecked();
+	unsigned char* buf = (unsigned char*)node::Buffer::Data(v8Buf);
+	if (!BN_bn2bin(bn, buf)) {
+		THROW_OPENSSL("BN_bn2bin");
+	}
+
+	return v8Buf;
+}
 
 static v8::Local<v8::Object>s2b(std::string& buf) {
 	LOG_FUNC();
@@ -615,6 +627,12 @@ public:
 		return this->internal()->type;
 	}
 
+	int size() {
+		LOG_FUNC();
+
+		return EVP_PKEY_size(this->internal());
+	}
+
 	void dispose() {
 		LOG_FUNC();
 
@@ -733,14 +751,15 @@ public:
 		//write
 		SetPrototypeMethod(tpl, "writePKCS8", WritePKCS8);
 		SetPrototypeMethod(tpl, "writeSPKI", WriteSPKI);
+		SetPrototypeMethod(tpl, "exportJWK", ExportJWK);
 
 		//read
 		SetPrototypeMethod(tpl, "readPKCS8", ReadPKCS8);
 		SetPrototypeMethod(tpl, "readSPKI", ReadSPKI);
 
 		//OAEP
-		SetPrototypeMethod(tpl, "encryptRsaOAEP", encryptRsaOAEP);
-		SetPrototypeMethod(tpl, "decryptRsaOAEP", decryptRsaOAEP);
+		SetPrototypeMethod(tpl, "encryptRsaOAEP", EncryptRsaOAEP);
+		SetPrototypeMethod(tpl, "decryptRsaOAEP", DecryptRsaOAEP);
 
 		v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 		Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
@@ -907,7 +926,7 @@ private:
 	data: Buffer
 	hash: String
 	*/
-	static NAN_METHOD(encryptRsaOAEP) {
+	static NAN_METHOD(EncryptRsaOAEP) {
 		LOG_FUNC();
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
@@ -930,7 +949,7 @@ private:
 	data: Buffer
 	hash: String
 	*/
-	static NAN_METHOD(decryptRsaOAEP) {
+	static NAN_METHOD(DecryptRsaOAEP) {
 		LOG_FUNC();
 
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
@@ -982,6 +1001,81 @@ private:
 	static NAN_GETTER(Type) {
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 		info.GetReturnValue().Set(Nan::New<v8::Number>(obj->data.type()));
+	}
+
+	static NAN_METHOD(ExportJWK) {
+		Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
+
+		LOG_INFO("Get part of key (private/public)");
+		v8::String::Utf8Value v8Part(info[0]->ToString());
+		char* part = *v8Part;
+
+		LOG_INFO("Check part");
+		if (!(strcmp(part, "private") == 0 || strcmp(part, "public") == 0)) {
+			Nan::ThrowError("Unknown key part in use");
+			return;
+		}
+
+		LOG_INFO("Create JWK Object");
+		v8::Local<v8::Object> jwk = Nan::New<v8::Object>();
+
+		EC_KEY *ec = NULL;
+		const EC_POINT *point = NULL;
+		const BIGNUM *ec_private = NULL;
+
+		BN_CTX* ctx = NULL;
+		const EC_GROUP *group = NULL;
+		BIGNUM *x = NULL, *y = NULL;
+
+		try {
+			switch (key->type()) {
+			case EVP_PKEY_RSA:
+				LOG_INFO("Convert RSA to JWK");
+				Nan::Set(jwk, Nan::New("kty").ToLocalChecked(), Nan::New("RSA").ToLocalChecked());
+				Nan::Set(jwk, Nan::New("n").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->n));
+				Nan::Set(jwk, Nan::New("e").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->e));
+				if (strcmp(part, "private") == 0) {
+					Nan::Set(jwk, Nan::New("d").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->d));
+					Nan::Set(jwk, Nan::New("p").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->p));
+					Nan::Set(jwk, Nan::New("q").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->q));
+					Nan::Set(jwk, Nan::New("dp").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->dmp1));
+					Nan::Set(jwk, Nan::New("dq").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->dmq1));
+					Nan::Set(jwk, Nan::New("qi").ToLocalChecked(), bn2bin(key->internal()->pkey.rsa->iqmp));
+				}
+				break;
+			case EVP_PKEY_EC:
+				LOG_INFO("Convert EC to JWK");
+				ec = key->internal()->pkey.ec;
+				point = EC_KEY_get0_public_key(const_cast<const EC_KEY*>(ec));
+				group = EC_KEY_get0_group(ec);
+				ctx = BN_CTX_new();
+
+				x = BN_CTX_get(ctx);
+				y = BN_CTX_get(ctx);
+				if (!EC_POINT_get_affine_coordinates_GF2m(group, point, x, y, ctx)) {
+					BN_CTX_free(ctx);
+					Nan::ThrowError("EC_POINT_get_affine_coordinates_GF2m");
+					return;
+				}
+
+
+				Nan::Set(jwk, Nan::New("kty").ToLocalChecked(), Nan::New("EC").ToLocalChecked());
+				Nan::Set(jwk, Nan::New("x").ToLocalChecked(), bn2bin(x));
+				Nan::Set(jwk, Nan::New("y").ToLocalChecked(), bn2bin(y));
+				if (strcmp(part, "private") == 0) {
+					ec_private = EC_KEY_get0_private_key(const_cast<const EC_KEY*>(ec));
+					Nan::Set(jwk, Nan::New("d").ToLocalChecked(), bn2bin(const_cast<BIGNUM*>(ec_private)));
+				}
+				BN_CTX_free(ctx);
+				break;
+			default:
+				Nan::ThrowError("Unknown key type");
+				return;
+			}
+		}
+		V8_CATCH_OPENSSL();
+
+		return info.GetReturnValue().Set(jwk);
 	}
 
 	static inline Nan::Persistent<v8::Function> & constructor() {
@@ -1069,7 +1163,7 @@ NAN_METHOD(DeriveKey) {
 	pubkey = obj2->data.internal();
 
 	LOG_INFO("get secret size");
-	size_t secret_len = info[2]->ToNumber()->Int32Value();                                                                                                                         
+	size_t secret_len = info[2]->ToNumber()->Int32Value();
 
 	std::string res;
 
@@ -1086,7 +1180,6 @@ NAN_METHOD(DeriveKey) {
 
 	info.GetReturnValue().Set(v8Buf);
 }
-
 
 NAN_MODULE_INIT(Init) {
 	LOG_FUNC();

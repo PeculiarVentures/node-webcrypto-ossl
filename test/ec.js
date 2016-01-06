@@ -55,6 +55,32 @@ describe("EC", function () {
             .then(done, done);
     })
 
+    it("Ecdsa JWK export", function (done) {
+
+        var key = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDSA",
+                namedCurve: "P-192", 	//can be "P-256", "P-384", or "P-521"
+            },
+            false, 						//whether the key is extractable (i.e. can be used in exportKey)
+            ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+            )
+            .then(function (k) {
+                assert.equal(k.privateKey !== null, true, "Has no private key");
+                assert.equal(k.publicKey !== null, true, "Has no public key");
+                key = k;
+                return webcrypto.subtle.exportKey(
+                    "jwk",
+                    key.privateKey
+                );
+            })
+            .then(function (jwk) {
+                console.log(jwk);
+            })
+            .then(done, done);
+    })
+
     it("Ecdh", function (done) {
         var key = null;
         webcrypto.subtle.generateKey(
@@ -87,8 +113,8 @@ describe("EC", function () {
                     )
             })
             .then(function (key) {
-                assert.equal(key != null , true, "Has no derived Key value");
-                assert.equal(key._key != null , true, "Has no derived Key value");
+                assert.equal(key != null, true, "Has no derived Key value");
+                assert.equal(key._key != null, true, "Has no derived Key value");
             })
             .then(done, done);
     })

@@ -110,6 +110,13 @@ export class Ecdsa extends Ec {
         return _alg;
     }
 
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKeyPair {
+        let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
+        keyPair.privateKey.usages = ["sign"];
+        keyPair.publicKey.usages = ["verify"];
+        return keyPair;
+    }
+
     static sign(alg: IEcdsaAlgorithmParams, key: CryptoKey, data: Buffer) {
         this.checkAlgorithmIdentifier(alg);
         this.checkAlgorithmHashedParams(alg);
@@ -135,6 +142,13 @@ export class Ecdsa extends Ec {
 
 export class Ecdh extends Ec {
     static ALGORITHM_NAME: string = ALG_NAME_ECDH;
+
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKeyPair {
+        let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
+        keyPair.privateKey.usages = ["deriveKey"];
+        keyPair.publicKey.usages = [];
+        return keyPair;
+    }
 
     static deriveKey(alg: IEcdsaAlgorithmParams, baseKey: CryptoKey, derivedKeyType: Aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[]): CryptoKey {
         // check algorithm

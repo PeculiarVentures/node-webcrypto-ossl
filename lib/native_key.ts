@@ -1,6 +1,7 @@
 import native from "./native";
 import BaseObject from "./object";
 import * as crypto from "crypto";
+let base64url = require("base64url");
 
 export enum KeyType {
     Private,
@@ -126,6 +127,10 @@ export class KeyPair extends BaseObject {
             throw new Error(`Wrong key type in use. Must be '${type}'`);
     }
 
+    exportJwk(part: string) {
+        return buf2base64(this.handle.exportJWK(part));
+    }
+
     writeSpki(format: string): Buffer {
         format = format.toLowerCase();
         return this.handle.writeSPKI(format);
@@ -178,6 +183,20 @@ export class KeyPair extends BaseObject {
     get type(): number {
         return this.handle.type;
     }
+}
+
+function buf2base64(o) {
+    if (typeof (o) === "object") {
+        if (Buffer.isBuffer(o)) {
+            return base64url(o, "binary");
+        }
+        else {
+            for (let i in o) {
+                o[i] = buf2base64(o[i]);
+            }
+        }
+    }
+    return o;
 }
 
 export function sign(key: KeyPair, data: Buffer, digestName: string = "SHA1"): Buffer {
