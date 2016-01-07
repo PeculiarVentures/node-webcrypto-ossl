@@ -42,10 +42,10 @@ describe("RSA", function () {
         .then(done, done);
     })
     
-    it("RSA OAEP export JWK", function (done) {
+    it("RSA OAEP export/import JWK", function (done) {
         var key = null;
 		webcrypto.subtle.generateKey({
-            name:"RSASSA-PKCS1-v1_5",
+            name:"RSA-OAEP",
             modulusLength: 1024,
             publicExponent: new Uint8Array([1, 0, 1]), 
             hash: {
@@ -66,6 +66,21 @@ describe("RSA", function () {
         })
         .then(function(jwk){
             console.log(jwk);
+            return webcrypto.subtle.importKey(
+                "jwk", 
+                jwk,
+                {
+                    name: "RSA-OAEP",
+                    hash:{
+                        name: "SHA-256"
+                    }
+                },
+                true,
+                ["encrypt", "decrypt"]
+                );
+        })
+        .then(function(key){
+            console.log(key);
         })
         .then(done, done);
     })

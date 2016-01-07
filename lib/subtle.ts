@@ -24,8 +24,8 @@ function prepare_algorithm(alg: iwc.AlgorithmType): iwc.IAlgorithmIdentifier {
  * Prepare array of data before it's using 
  * @param data Array which must be prepared
  */
-function prepare_data(data: Buffer | ArrayBuffer) {
-    return (!Buffer.isBuffer(data)) ? ab2b(data) : data;
+function prepare_data(data: Buffer | ArrayBuffer): any {
+    return (data instanceof ArrayBuffer) ? ab2b(data) : data;
 }
 
 /**

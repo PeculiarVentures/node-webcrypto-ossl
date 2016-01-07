@@ -3,6 +3,7 @@ import * as iwc from "./iwebcrypto";
 import {CryptoKey} from "./key";
 import * as native from "./native_key";
 import * as aes from "./aes";
+let base64url = require("base64url");
 
 let ALG_NAME_RSA_PKCS1 = "RSASSA-PKCS1-v1_5";
 let ALG_NAME_RSA_PSS = "RSA-PSS";
@@ -29,14 +30,36 @@ export class Rsa extends alg.AlgorithmBase {
 
     static importKey(
         format: string,
-        keyData: Buffer,
+        keyData: any,
         algorithm: iwc.IAlgorithmIdentifier,
         extractable: boolean,
         keyUsages: string[]
     ): RsaKey {
         this.checkAlgorithmIdentifier(algorithm);
         this.checkAlgorithmHashedParams(algorithm);
-        let pkey = super.importKey(format, keyData, algorithm, extractable, keyUsages);
+        let pkey;
+        if (format.toLowerCase() === "jwk") {
+            // prepare data
+            let key: any = {};
+            key.n = new Buffer(base64url.decode(keyData.n, "binary"), "binary");
+            key.e = new Buffer(base64url.decode(keyData.e, "binary"), "binary");
+            let keypair = new native.KeyPair();
+            let key_type = "public";
+            if (keyData.d) {
+                key_type = "private";
+                key.d = new Buffer(base64url.decode(keyData.d, "binary"), "binary");
+                key.p = new Buffer(base64url.decode(keyData.p, "binary"), "binary");
+                key.q = new Buffer(base64url.decode(keyData.q, "binary"), "binary");
+                key.dp = new Buffer(base64url.decode(keyData.dp, "binary"), "binary");
+                key.dq = new Buffer(base64url.decode(keyData.dq, "binary"), "binary");
+                key.qi = new Buffer(base64url.decode(keyData.qi, "binary"), "binary");
+            }
+            keypair.importJwk("RSA", key_type, key);
+            pkey = new RsaKey(keypair, <IRsaKeyGenParams>algorithm, key_type);
+            pkey.modulusLength = key.n.length * 8;
+            pkey.publicExponent = new Uint8Array(key.e).buffer;
+        } else
+            pkey = super.importKey(format, keyData, algorithm, extractable, keyUsages);
         return <RsaKey>pkey;
     }
 

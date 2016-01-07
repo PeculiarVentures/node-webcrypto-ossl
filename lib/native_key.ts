@@ -131,6 +131,11 @@ export class KeyPair extends BaseObject {
         return buf2base64(this.handle.exportJWK(part));
     }
 
+    importJwk(type: string, part: string, data: any): KeyPair {
+        this.handle.importJWK(type, part, data);
+        return this;
+    }
+
     writeSpki(format: string): Buffer {
         format = format.toLowerCase();
         return this.handle.writeSPKI(format);

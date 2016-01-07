@@ -15,7 +15,7 @@
 typedef unsigned char byte;
 #endif
 
-//#define V8_DEBUG
+// #define V8_DEBUG
 
 class FunctionLog {
 public:
@@ -751,7 +751,10 @@ public:
 		//write
 		SetPrototypeMethod(tpl, "writePKCS8", WritePKCS8);
 		SetPrototypeMethod(tpl, "writeSPKI", WriteSPKI);
+
+		//JWK
 		SetPrototypeMethod(tpl, "exportJWK", ExportJWK);
+		SetPrototypeMethod(tpl, "importJWK", ImportJWK);
 
 		//read
 		SetPrototypeMethod(tpl, "readPKCS8", ReadPKCS8);
@@ -1004,6 +1007,8 @@ private:
 	}
 
 	static NAN_METHOD(ExportJWK) {
+		LOG_FUNC();
+
 		Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
 
 		LOG_INFO("Get part of key (private/public)");
@@ -1076,6 +1081,63 @@ private:
 		V8_CATCH_OPENSSL();
 
 		return info.GetReturnValue().Set(jwk);
+	}
+
+	/*
+	 * type: string - type of key (RSA | EC)
+	 * part: string - key part (private | public)
+	 * jwk: object - JWK data
+	 */
+	static NAN_METHOD(ImportJWK) {
+		LOG_FUNC();
+
+		Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
+
+		v8::String::Utf8Value v8Type(info[0]->ToString());
+		char *type = *v8Type;
+
+		v8::String::Utf8Value v8Part(info[1]->ToString());
+		char *part = *v8Part;
+
+		v8::Local<v8::Object> v8JWK = info[2]->ToObject();
+
+		if (strcmp(type, "RSA") == 0) {
+			LOG_INFO("import RSA from JWK");
+			RSA* rsa_key = RSA_new();
+
+			LOG_INFO("set public key");
+			unsigned char* n = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("n").ToLocalChecked()).ToLocalChecked()->ToObject());
+			unsigned char* e = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("e").ToLocalChecked()).ToLocalChecked()->ToObject());
+			rsa_key->n = BN_bin2bn(n, sizeof(n) - 1, rsa_key->n);
+			rsa_key->e = BN_bin2bn(e, sizeof(e) - 1, rsa_key->e);
+
+			if (strcmp(type, "private") == 0) {
+				LOG_INFO("set private key");
+				unsigned char* d = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("e").ToLocalChecked()).ToLocalChecked()->ToObject());
+				unsigned char* p = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("p").ToLocalChecked()).ToLocalChecked()->ToObject());
+				unsigned char* q = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("q").ToLocalChecked()).ToLocalChecked()->ToObject());
+				unsigned char* dp = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("dp").ToLocalChecked()).ToLocalChecked()->ToObject());
+				unsigned char* dq = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("dq").ToLocalChecked()).ToLocalChecked()->ToObject());
+				unsigned char* qi = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("qi").ToLocalChecked()).ToLocalChecked()->ToObject());
+				rsa_key->d = BN_bin2bn(d, sizeof(d) - 1, rsa_key->d);
+				rsa_key->p = BN_bin2bn(p, sizeof(p) - 1, rsa_key->p);
+				rsa_key->q = BN_bin2bn(q, sizeof(q) - 1, rsa_key->q);
+				rsa_key->dmp1 = BN_bin2bn(dp, sizeof(dp) - 1, rsa_key->dmp1);
+				rsa_key->dmq1 = BN_bin2bn(dq, sizeof(dq) - 1, rsa_key->dmq1);
+				rsa_key->iqmp = BN_bin2bn(qi, sizeof(qi) - 1, rsa_key->iqmp);
+			}
+
+			LOG_INFO("set internal key");
+			key->dispose();
+			EVP_PKEY *new_key = EVP_PKEY_new();
+			EVP_PKEY_assign_RSA(new_key, rsa_key);
+			key->internal(new_key);
+		}
+		else if (strcmp(type, "EC") == 0) {
+		}
+		else {
+			Nan::ThrowError("Unknown key type in use");
+		}
 	}
 
 	static inline Nan::Persistent<v8::Function> & constructor() {
