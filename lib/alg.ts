@@ -1,6 +1,7 @@
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
 import * as native from "./native_key";
+let base64url = require("base64url");
 
 export interface IAlgorithmBase {
     generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey | iwc.ICryptoKeyPair;
@@ -70,26 +71,42 @@ export class AlgorithmBase {
                 switch (key.type) {
                     case "public":
                     case "private":
-                        let jwk = key.key.exportJwk(key.type);
+                        let kpjwk = key.key.exportJwk(key.type);
                         switch (key.algorithm.name) {
                             case "RSA-OAEP":
                                 let hash = /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
-                                jwk.alg = "RSA-OAEP" + ((hash !== "1") ? "-" + hash : "");
+                                kpjwk.alg = "RSA-OAEP" + ((hash !== "1") ? "-" + hash : "");
                                 break;
                             case "RSASSA-PKCS1-v1_5":
-                                jwk.alg = "RS" + /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
+                                kpjwk.alg = "RS" + /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
                                 break;
                             case "ECDSA":
                             case "ECDH":
-                                jwk.alg = key.algorithm.namedCurve;
+                                kpjwk.alg = key.algorithm.namedCurve;
                                 break;
+                            default:
+                                throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);
                         }
-                        jwk.key_opt = key.usages;
-                        jwk.ext = true;
-                        return jwk;
+                        kpjwk.key_opt = key.usages;
+                        kpjwk.ext = true;
+                        return kpjwk;
                         break;
                     case "secret":
-                        throw new Error(`export JWK for secret key is not unsupported yet`);
+                        let secjwk: any = {
+                            kty: "oct",
+                            exp: true,
+                            key_opt: key.usages
+                        };
+                        switch (key.algorithm.name) {
+                            case "AES-CBC":
+                            case "AES-GCM":
+                                secjwk.alg = "A" + key.algorithm.length + /AES-(.+)/.exec(key.algorithm.name)[1];
+                                secjwk.k = base64url(key.key.handle, "binary");
+                                break;
+                            default:
+                                throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);
+                        }
+                        return secjwk;
                         break;
                     default:
                         throw new Error(`Unknown key type ${key.type}`);

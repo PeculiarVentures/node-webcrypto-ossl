@@ -95,6 +95,7 @@ export class AesKey extends CryptoKey {
         super(key, alg, type);
         this.length = alg.length;
         // TODO: get params from key if alg params is empty
+        this.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
     }
 }
 

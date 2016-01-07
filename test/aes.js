@@ -61,6 +61,27 @@ describe("Aes", function () {
             .then(done, done);
     })
 
+    it("Aes CBC JWK export", function (done) {
+        var key = null;
+        webcrypto.subtle.generateKey({
+            name: "AES-CBC",
+            length: 256, //can be  128, 192, or 256
+        },
+            false, //whether the key is extractable (i.e. can be used in exportKey)
+            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+            )
+            .then(function (k) {
+                assert.equal(k.key !== null, true, "Has no key value");
+                key = k;
+
+                return webcrypto.subtle.exportKey("jwk", key);
+            })
+            .then(function(jwk){
+                console.log("AES-CBC jwk:", jwk);
+            })
+            .then(done, done);
+    })
+
     it("Aes GCM", function (done) {
         var key = null;
         var iv = webcrypto.getRandomValues(new Uint8Array(12));
@@ -83,7 +104,7 @@ describe("Aes", function () {
                         //Always generate a new iv every time your encrypt!
                         iv: iv,
                         //Additional authentication data (optional)
-                        additionalData: new Uint8Array([1,2,3,4,5,6,7,8]).buffer,
+                        additionalData: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer,
 
                         //Tag length (optional)
                         tagLength: 128, //can be 32, 64, 96, 104, 112, 120 or 128 (default)
@@ -100,7 +121,7 @@ describe("Aes", function () {
                         name: "AES-GCM",
                         iv: iv, //The initialization vector you used to encrypt
                         //Additional authentication data (optional)
-                        additionalData: new Uint8Array([1,2,3,4,5,6,7,8]).buffer,
+                        additionalData: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer,
 
                         //Tag length (optional)
                         tagLength: 128, //can be 32, 64, 96, 104, 112, 120 or 128 (default)
@@ -116,6 +137,27 @@ describe("Aes", function () {
                     s += String.fromCharCode(buf[i]);
                 }
                 assert.equal(s, TEST_MESSAGE.toString(), "AES-CBC encrypt/decrypt is not valid")
+            })
+            .then(done, done);
+    })
+    
+    it("Aes GCM JWK export", function (done) {
+        var key = null;
+        webcrypto.subtle.generateKey({
+            name: "AES-GCM",
+            length: 256, //can be  128, 192, or 256
+        },
+            false, //whether the key is extractable (i.e. can be used in exportKey)
+            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+            )
+            .then(function (k) {
+                assert.equal(k.key !== null, true, "Has no key value");
+                key = k;
+
+                return webcrypto.subtle.exportKey("jwk", key);
+            })
+            .then(function(jwk){
+                console.log("AES-GCM jwk:", jwk);
             })
             .then(done, done);
     })
