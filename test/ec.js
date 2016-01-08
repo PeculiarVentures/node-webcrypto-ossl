@@ -55,7 +55,7 @@ describe("EC", function () {
             .then(done, done);
     })
 
-    it("Ecdsa export PKCS8", function (done) {
+    it("Ecdsa export/import PKCS8", function (done) {
 
         var key = null;
         webcrypto.subtle.generateKey(
@@ -74,7 +74,7 @@ describe("EC", function () {
                     );
             })
             .then(function (pkcs8) {
-                assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");                
+                assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");
                 return webcrypto.subtle.importKey(
                     "pkcs8",
                     pkcs8,
@@ -87,7 +87,46 @@ describe("EC", function () {
                     )
             })
             .then(function (k) {
-                console.log("Imported key:", k);
+                assert.equal(k.type === "private", true, "Key is not Private");
+                assert.equal(k.algorithm.name === "ECDSA", true, "Key is not ECDSA");
+            })
+            .then(done, done);
+    })
+
+    it("Ecdsa export/import SPKI", function (done) {
+
+        var key = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDSA",
+                namedCurve: "P-192", 	//can be "P-256", "P-384", or "P-521"
+            },
+            false, 						//whether the key is extractable (i.e. can be used in exportKey)
+            ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+            )
+            .then(function (k) {
+                key = k;
+                return webcrypto.subtle.exportKey(
+                    "spki",
+                    key.publicKey
+                    );
+            })
+            .then(function (spki) {
+                assert.equal(spki instanceof ArrayBuffer, true, "spki is not ArrayBuffer");
+                return webcrypto.subtle.importKey(
+                    "spki",
+                    spki,
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-192",
+                    },
+                    false,
+                    ["verify"]
+                    )
+            })
+            .then(function (k) {
+                assert.equal(k.type === "public", true, "Key is not Public");
+                assert.equal(k.algorithm.name === "ECDSA", true, "Key is not ECDSA");
             })
             .then(done, done);
     })
@@ -152,6 +191,82 @@ describe("EC", function () {
             .then(function (key) {
                 assert.equal(key != null, true, "Has no derived Key value");
                 assert.equal(key._key != null, true, "Has no derived Key value");
+            })
+            .then(done, done);
+    })
+
+    it("Ecdh export/import PKCS8", function (done) {
+
+        var key = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDH",
+                namedCurve: "P-192",
+            },
+            false,
+            ["decrypt", "encrypt"]
+            )
+            .then(function (k) {
+                key = k;
+                return webcrypto.subtle.exportKey(
+                    "pkcs8",
+                    key.privateKey
+                    );
+            })
+            .then(function (pkcs8) {
+                assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");
+                return webcrypto.subtle.importKey(
+                    "pkcs8",
+                    pkcs8,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-192",
+                    },
+                    false,
+                    ["decrypt"]
+                    )
+            })
+            .then(function (k) {
+                assert.equal(k.type === "private", true, "Key is not Private");
+                assert.equal(k.algorithm.name === "ECDH", true, "Key is not ECDH");
+            })
+            .then(done, done);
+    })
+
+    it("Ecdsa export/import SPKI", function (done) {
+
+        var key = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDH",
+                namedCurve: "P-192",
+            },
+            false, 					
+            ["decrypt", "encrypt"]	
+            )
+            .then(function (k) {
+                key = k;
+                return webcrypto.subtle.exportKey(
+                    "spki",
+                    key.publicKey
+                    );
+            })
+            .then(function (spki) {
+                assert.equal(spki instanceof ArrayBuffer, true, "spki is not ArrayBuffer");
+                return webcrypto.subtle.importKey(
+                    "spki",
+                    spki,
+                    {
+                        name: "ECDH",
+                        namedCurve: "P-192",
+                    },
+                    false,
+                    ["encrypt"]
+                    )
+            })
+            .then(function (k) {
+                assert.equal(k.type === "public", true, "Key is not Public");
+                assert.equal(k.algorithm.name === "ECDH", true, "Key is not ECDH");
             })
             .then(done, done);
     })
