@@ -7,7 +7,7 @@ var crypto = require("crypto");
 describe("Key", function () {
 
     it("New instance", function () {
-        var key = new nodessl.Key();
+        new nodessl.Key();
     })
 
     it("Generate Rsa key", function () {

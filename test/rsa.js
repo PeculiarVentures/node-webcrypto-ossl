@@ -42,6 +42,66 @@ describe("RSA", function () {
         .then(done, done);
     })
     
+    it("RSA PKCS1 export/import JWK", function (done) {
+        var key = null;
+		webcrypto.subtle.generateKey({
+            name:"RSASSA-PKCS1-v1_5",
+            modulusLength: 1024,
+            publicExponent: new Uint8Array([3]), 
+            hash: {
+                name: "SHA-1"
+            }}, 
+            false, 
+            ["sign", "verify"]
+        )
+        .then(function(k){
+            assert.equal(k.privateKey != null, true, "Has no private key");
+            assert.equal(k.publicKey != null, true, "Has no public key");
+            key = k;
+            return webcrypto.subtle.exportKey("jwk", key.publicKey)  
+        })
+        .then(function(jwk){
+            assert.equal(jwk != null, true, "Has no JWK publicKey");
+            return webcrypto.subtle.importKey(
+                "jwk",
+                jwk,
+                {
+                    name:"RSASSA-PKCS1-v1_5",
+                    hash: {
+                        name: "SHA-1"
+                    } 
+                },
+                false,
+                ["verify"]
+            ); 
+        })
+        .then(function(k){
+            assert.equal(k.type === "public", true, "Key is not Public");
+            assert.equal(k.algorithm.name === "RSASSA-PKCS1-v1_5", true, "Key is not RSASSA-PKCS1-v1_5");
+            return webcrypto.subtle.exportKey("jwk", key.privateKey)
+        })
+        .then(function(jwk){
+            assert.equal(jwk != null, true, "Has no JWK privateKey");
+            return webcrypto.subtle.importKey(
+                "jwk", 
+                jwk,
+                {
+                    name:"RSASSA-PKCS1-v1_5",
+                    hash: {
+                        name: "SHA-1"
+                    } 
+                },
+                true,
+                ["sign"]
+                );
+        })
+        .then(function(k){
+            assert.equal(k.type === "private", true, "Key is not Private");
+            assert.equal(k.algorithm.name === "RSASSA-PKCS1-v1_5", true, "Key is not RSASSA-PKCS1-v1_5");
+        })
+        .then(done, done);
+    })
+    
     it("RSA OAEP export/import JWK", function (done) {
         var key = null;
 		webcrypto.subtle.generateKey({
@@ -55,17 +115,33 @@ describe("RSA", function () {
             ["encrypt", "decrypt"]
         )
         .then(function(k){
-            assert.equal(k.privateKey !== null, true, "Has no private key");
-            assert.equal(k.publicKey !== null, true, "Has no public key");
+            assert.equal(k.privateKey != null, true, "Has no private key");
+            assert.equal(k.publicKey != null, true, "Has no public key");
             key = k;
             return webcrypto.subtle.exportKey("jwk", key.publicKey)  
         })
         .then(function(jwk){
-            console.log(jwk);
-            return webcrypto.subtle.exportKey("jwk", key.privateKey) 
+            assert.equal(jwk != null, true, "Has no JWK publicKey");
+            return webcrypto.subtle.importKey(
+                "jwk",
+                jwk,
+                {
+                    name:"RSA-OAEP",
+                    hash: {
+                        name: "SHA-256"
+                    } 
+                },
+                false,
+                ["encrypt"]
+            ); 
+        })
+        .then(function(k){
+            assert.equal(k.type === "public", true, "Key is not Public");
+            assert.equal(k.algorithm.name === "RSA-OAEP", true, "Key is not RSA-OAEP");
+            return webcrypto.subtle.exportKey("jwk", key.privateKey)
         })
         .then(function(jwk){
-            console.log(jwk);
+            assert.equal(jwk != null, true, "Has no JWK privateKey");
             return webcrypto.subtle.importKey(
                 "jwk", 
                 jwk,
@@ -76,11 +152,12 @@ describe("RSA", function () {
                     }
                 },
                 true,
-                ["encrypt", "decrypt"]
+                ["decrypt"]
                 );
         })
-        .then(function(key){
-            console.log(key);
+        .then(function(k){
+            assert.equal(k.type === "private", true, "Key is not Private");
+            assert.equal(k.algorithm.name === "RSA-OAEP", true, "Key is not RSA-OAEP");
         })
         .then(done, done);
     })
