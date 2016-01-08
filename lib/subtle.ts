@@ -298,6 +298,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
+                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdsa;
+                    break;
+                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdh;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }

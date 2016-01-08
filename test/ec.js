@@ -55,7 +55,44 @@ describe("EC", function () {
             .then(done, done);
     })
 
-    it("Ecdsa JWK export", function (done) {
+    it("Ecdsa export PKCS8", function (done) {
+
+        var key = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDSA",
+                namedCurve: "P-192", 	//can be "P-256", "P-384", or "P-521"
+            },
+            false, 						//whether the key is extractable (i.e. can be used in exportKey)
+            ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+            )
+            .then(function (k) {
+                key = k;
+                return webcrypto.subtle.exportKey(
+                    "pkcs8",
+                    key.privateKey
+                    );
+            })
+            .then(function (pkcs8) {
+                assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");                
+                return webcrypto.subtle.importKey(
+                    "pkcs8",
+                    pkcs8,
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-192", 	//can be "P-256", "P-384", or "P-521"
+                    },
+                    false, 						//whether the key is extractable (i.e. can be used in exportKey)
+                    ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+                    )
+            })
+            .then(function (k) {
+                console.log("Imported key:", k);
+            })
+            .then(done, done);
+    })
+
+    it("Ecdsa export JWK", function (done) {
 
         var key = null;
         webcrypto.subtle.generateKey(
@@ -73,7 +110,7 @@ describe("EC", function () {
                 return webcrypto.subtle.exportKey(
                     "jwk",
                     key.privateKey
-                );
+                    );
             })
             .then(function (jwk) {
                 console.log(jwk);
