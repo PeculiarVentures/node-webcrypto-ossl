@@ -82,7 +82,7 @@ export class AlgorithmBase {
                                 break;
                             case "ECDSA":
                             case "ECDH":
-                                kpjwk.alg = key.algorithm.namedCurve;
+                                kpjwk.crv = key.algorithm.namedCurve;
                                 break;
                             default:
                                 throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);

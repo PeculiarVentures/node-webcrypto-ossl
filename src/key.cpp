@@ -1095,45 +1095,89 @@ private:
 	static NAN_METHOD(ImportJWK) {
 		LOG_FUNC();
 
-		Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
+		try {
+			Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
 
-		v8::String::Utf8Value v8Type(info[0]->ToString());
-		char *type = *v8Type;
+			v8::String::Utf8Value v8Type(info[0]->ToString());
+			char *type = *v8Type;
 
-		v8::String::Utf8Value v8Part(info[1]->ToString());
-		char *part = *v8Part;
+			v8::String::Utf8Value v8Part(info[1]->ToString());
+			char *part = *v8Part;
 
-		v8::Local<v8::Object> v8JWK = info[2]->ToObject();
+			v8::Local<v8::Object> v8JWK = info[2]->ToObject();
 
-		if (strcmp(type, "RSA") == 0) {
-			LOG_INFO("import RSA from JWK");
-			RSA* rsa_key = RSA_new();
+			if (strcmp(type, "RSA") == 0) {
+				LOG_INFO("import RSA from JWK");
+				RSA* rsa_key = RSA_new();
 
-			LOG_INFO("set public key");
-			RSA_set_BN(v8JWK, n, rsa_key, n);
-			RSA_set_BN(v8JWK, e, rsa_key, e);
+				LOG_INFO("set public key");
+				RSA_set_BN(v8JWK, n, rsa_key, n);
+				RSA_set_BN(v8JWK, e, rsa_key, e);
 
-			if (strcmp(part, "private") == 0) {
-				LOG_INFO("set private key");
-				RSA_set_BN(v8JWK, d, rsa_key, d);
-				RSA_set_BN(v8JWK, p, rsa_key, p);
-				RSA_set_BN(v8JWK, q, rsa_key, q);
-				RSA_set_BN(v8JWK, dp, rsa_key, dmp1);
-				RSA_set_BN(v8JWK, dq, rsa_key, dmq1);
-				RSA_set_BN(v8JWK, qi, rsa_key, iqmp);
+				if (strcmp(part, "private") == 0) {
+					LOG_INFO("set private key");
+					RSA_set_BN(v8JWK, d, rsa_key, d);
+					RSA_set_BN(v8JWK, p, rsa_key, p);
+					RSA_set_BN(v8JWK, q, rsa_key, q);
+					RSA_set_BN(v8JWK, dp, rsa_key, dmp1);
+					RSA_set_BN(v8JWK, dq, rsa_key, dmq1);
+					RSA_set_BN(v8JWK, qi, rsa_key, iqmp);
+				}
+
+				LOG_INFO("set internal key");
+				key->dispose();
+				EVP_PKEY *new_key = EVP_PKEY_new();
+				EVP_PKEY_assign_RSA(new_key, rsa_key);
+				key->internal(new_key);
 			}
+			else if (strcmp(type, "EC") == 0) {
+				LOG_INFO("import EC from JWK");
+				EC_KEY *ec_key = EC_KEY_new();		
 
-			LOG_INFO("set internal key");
-			key->dispose();
-			EVP_PKEY *new_key = EVP_PKEY_new();
-			EVP_PKEY_assign_RSA(new_key, rsa_key);
-			key->internal(new_key);
+				LOG_INFO("set public key");
+				
+				int nidEc = Nan::Get(v8JWK, Nan::New("crv").ToLocalChecked()).ToLocalChecked()->Uint32Value();
+				EC_GROUP *group = EC_GROUP_new_by_curve_name(nidEc);
+				if (!group) {
+					throw std::exception("EC_GROUP_new_by_curve_name");
+				}
+
+				EC_KEY_set_group(ec_key, group);
+
+				unsigned char* x = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("x").ToLocalChecked()).ToLocalChecked()->ToObject());
+				BIGNUM *_x = BN_bin2bn(x, node::Buffer::Length(Nan::Get(v8JWK, Nan::New("x").ToLocalChecked()).ToLocalChecked()->ToObject()), NULL);
+				unsigned char* y = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("y").ToLocalChecked()).ToLocalChecked()->ToObject());
+				BIGNUM *_y = BN_bin2bn(y, node::Buffer::Length(Nan::Get(v8JWK, Nan::New("y").ToLocalChecked()).ToLocalChecked()->ToObject()), NULL);
+
+				if (EC_KEY_set_public_key_affine_coordinates(ec_key, _x, _y) != 1) {
+					BN_free(_x);
+					BN_free(_y);
+					EC_KEY_free(ec_key);
+					THROW_OPENSSL("EC_KEY_set_public_key_affine_coordinates");
+				}
+				if (strcmp(part, "private") == 0) {
+					LOG_INFO("set private key");
+					unsigned char* d = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("d").ToLocalChecked()).ToLocalChecked()->ToObject());
+					BIGNUM *_d = BN_bin2bn(d, node::Buffer::Length(Nan::Get(v8JWK, Nan::New("d").ToLocalChecked()).ToLocalChecked()->ToObject()), NULL);
+				
+					if (EC_KEY_set_private_key(ec_key, _d) != 1) {
+						BN_free(_d);
+						EC_KEY_free(ec_key);
+						THROW_OPENSSL("EC_KEY_set_private_key");
+					}
+				}
+
+				LOG_INFO("set internal key");
+				key->dispose();
+				EVP_PKEY *new_key = EVP_PKEY_new();
+				EVP_PKEY_assign_EC_KEY(new_key, ec_key);
+				key->internal(new_key);
+			}
+			else {
+				Nan::ThrowError("Unknown key type in use");
+			}
 		}
-		else if (strcmp(type, "EC") == 0) {
-		}
-		else {
-			Nan::ThrowError("Unknown key type in use");
-		}
+		V8_CATCH_OPENSSL();
 	}
 
 	static inline Nan::Persistent<v8::Function> & constructor() {

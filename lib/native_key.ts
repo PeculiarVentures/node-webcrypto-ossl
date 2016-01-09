@@ -9,7 +9,7 @@ export enum KeyType {
     Secret
 }
 
-enum EcNamedCurves {
+export enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
     secp128r1 = 706,

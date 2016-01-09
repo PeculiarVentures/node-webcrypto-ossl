@@ -6,33 +6,40 @@ import {CryptoKey} from "./key";
 import * as native from "./native_key";
 import * as crypto from "crypto";
 
+let base64url = require("base64url");
+
 let ALG_NAME_ECDH = "ECDH";
 let ALG_NAME_ECDSA = "ECDSA";
 
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
+
+function nc2ssl(nc) {
+    let _namedCurve = "";
+    switch (nc.toUpperCase()) {
+        case "P-192":
+            _namedCurve = "secp192r1";
+            break;
+        case "P-256":
+            _namedCurve = "secp256r1";
+            break;
+        case "P-384":
+            _namedCurve = "secp384r1";
+            break;
+        case "P-521":
+            _namedCurve = "secp521r1";
+            break;
+        default:
+            throw new Error("Unsupported namedCurve in use");
+    }
+    return _namedCurve;
+}
 
 export class Ec extends alg.AlgorithmBase {
     static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKeyPair {
         this.checkAlgorithmIdentifier(alg);
         this.checkKeyGenParams(alg);
 
-        let _namedCurve = "";
-        switch (alg.namedCurve) {
-            case "P-192":
-                _namedCurve = "secp192r1";
-                break;
-            case "P-256":
-                _namedCurve = "secp256r1";
-                break;
-            case "P-384":
-                _namedCurve = "secp384r1";
-                break;
-            case "P-521":
-                _namedCurve = "secp521r1";
-                break;
-            default:
-                throw new Error("Unsupported namedCurve in use");
-        }
+        let _namedCurve = nc2ssl(alg.namedCurve);
 
         let _key = native.KeyPair.generateEc(_namedCurve);
 
@@ -40,6 +47,35 @@ export class Ec extends alg.AlgorithmBase {
             "privateKey": new EcKey(_key, alg, "private"),
             "publicKey": new EcKey(_key, alg, "public")
         };
+    }
+
+    static importKey(
+        format: string,
+        keyData: any,
+        algorithm: iwc.IAlgorithmIdentifier,
+        extractable: boolean,
+        keyUsages: string[]
+    ): EcKey {
+        this.checkAlgorithmIdentifier(algorithm);
+        let pkey;
+        if (format.toLowerCase() === "jwk") {
+            // prepare data
+            let key: any = {};
+            key.crv = native.EcNamedCurves[nc2ssl(keyData.crv)];
+            key.x = new Buffer(base64url.decode(keyData.x, "binary"), "binary");
+            key.y = new Buffer(base64url.decode(keyData.y, "binary"), "binary");
+            let keypair = new native.KeyPair();
+            let key_type = "public";
+            if (keyData.d) {
+                key_type = "private";
+                key.d = new Buffer(base64url.decode(keyData.d, "binary"), "binary");
+            }
+            keypair.importJwk("EC", key_type, key);
+            pkey = new EcKey(keypair, <IEcKeyGenParams>algorithm, key_type);
+            pkey.namedCurve = (<IEcKeyGenParams>algorithm).namedCurve;
+        } else
+            pkey = super.importKey(format, keyData, algorithm, extractable, keyUsages);
+        return <EcKey>pkey;
     }
 
     static checkKeyGenParams(alg: IEcKeyGenParams) {
