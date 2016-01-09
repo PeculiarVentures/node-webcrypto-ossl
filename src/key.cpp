@@ -1083,6 +1083,10 @@ private:
 		return info.GetReturnValue().Set(jwk);
 	}
 
+#define RSA_set_BN(v8Obj, v8Param, RsaKey, RsaKeyParam) \
+	unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()); \
+	RsaKey->RsaKeyParam = BN_bin2bn(v8Param, node::Buffer::Length(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()), RsaKey->RsaKeyParam);
+
 	/*
 	 * type: string - type of key (RSA | EC)
 	 * part: string - key part (private | public)
@@ -1106,25 +1110,17 @@ private:
 			RSA* rsa_key = RSA_new();
 
 			LOG_INFO("set public key");
-			unsigned char* n = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("n").ToLocalChecked()).ToLocalChecked()->ToObject());
-			unsigned char* e = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("e").ToLocalChecked()).ToLocalChecked()->ToObject());
-			rsa_key->n = BN_bin2bn(n, sizeof(n) - 1, rsa_key->n);
-			rsa_key->e = BN_bin2bn(e, sizeof(e) - 1, rsa_key->e);
+			RSA_set_BN(v8JWK, n, rsa_key, n);
+			RSA_set_BN(v8JWK, e, rsa_key, e);
 
-			if (strcmp(type, "private") == 0) {
+			if (strcmp(part, "private") == 0) {
 				LOG_INFO("set private key");
-				unsigned char* d = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("e").ToLocalChecked()).ToLocalChecked()->ToObject());
-				unsigned char* p = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("p").ToLocalChecked()).ToLocalChecked()->ToObject());
-				unsigned char* q = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("q").ToLocalChecked()).ToLocalChecked()->ToObject());
-				unsigned char* dp = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("dp").ToLocalChecked()).ToLocalChecked()->ToObject());
-				unsigned char* dq = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("dq").ToLocalChecked()).ToLocalChecked()->ToObject());
-				unsigned char* qi = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("qi").ToLocalChecked()).ToLocalChecked()->ToObject());
-				rsa_key->d = BN_bin2bn(d, sizeof(d) - 1, rsa_key->d);
-				rsa_key->p = BN_bin2bn(p, sizeof(p) - 1, rsa_key->p);
-				rsa_key->q = BN_bin2bn(q, sizeof(q) - 1, rsa_key->q);
-				rsa_key->dmp1 = BN_bin2bn(dp, sizeof(dp) - 1, rsa_key->dmp1);
-				rsa_key->dmq1 = BN_bin2bn(dq, sizeof(dq) - 1, rsa_key->dmq1);
-				rsa_key->iqmp = BN_bin2bn(qi, sizeof(qi) - 1, rsa_key->iqmp);
+				RSA_set_BN(v8JWK, d, rsa_key, d);
+				RSA_set_BN(v8JWK, p, rsa_key, p);
+				RSA_set_BN(v8JWK, q, rsa_key, q);
+				RSA_set_BN(v8JWK, dp, rsa_key, dmp1);
+				RSA_set_BN(v8JWK, dq, rsa_key, dmq1);
+				RSA_set_BN(v8JWK, qi, rsa_key, iqmp);
 			}
 
 			LOG_INFO("set internal key");

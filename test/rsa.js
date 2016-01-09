@@ -44,6 +44,7 @@ describe("RSA", function () {
     
     it("RSA PKCS1 export/import JWK", function (done) {
         var key = null;
+        var _jwk;
 		webcrypto.subtle.generateKey({
             name:"RSASSA-PKCS1-v1_5",
             modulusLength: 1024,
@@ -82,6 +83,7 @@ describe("RSA", function () {
         })
         .then(function(jwk){
             assert.equal(jwk != null, true, "Has no JWK privateKey");
+            _jwk = jwk;
             return webcrypto.subtle.importKey(
                 "jwk", 
                 jwk,
@@ -98,12 +100,30 @@ describe("RSA", function () {
         .then(function(k){
             assert.equal(k.type === "private", true, "Key is not Private");
             assert.equal(k.algorithm.name === "RSASSA-PKCS1-v1_5", true, "Key is not RSASSA-PKCS1-v1_5");
+            key = k;
+            return webcrypto.subtle.exportKey("jwk", k)
+        })
+        .then(function(jwk){
+            assert.equal(jwk != null, true, "Has no JWK privateKey");
+            assert.equal(jwk.n === _jwk.n, true, "RSA has wrong key parameter");
+            assert.equal(jwk.e === _jwk.e, true, "RSA has wrong key parameter");
+            assert.equal(jwk.d === _jwk.d, true, "RSA has wrong key parameter");
+            assert.equal(jwk.p === _jwk.p, true, "RSA has wrong key parameter");
+            assert.equal(jwk.q === _jwk.q, true, "RSA has wrong key parameter");
+            assert.equal(jwk.dp === _jwk.dp, true, "RSA has wrong key parameter");
+            assert.equal(jwk.dq === _jwk.dq, true, "RSA has wrong key parameter");
+            assert.equal(jwk.qi === _jwk.qi, true, "RSA has wrong key parameter");
+            return webcrypto.subtle.sign({name: "RSASSA-PKCS1-v1_5"}, key, TEST_MESSAGE) 
+        })
+        .then(function(sig){
+            assert.equal(sig !== null, true, "Has no signature value");
         })
         .then(done, done);
     })
     
     it("RSA OAEP export/import JWK", function (done) {
         var key = null;
+        var _jwk;
 		webcrypto.subtle.generateKey({
             name:"RSA-OAEP",
             modulusLength: 1024,
@@ -142,6 +162,7 @@ describe("RSA", function () {
         })
         .then(function(jwk){
             assert.equal(jwk != null, true, "Has no JWK privateKey");
+            _jwk = jwk;
             return webcrypto.subtle.importKey(
                 "jwk", 
                 jwk,
@@ -158,6 +179,18 @@ describe("RSA", function () {
         .then(function(k){
             assert.equal(k.type === "private", true, "Key is not Private");
             assert.equal(k.algorithm.name === "RSA-OAEP", true, "Key is not RSA-OAEP");
+            return webcrypto.subtle.exportKey("jwk", k)
+        })
+        .then(function(jwk){
+            assert.equal(jwk != null, true, "Has no JWK privateKey");
+            assert.equal(jwk.n === _jwk.n, true, "RSA has wrong key parameter");
+            assert.equal(jwk.e === _jwk.e, true, "RSA has wrong key parameter");
+            assert.equal(jwk.d === _jwk.d, true, "RSA has wrong key parameter");
+            assert.equal(jwk.p === _jwk.p, true, "RSA has wrong key parameter");
+            assert.equal(jwk.q === _jwk.q, true, "RSA has wrong key parameter");
+            assert.equal(jwk.dp === _jwk.dp, true, "RSA has wrong key parameter");
+            assert.equal(jwk.dq === _jwk.dq, true, "RSA has wrong key parameter");
+            assert.equal(jwk.qi === _jwk.qi, true, "RSA has wrong key parameter");
         })
         .then(done, done);
     })
