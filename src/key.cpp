@@ -1139,7 +1139,7 @@ private:
 				int nidEc = Nan::Get(v8JWK, Nan::New("crv").ToLocalChecked()).ToLocalChecked()->Uint32Value();
 				EC_GROUP *group = EC_GROUP_new_by_curve_name(nidEc);
 				if (!group) {
-					throw std::exception("EC_GROUP_new_by_curve_name");
+					throw std::runtime_error("EC_GROUP_new_by_curve_name");
 				}
 
 				EC_KEY_set_group(ec_key, group);
