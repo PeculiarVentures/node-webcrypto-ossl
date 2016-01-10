@@ -227,6 +227,7 @@ describe("EC", function () {
                 .then(function (key) {
                     assert.equal(key != null, true, "Has no derived Key value");
                     assert.equal(key._key != null, true, "Has no derived Key value");
+                    assert.equal(key.type === "secret", true, "Derived key is not Secret");
                 })
                 .then(done, done);
         })

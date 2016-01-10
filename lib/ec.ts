@@ -202,6 +202,7 @@ export class Ecdh extends Ec {
         if (!(derivedKeyType.name && typeof (derivedKeyType.name) === "string"))
             throw TypeError("derivedKeyType: AlgorithmIdentifier: Missing required property name");
         let AesClass = null;
+        let type = "secret";
         switch (derivedKeyType.name.toLowerCase()) {
             case Aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                 Aes.AesCBC.checkKeyGenParams(<Aes.IAesKeyGenParams>derivedKeyType);
@@ -214,6 +215,6 @@ export class Ecdh extends Ec {
         // derive key
         let dKey: Buffer = native.deriveKey(baseKey.key, alg.public.key, derivedKeyType.length);
 
-        return new AesClass(dKey, derivedKeyType);
+        return new AesClass(dKey, derivedKeyType, type);
     }
 }
