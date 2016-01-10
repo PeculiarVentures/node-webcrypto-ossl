@@ -53,7 +53,7 @@ export class SecretKey extends BaseObject {
         super();
 
         if (buf) {
-            this._key = buf;
+            this.handle = buf;
         }
     }
 

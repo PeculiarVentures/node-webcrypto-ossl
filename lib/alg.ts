@@ -94,7 +94,7 @@ export class AlgorithmBase {
                     case "secret":
                         let secjwk: any = {
                             kty: "oct",
-                            exp: true,
+                            ext: true,
                             key_ops: key.usages
                         };
                         switch (key.algorithm.name) {

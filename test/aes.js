@@ -61,8 +61,9 @@ describe("Aes", function () {
             .then(done, done);
     })
 
-    it("Aes CBC JWK export", function (done) {
+    it("Aes CBC JWK export/import", function (done) {
         var key = null;
+        var _jwk;
         webcrypto.subtle.generateKey({
             name: "AES-CBC",
             length: 256, //can be  128, 192, or 256
@@ -76,8 +77,33 @@ describe("Aes", function () {
 
                 return webcrypto.subtle.exportKey("jwk", key);
             })
-            .then(function(jwk){
-                console.log("AES-CBC jwk:", jwk);
+            .then(function (jwk) {
+                assert.equal(jwk != null, true, "Has no JWK secretKey");
+                assert.equal(jwk.k !== null, true, "Wrong JWK key param");
+                assert.equal(jwk.key_ops.length === 4, true, "Wrong JWK key usages amount");
+                assert.equal(jwk.alg === "A256CBC", true, "Wrong JWK key algorithm");
+                assert.equal(jwk.kty === "oct", true, "Wrong JWK key type");
+                assert.equal(jwk.ext, true, "Wrong JWK key extractable");
+                _jwk = jwk;
+                return webcrypto.subtle.importKey(
+                    "jwk",
+                    jwk,
+                    {
+                        name: "AES-CBC"
+                    },
+                    true,
+                    ["encrypt", "decrypt"]
+                    );
+            })
+            .then(function (k) {
+                assert.equal(k.type === "secret", true, "Key is not Secret");
+                assert.equal(k.algorithm.name === "AES-CBC", true, "Key is not AES-CBC");
+                key = k;
+                return webcrypto.subtle.exportKey("jwk", k)
+            })
+            .then(function (jwk) {
+                assert.equal(jwk != null, true, "Has no JWK secretKey");
+                assert.equal(jwk.k === _jwk.k, true, "Wrong JWK key param");
             })
             .then(done, done);
     })
@@ -140,9 +166,10 @@ describe("Aes", function () {
             })
             .then(done, done);
     })
-    
-    it("Aes GCM JWK export", function (done) {
+
+    it("Aes GCM JWK export/import", function (done) {
         var key = null;
+        var _jwk;
         webcrypto.subtle.generateKey({
             name: "AES-GCM",
             length: 256, //can be  128, 192, or 256
@@ -156,8 +183,33 @@ describe("Aes", function () {
 
                 return webcrypto.subtle.exportKey("jwk", key);
             })
-            .then(function(jwk){
-                console.log("AES-GCM jwk:", jwk);
+            .then(function (jwk) {
+                assert.equal(jwk != null, true, "Has no JWK secretKey");
+                assert.equal(jwk.k !== null, true, "Wrong JWK key param");
+                assert.equal(jwk.key_ops.length === 4, true, "Wrong JWK key usages amount");
+                assert.equal(jwk.alg === "A256GCM", true, "Wrong JWK key algorithm");
+                assert.equal(jwk.kty === "oct", true, "Wrong JWK key type");
+                assert.equal(jwk.ext, true, "Wrong JWK key extractable");
+                _jwk = jwk;
+                return webcrypto.subtle.importKey(
+                    "jwk",
+                    jwk,
+                    {
+                        name: "AES-GCM"
+                    },
+                    true,
+                    ["encrypt", "decrypt"]
+                    );
+            })
+            .then(function (k) {
+                assert.equal(k.type === "secret", true, "Key is not Secret");
+                assert.equal(k.algorithm.name === "AES-GCM", true, "Key is not AES-CBC");
+                key = k;
+                return webcrypto.subtle.exportKey("jwk", k)
+            })
+            .then(function (jwk) {
+                assert.equal(jwk != null, true, "Has no JWK secretKey");
+                assert.equal(jwk.k === _jwk.k, true, "Wrong JWK key param");
             })
             .then(done, done);
     })

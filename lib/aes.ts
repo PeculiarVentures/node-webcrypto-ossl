@@ -4,6 +4,8 @@ import {CryptoKey} from "./key";
 import * as native from "./native_key";
 import * as crypto from "crypto";
 
+let base64url = require("base64url");
+
 export var ALG_NAME_AES_CTR = "AES-CTR";
 export var ALG_NAME_AES_CBC = "AES-CBC";
 export var ALG_NAME_AES_CMAC = "AES-CMAC";
@@ -38,6 +40,28 @@ export class Aes extends alg.AlgorithmBase {
         let _key = native.SecretKey.generateAes(alg.length);
 
         return new AesKey(_key, alg, "secret");
+    }
+
+    static importKey(
+        format: string,
+        keyData: any,
+        algorithm: iwc.IAlgorithmIdentifier,
+        extractable: boolean,
+        keyUsages: string[]
+    ): AesKey {
+        this.checkAlgorithmIdentifier(algorithm);
+        let pkey;
+        if (format.toLowerCase() === "jwk") {
+            // prepare data
+            let key: any = {};
+            key.k = new Buffer(base64url.decode(keyData.k, "binary"), "binary");
+            let AesClass = null;
+            let alg: IAesKeyGenParams = <IAesKeyGenParams>algorithm;
+            alg.length = +/(\d+)/.exec(keyData.alg)[1];
+            pkey = new AesKey(new native.SecretKey(key.k), alg, "secret");
+        } else
+            pkey = super.importKey(format, keyData, algorithm, extractable, keyUsages);
+        return <AesKey>pkey;
     }
 
     static checkKeyGenParams(alg: IAesKeyGenParams) {
@@ -93,7 +117,7 @@ export class AesKey extends CryptoKey {
 
     constructor(key, alg: IAesKeyGenParams, type: string) {
         super(key, alg, type);
-        this.length = alg.length;
+        // this.length = alg.length;
         // TODO: get params from key if alg params is empty
         this.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
     }
@@ -201,32 +225,6 @@ export class AesCBC extends Aes {
         msg = Buffer.concat([msg, dec.final()]);
         return msg;
     }
-
-    /*
-    static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: IAesCBCAlgorithmParams): Buffer {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkAlgorithmHashedParams(alg);
-        this.checkSecretKey(key);
-        this.checkPublicKey(wrappingKey);
-        let _alg = this.wc2pk11(alg);
-
-        let wrappedKey: Buffer = session.wrapKey(wrappingKey.key, <any>_alg, key.key);
-        return wrappedKey;
-    }
-
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: IAesCBCAlgorithmParams, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
-        this.checkAlgorithmIdentifier(unwrapAlgorithm);
-        this.checkAlgorithmHashedParams(unwrapAlgorithm);
-        this.checkPrivateKey(unwrappingKey);
-        let _alg = this.wc2pk11(unwrapAlgorithm);
-
-        // TODO: convert unwrappedAlgorithm to PKCS11 Algorithm 
-
-        let unwrappedKey: graphene.Key = session.unwrapKey(unwrappingKey.key, <any>_alg, { name: "" }, wrappedKey);
-        // TODO: WrapKey with known AlgKey 
-        return new CryptoKey(unwrappedKey, { name: "" });
-    }
-    */
 
     static checkAlgorithmParams(alg: IAesCBCAlgorithmParams) {
         this.checkAlgorithmIdentifier(alg);
