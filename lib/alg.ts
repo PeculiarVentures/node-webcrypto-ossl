@@ -87,7 +87,7 @@ export class AlgorithmBase {
                             default:
                                 throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);
                         }
-                        kpjwk.key_opt = key.usages;
+                        kpjwk.key_ops = key.usages;
                         kpjwk.ext = true;
                         return kpjwk;
                         break;
@@ -95,7 +95,7 @@ export class AlgorithmBase {
                         let secjwk: any = {
                             kty: "oct",
                             exp: true,
-                            key_opt: key.usages
+                            key_ops: key.usages
                         };
                         switch (key.algorithm.name) {
                             case "AES-CBC":

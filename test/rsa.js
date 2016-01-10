@@ -83,6 +83,16 @@ describe("RSA", function () {
         })
         .then(function(jwk){
             assert.equal(jwk != null, true, "Has no JWK privateKey");
+            assert.equal(jwk.e !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.n !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.d !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.p !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.q !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.dp !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.dq !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.qi !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.alg !== null, true, "Wrong JWK key param");
+            assert.equal(jwk.key_ops !== null, true, "Wrong JWK key param");
             _jwk = jwk;
             return webcrypto.subtle.importKey(
                 "jwk", 
