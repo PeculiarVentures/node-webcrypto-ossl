@@ -175,14 +175,14 @@ export class KeyPair extends BaseObject {
         this.handle.readPKCS8(buf, format);
     }
 
-    encryptRsaOAEP(data: Buffer, hash: string = "SHA1") {
+    encryptRsaOAEP(data: Buffer, hash: string = "SHA1", label?: Buffer) {
         this.checkType("RSA");
-        return this.handle.encryptRsaOAEP(data, hash);
+        return this.handle.encryptRsaOAEP(data, hash, label);
     }
 
-    decryptRsaOAEP(data: Buffer, hash: string = "SHA1") {
+    decryptRsaOAEP(data: Buffer, hash: string = "SHA1", label?: Buffer) {
         this.checkType("RSA");
-        return this.handle.decryptRsaOAEP(data, hash);
+        return this.handle.decryptRsaOAEP(data, hash, label);
     }
 
     get type(): number {

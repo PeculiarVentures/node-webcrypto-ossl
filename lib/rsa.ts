@@ -98,6 +98,10 @@ export interface IRsaKeyGenParams extends iwc.IAlgorithmIdentifier {
     publicExponent: Uint8Array;
 }
 
+export interface IRsaOaepEncryptParams extends iwc.IAlgorithmIdentifier {
+    label?: Uint8Array;
+}
+
 export class RsaKey extends CryptoKey {
     modulusLength: number;
     publicExponent: Uint8Array;
@@ -168,25 +172,36 @@ export class RsaOAEP extends Rsa {
         return keyPair;
     }
 
-    static encrypt(alg: iwc.IAlgorithmIdentifier, key: CryptoKey, data: Buffer): Buffer {
+    static encrypt(alg: IRsaOaepEncryptParams, key: CryptoKey, data: Buffer): Buffer {
         this.checkAlgorithmIdentifier(alg);
         this.checkPublicKey(key);
         let _alg = this.wc2ssl(key.algorithm);
 
-        let msg = key.key.encryptRsaOAEP(data, _alg);
+        let label;
+        if (alg.label) {
+            label = new Buffer(alg.label);
+        }
+
+        let msg = key.key.encryptRsaOAEP(data, _alg, label);
 
         return msg;
     }
 
-    static decrypt(alg: iwc.IAlgorithmIdentifier, key: CryptoKey, data: Buffer): Buffer {
+    static decrypt(alg: IRsaOaepEncryptParams, key: CryptoKey, data: Buffer): Buffer {
         this.checkAlgorithmIdentifier(alg);
         this.checkPrivateKey(key);
         let _alg = this.wc2ssl(key.algorithm);
 
-        let msg = key.key.decryptRsaOAEP(data, _alg);
+        let label;
+        if (alg.label) {
+            label = new Buffer(alg.label);
+        }
+
+        let msg = key.key.decryptRsaOAEP(data, _alg, label);
 
         return msg;
     }
+
     static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer {
         this.checkAlgorithmIdentifier(alg);
         this.checkAlgorithmHashedParams(alg);

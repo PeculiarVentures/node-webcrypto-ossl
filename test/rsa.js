@@ -299,4 +299,44 @@ describe("RSA", function () {
         })
         .then(done, done);
     })
+    
+    it("RSA OAEP encrypt/decrypt with label", function (done) {
+        var key = null;
+		webcrypto.subtle.generateKey({
+            name:"RSA-OAEP",
+            modulusLength: 1024,
+            publicExponent: new Uint8Array([1, 0, 1]), 
+            hash: {
+                name: "SHA-1"
+            }}, 
+            false, 
+            ["encrypt", "decrypt"]
+        )
+        .then(function(k){
+            assert.equal(k.privateKey !== null, true, "Has no private key");
+            assert.equal(k.publicKey !== null, true, "Has no public key");
+            key = k;
+            return webcrypto.subtle.exportKey("jwk", k.privateKey);
+        })
+        .then(function(jwk){
+            console.log(jwk);
+            var label = webcrypto.getRandomValues(new Uint8Array(4));
+            console.log("Label:", label); 
+            return webcrypto.subtle.encrypt({name: "RSA-OAEP", label: label}, key.publicKey, TEST_MESSAGE) 
+        })
+        .then(function(enc){
+            console.log("Encrypted:", new Buffer(enc).toString("base64"));
+            assert.equal(enc !== null, true, "Has no encrypted value");
+            assert.notEqual(enc.length, 0, "Has empty encrypted value");
+            return webcrypto.subtle.decrypt({name: "RSA-OAEP"}, key.privateKey, enc);
+        })
+        .then(function(dec){
+            var str = "";
+            var buf = new Uint8Array(dec);
+            for (var i=0; i<buf.length; i++)
+                str+=String.fromCharCode(buf[i]);
+            assert.equal(str, TEST_MESSAGE.toString(), "Rsa OAEP encrypt/decrypt is not valid")
+        })
+        .then(done, done);
+    })
 })

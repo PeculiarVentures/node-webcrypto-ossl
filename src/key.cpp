@@ -332,7 +332,10 @@ static std::string RSA_OAEP_encrypt(
 	EVP_PKEY *pkey,
 	char *digestName,
 	const byte *data,
-	size_t datalen)
+	size_t datalen,
+	char *label,
+	int labellen
+	)
 {
 	LOG_FUNC();
 
@@ -354,6 +357,18 @@ static std::string RSA_OAEP_encrypt(
 	if (EVP_PKEY_CTX_set_rsa_padding(rctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
 		EVP_PKEY_CTX_free(rctx);
 		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_padding");
+	}
+
+	if (label && labellen) {
+		LOG_INFO("RsaOAEP::Set label parameter");
+		unsigned char *buf = NULL;
+		int num = BN_num_bytes(pkey->pkey.rsa->n);
+		buf = static_cast<unsigned char*>(OPENSSL_malloc(num));
+		if (RSA_padding_add_PKCS1_OAEP(buf, num, data, datalen, (const unsigned char*)(label), labellen) < 1) {
+			OPENSSL_free(buf);
+			EVP_PKEY_CTX_free(rctx);
+			THROW_OPENSSL(RSA_padding_add_PKCS1_OAEP);
+		}
 	}
 
 	if (EVP_PKEY_CTX_set_rsa_oaep_md(rctx, md) <= 0) {
@@ -386,7 +401,9 @@ static std::string RSA_OAEP_decrypt(
 	EVP_PKEY *pkey,
 	char *digestName,
 	const byte *data,
-	size_t datalen)
+	size_t datalen,
+	char *label,
+	int labellen)
 {
 	LOG_FUNC();
 
@@ -404,6 +421,18 @@ static std::string RSA_OAEP_decrypt(
 	if (EVP_PKEY_CTX_set_rsa_padding(rctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
 		EVP_PKEY_CTX_free(rctx);
 		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_padding");
+	}
+
+	if (label && labellen) {
+		LOG_INFO("RsaOAEP::Set label parameter");
+		unsigned char *buf = NULL;
+		int num = BN_num_bytes(pkey->pkey.rsa->n);
+		buf = static_cast<unsigned char*>(OPENSSL_malloc(num));
+		if (RSA_padding_add_PKCS1_OAEP(buf, num, data, datalen, (const unsigned char*)(label), labellen) < 1) {
+			OPENSSL_free(buf);
+			EVP_PKEY_CTX_free(rctx);
+			THROW_OPENSSL(RSA_padding_add_PKCS1_OAEP);
+		}
 	}
 
 	if (EVP_PKEY_CTX_set_rsa_oaep_md(rctx, md) <= 0) {
@@ -928,6 +957,7 @@ private:
 	/*
 	data: Buffer
 	hash: String
+	label: Buffer
 	*/
 	static NAN_METHOD(EncryptRsaOAEP) {
 		LOG_FUNC();
@@ -939,9 +969,17 @@ private:
 		//hash
 		v8::String::Utf8Value hash(info[1]->ToString());
 
+		//label
+		char *label = NULL;
+		size_t labellen = 0;
+		if (!info[2]->IsUndefined()) {
+			label = node::Buffer::Data(info[2]->ToObject());
+			labellen = node::Buffer::Length(info[2]->ToObject());
+		}
+
 		std::string enc;
 		try {
-			enc = RSA_OAEP_encrypt(obj->data.internal(), *hash, (const byte*)data, datalen);
+			enc = RSA_OAEP_encrypt(obj->data.internal(), *hash, (const byte*)data, datalen, label, labellen);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -951,6 +989,7 @@ private:
 	/*
 	data: Buffer
 	hash: String
+	label: Buffer
 	*/
 	static NAN_METHOD(DecryptRsaOAEP) {
 		LOG_FUNC();
@@ -960,12 +999,21 @@ private:
 		//data
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
+		
 		//hash
 		v8::String::Utf8Value hash(info[1]->ToString());
 
+		//label
+		char *label = NULL;
+		size_t labellen = 0;
+		if (!info[2]->IsUndefined()) {
+			label = node::Buffer::Data(info[2]->ToObject());
+			labellen = node::Buffer::Length(info[2]->ToObject());
+		}
+
 		std::string dec;
 		try {
-			dec = RSA_OAEP_decrypt(obj->data.internal(), *hash, (const byte*)data, datalen);
+			dec = RSA_OAEP_decrypt(obj->data.internal(), *hash, (const byte*)data, datalen, label, labellen);
 		}
 		V8_CATCH_OPENSSL();
 
