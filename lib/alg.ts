@@ -141,11 +141,12 @@ export class AlgorithmBase {
             case "spki":
                 _key = native.KeyPair.readSpki(keyData, "der");
                 return new key.CryptoKey(_key, algorithm, "public");
-                break;
             case "pkcs8":
                 _key = native.KeyPair.readPkcs8(keyData, "der");
                 return new key.CryptoKey(_key, algorithm, "private");
-                break;
+            case "raw":
+                _key = new native.SecretKey(keyData);
+                return new key.CryptoKey(_key, algorithm, "secret");
             default:
                 throw new Error(`Unsupported format in use '${format}'`);
         }
