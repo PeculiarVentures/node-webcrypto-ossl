@@ -487,6 +487,7 @@ static std::string k2pkcs8(
 	}
 
 	if (cipher) {
+		PKCS8_PRIV_KEY_INFO_free(p8info);
 		throw std::runtime_error("Method is not implemented");
 	}
 	else {
@@ -515,6 +516,7 @@ static std::string k2pkcs8(
 	int buflen = BIO_get_mem_data(out, &buf);
 	res = std::string(buf, buflen);
 
+	PKCS8_PRIV_KEY_INFO_free(p8info);
 	BIO_free(out);
 
 	return res;
@@ -544,6 +546,8 @@ static std::string k2spki(EVP_PKEY* pkey, int dataFormat) {
 
 	buflen = BIO_get_mem_data(out, &buf);
 	res = std::string(buf, buflen);
+
+	BIO_free(out);
 
 	return res;
 }
@@ -703,13 +707,13 @@ public:
 		if (RSA_generate_key_ex(rsa, modulus, bne, NULL) != 1) {
 			goto err;
 		}
+		BN_free(bne);
 		if (EVP_PKEY_assign_RSA(pkey, rsa) != 1) {
 			goto err;
 		}
 
 		this->dispose();
 		this->_internal = pkey;
-
 
 		return 1;
 	err:
