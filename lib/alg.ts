@@ -61,10 +61,19 @@ export class AlgorithmBase {
         let _format = format.toLowerCase();
         let res: Buffer;
         switch (_format) {
+            case "raw":
+                if (key.type !== "secret")
+                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'secret'");
+                return key.key.handle;
+                break;
             case "spki":
+                if (key.type !== "public")
+                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'public'");
                 res = key.key.writeSpki("der");
                 break;
             case "pkcs8":
+                if (key.type !== "private")
+                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'secret'");
                 res = key.key.writePkcs8("der");
                 break;
             case "jwk":
@@ -149,9 +158,8 @@ export class AlgorithmBase {
             case "spki":
             case "pkcs8":
             case "jwk":
-                break;
             case "raw":
-                throw new TypeError(`${ERROR_TYPE}: '${_type}' is not supported yet`);
+                break;
             default:
                 throw new TypeError(`${ERROR_TYPE}: Unknown key type in use '${_type}'`);
         }
