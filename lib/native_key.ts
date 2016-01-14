@@ -46,7 +46,6 @@ export enum EcNamedCurves {
 }
 
 export class SecretKey extends BaseObject {
-    private _key: Buffer;
     constructor();
     constructor(buf: Buffer);
     constructor(buf?: Buffer) {

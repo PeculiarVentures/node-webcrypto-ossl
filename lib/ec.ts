@@ -218,7 +218,8 @@ export class Ecdh extends Ec {
 
         // derive key
         let dKey: Buffer = native.deriveKey(baseKey.key, alg.public.key, derivedKeyType.length);
+        let skey = new native.SecretKey(dKey);
 
-        return new AesClass(dKey, derivedKeyType, type);
+        return new AesClass(skey, derivedKeyType, type);
     }
 }

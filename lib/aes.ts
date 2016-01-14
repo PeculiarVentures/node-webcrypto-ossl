@@ -115,7 +115,7 @@ export interface IAesCBCAlgorithmParams extends iwc.IAlgorithmIdentifier {
 export class AesKey extends CryptoKey {
     length: number;
 
-    constructor(key, alg: IAesKeyGenParams, type: string) {
+    constructor(key: native.SecretKey, alg: IAesKeyGenParams, type: string) {
         super(key, alg, type);
         // this.length = alg.length;
         // TODO: get params from key if alg params is empty

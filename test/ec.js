@@ -34,7 +34,6 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
             })
             .then(function (key) {
                 assert.equal(key != null, true, "Has no derived Key value");
-                assert.equal(key._key != null, true, "Has no derived Key value");
                 assert.equal(key.type === "secret", true, "Derived key is not Secret");
             })
             .then(resolve, reject);
