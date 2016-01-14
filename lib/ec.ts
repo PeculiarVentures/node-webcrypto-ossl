@@ -208,6 +208,10 @@ export class Ecdh extends Ec {
                 Aes.AesCBC.checkKeyGenParams(<Aes.IAesKeyGenParams>derivedKeyType);
                 AesClass = Aes.AesKey;
                 break;
+            case Aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                Aes.AesGCM.checkKeyGenParams(<Aes.IAesKeyGenParams>derivedKeyType);
+                AesClass = Aes.AesKey;
+                break;
             default:
                 throw new Error("derivedKeyType: Unknown Algorithm name in use");
         }
