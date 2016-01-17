@@ -96,6 +96,8 @@ static std::string OPENSSL_get_errors() {
 	return res;
 }
 
+#define THROW_ERROR(text) throw std::runtime_error(text)
+
 #define THROW_OPENSSL(text) {LOG_INFO(text);throw std::runtime_error(OPENSSL_get_errors().c_str());}
 
 #define V8_CATCH_OPENSSL()\
@@ -125,6 +127,111 @@ static v8::Local<v8::Object>s2b(std::string& buf) {
 }
 
 #define V8_RETURN_BUFFER(strbuf) info.GetReturnValue().Set(s2b(strbuf));
+
+size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
+	LOG_FUNC();
+
+	if (!pkey)
+		THROW_ERROR("GetEcGroupOrderSize: Key is NULL");
+
+	EC_KEY *ec = pkey->pkey.ec;
+	if (!ec)
+		THROW_ERROR("GetEcGroupOrderSize: Key is not EC");
+
+	const EC_GROUP* group = EC_KEY_get0_group(ec);
+	BIGNUM *order = BN_new();
+	if (!EC_GROUP_get_order(group, order, NULL)) {
+		BN_free(order);
+		THROW_OPENSSL("GetEcGroupOrderSize: EC_GROUP_get_order");
+	}
+	size_t res = BN_num_bytes(order);
+
+	BN_free(order);
+
+	return res;
+}
+
+static v8::Local<v8::Object> ConvertWebCryptoSignatureToDerSignature(
+	EVP_PKEY* key,
+	const unsigned char *signature,
+	const size_t &signaturelen,
+	bool* incorrect_length) {
+
+	LOG_FUNC();
+
+	LOG_INFO("Determine the length of r and s");
+	size_t order_size_bytes = GetEcGroupOrderSize(key);
+
+	// If the size of the signature is incorrect, verification must fail. Success
+	// is returned here rather than an error, so that the caller can fail
+	// verification with a boolean, rather than reject the promise with an
+	// exception.
+	if (signaturelen != 2 * order_size_bytes) {
+		*incorrect_length = true;
+		return Nan::New<v8::Object>();
+	}
+	*incorrect_length = false;
+	LOG_INFO("Construct an ECDSA_SIG from |signature|");
+	ECDSA_SIG *ecdsa_sig = ECDSA_SIG_new();
+
+	if (!ecdsa_sig)
+		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: ECDSA_SIG_new");
+
+	if (!BN_bin2bn(signature, order_size_bytes, ecdsa_sig->r) ||
+		!BN_bin2bn(signature + order_size_bytes, order_size_bytes,
+			ecdsa_sig->s)) {
+		ECDSA_SIG_free(ecdsa_sig);
+		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: BN_bin2bn");
+	}
+	LOG_INFO("Determine the size of the DER-encoded signature");
+	int der_encoding_size = i2d_ECDSA_SIG(ecdsa_sig, NULL);
+	if (der_encoding_size < 0) {
+		ECDSA_SIG_free(ecdsa_sig);
+		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: i2d_ECDSA_SIG");
+	}
+
+	LOG_INFO("DER-encode the signature");
+	v8::Local<v8::Object> v8Result = Nan::NewBuffer(der_encoding_size).ToLocalChecked();
+	unsigned char *result = (unsigned char*)node::Buffer::Data(v8Result);
+	if (0 > i2d_ECDSA_SIG(ecdsa_sig, &result)) {
+		ECDSA_SIG_free(ecdsa_sig);
+		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: i2d_ECDSA_SIG");
+	}
+	return v8Result;
+}
+
+// Formats a DER-encoded signature (ECDSA-Sig-Value as specified in RFC 3279) to
+// the signature format expected by WebCrypto (raw concatenated "r" and "s").
+static v8::Local<v8::Object> ConvertDerSignatureToWebCryptoSignature(
+	EVP_PKEY* key,
+	const unsigned char* signature,
+	size_t *signaturelen) {
+
+	LOG_FUNC();
+
+	ECDSA_SIG *ecdsa_sig = d2i_ECDSA_SIG(NULL, &signature, static_cast<long>(*signaturelen));
+	if (!ecdsa_sig)
+		THROW_OPENSSL("d2i_ECDSA_SIG");
+	// Determine the maximum length of r and s.
+	size_t order_size_bytes = GetEcGroupOrderSize(key);
+
+	v8::Local<v8::Object> v8Buffer = Nan::NewBuffer(order_size_bytes * 2).ToLocalChecked();
+	unsigned char *buffer = (unsigned char*)(node::Buffer::Data(v8Buffer));
+
+
+	if (!BN_bn2bin(ecdsa_sig->r, buffer)) {
+		ECDSA_SIG_free(ecdsa_sig);
+		THROW_OPENSSL("BN_bin2bn");
+	}
+	if (!BN_bn2bin(ecdsa_sig->s, buffer + order_size_bytes)) { // padding pointer
+		ECDSA_SIG_free(ecdsa_sig);
+		THROW_OPENSSL("BN_bin2bn");
+	}
+
+	ECDSA_SIG_free(ecdsa_sig);
+
+	return v8Buffer;
+}
 
 static void sign(const byte* msg, size_t mlen, byte** sig, size_t* slen, EVP_PKEY* pkey, char* digestName)
 {
@@ -367,7 +474,7 @@ static std::string RSA_OAEP_encrypt(
 		if (RSA_padding_add_PKCS1_OAEP(buf, num, data, datalen, (const unsigned char*)(label), labellen) < 1) {
 			OPENSSL_free(buf);
 			EVP_PKEY_CTX_free(rctx);
-			THROW_OPENSSL(RSA_padding_add_PKCS1_OAEP);
+			THROW_OPENSSL("RSA_padding_add_PKCS1_OAEP");
 		}
 	}
 
@@ -431,7 +538,7 @@ static std::string RSA_OAEP_decrypt(
 		if (RSA_padding_add_PKCS1_OAEP(buf, num, data, datalen, (const unsigned char*)(label), labellen) < 1) {
 			OPENSSL_free(buf);
 			EVP_PKEY_CTX_free(rctx);
-			THROW_OPENSSL(RSA_padding_add_PKCS1_OAEP);
+			THROW_OPENSSL("RSA_padding_add_PKCS1_OAEP");
 		}
 	}
 
@@ -1003,7 +1110,7 @@ private:
 		//data
 		char *data = node::Buffer::Data(info[0]->ToObject());
 		size_t datalen = node::Buffer::Length(info[0]->ToObject());
-		
+
 		//hash
 		v8::String::Utf8Value hash(info[1]->ToString());
 
@@ -1184,10 +1291,10 @@ private:
 			}
 			else if (strcmp(type, "EC") == 0) {
 				LOG_INFO("import EC from JWK");
-				EC_KEY *ec_key = EC_KEY_new();		
+				EC_KEY *ec_key = EC_KEY_new();
 
 				LOG_INFO("set public key");
-				
+
 				int nidEc = Nan::Get(v8JWK, Nan::New("crv").ToLocalChecked()).ToLocalChecked()->Uint32Value();
 				EC_GROUP *group = EC_GROUP_new_by_curve_name(nidEc);
 				if (!group) {
@@ -1211,7 +1318,7 @@ private:
 					LOG_INFO("set private key");
 					unsigned char* d = (unsigned char*)node::Buffer::Data(Nan::Get(v8JWK, Nan::New("d").ToLocalChecked()).ToLocalChecked()->ToObject());
 					BIGNUM *_d = BN_bin2bn(d, node::Buffer::Length(Nan::Get(v8JWK, Nan::New("d").ToLocalChecked()).ToLocalChecked()->ToObject()), NULL);
-				
+
 					if (EC_KEY_set_private_key(ec_key, _d) != 1) {
 						BN_free(_d);
 						EC_KEY_free(ec_key);
@@ -1257,7 +1364,25 @@ NAN_METHOD(Sign) {
 	v8::String::Utf8Value digestName(info[2]->ToString());
 	try
 	{
-		sign(buf, buflen, &sig, (size_t*)&siglen, key, *digestName);
+		switch (key->type) {
+		case EVP_PKEY_EC: {
+			LOG_INFO("Sign with EC key");
+			sign(buf, buflen, &sig, (size_t*)&siglen, key, *digestName);
+			v8::Local<v8::Object> v8Buf = ConvertDerSignatureToWebCryptoSignature(key, sig, (size_t*)&siglen);
+
+			OPENSSL_free(sig);
+				
+			info.GetReturnValue().Set(v8Buf);
+			return;
+		}
+		case EVP_PKEY_RSA:
+			LOG_INFO("Sign with RSA key");
+			sign(buf, buflen, &sig, (size_t*)&siglen, key, *digestName);
+			break;
+		default:
+			Nan::ThrowError("Unknown key type in use");
+			return;
+		}
 	}
 	V8_CATCH_OPENSSL();
 
@@ -1295,7 +1420,27 @@ NAN_METHOD(Verify) {
 
 	try
 	{
-		res = verify(buf, buflen, sigdata, sigdatalen, key, *digestName);
+		switch (key->type) {
+		case EVP_PKEY_EC: {
+			LOG_INFO("Verify with EC key");
+			bool error;
+			v8::Local<v8::Object> v8Buf = ConvertWebCryptoSignatureToDerSignature(key, sigdata, sigdatalen, &error);
+
+			if (!error) {
+				sigdata = (byte*)node::Buffer::Data(v8Buf);
+				sigdatalen = node::Buffer::Length(v8Buf);
+				res = verify(buf, buflen, sigdata, sigdatalen, key, *digestName);
+			}
+			break;
+		}
+		case EVP_PKEY_RSA:
+			LOG_INFO("Verify with RSA key");
+			res = verify(buf, buflen, sigdata, sigdatalen, key, *digestName);
+			break;
+		default:
+			Nan::ThrowError("Unknown key type in use");
+			return;
+		}
 	}
 	V8_CATCH_OPENSSL();
 
