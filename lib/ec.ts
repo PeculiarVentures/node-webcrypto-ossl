@@ -35,7 +35,7 @@ function nc2ssl(nc) {
 }
 
 export class Ec extends alg.AlgorithmBase {
-    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKeyPair {
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb): iwc.ICryptoKeyPair {
         this.checkAlgorithmIdentifier(alg);
         this.checkKeyGenParams(alg);
 

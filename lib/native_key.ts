@@ -76,15 +76,31 @@ export class SecretKey extends BaseObject {
 }
 
 export class KeyPair extends BaseObject {
-    constructor() {
+    constructor(nativeKey: Object);
+    constructor();
+    constructor(nativeKey?) {
         super();
-        this.handle = new native.Pki.Key();
+        if (nativeKey) {
+            this.handle = nativeKey;
+        }
+        else {
+            this.handle = new native.Pki.Key();
+        }
     }
 
-    static generateRsa(m, e): KeyPair {
-        let key = new KeyPair();
-        key.handle.generateRsa(m, e);
-        return key;
+    static generateRsa(m: number, e: number): KeyPair;
+    static generateRsa(m: number, e: number, cb: Function): KeyPair;
+    static generateRsa(m, e, cb?): KeyPair {
+        if (cb) {
+            native.Pki.Key.generateRsaAsync(m, e, function(k){
+                cb(new KeyPair(k));
+            });
+        }
+        else {
+            let key = new KeyPair();
+            key.handle.generateRsa(m, e);
+            return key;
+        }
     }
 
     static generateEc(namedCurve: string): KeyPair {

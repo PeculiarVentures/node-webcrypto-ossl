@@ -33,7 +33,7 @@ function ab2b(ab: ArrayBuffer) {
 }
 
 export class Aes extends alg.AlgorithmBase {
-    static generateKey(alg: IAesKeyGenParams, extractable: boolean, keyUsages: string[], label?: string): iwc.ICryptoKey {
+    static generateKey(alg: IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb): iwc.ICryptoKey {
         this.checkAlgorithmIdentifier(alg);
         this.checkKeyGenParams(alg);
 

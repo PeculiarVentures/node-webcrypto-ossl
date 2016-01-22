@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <memory>
 #include <nan.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -912,17 +913,22 @@ public:
 		exports->Set(Nan::New("Key").ToLocalChecked(), tpl->GetFunction());
 	}
 
-	static
-		v8::Local<v8::Object> NewInstance(int argc, v8::Local<v8::Value> argv[]) {
+	static v8::Local<v8::Object> NewInstance() {
+		v8::Local<v8::Function> cons = Nan::New(constructor());
+		return Nan::NewInstance(cons).ToLocalChecked();
+	}
+
+	static v8::Local<v8::Object> NewInstance(int argc, v8::Local<v8::Value> argv[]) {
 		v8::Local<v8::Function> cons = Nan::New(constructor());
 		return Nan::NewInstance(cons, argc, argv).ToLocalChecked();
 	}
 
-	Key data;
-private:
+	std::shared_ptr<Key> data;
 
-	explicit WKey() : data(Key()) {
+	WKey() {
 		LOG_FUNC();
+
+		this->data = std::shared_ptr<Key>(new Key);
 	}
 	~WKey() {
 		LOG_FUNC();
@@ -967,7 +973,7 @@ private:
 		try {
 			if (info[1]->IsUndefined()) {
 				//no crypto
-				res = k2pkcs8(obj->data.internal(), format, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				res = k2pkcs8(obj->data->internal(), format, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 			}
 			else {
 				//crypto
@@ -977,7 +983,7 @@ private:
 				int saltlen = node::Buffer::Length(info[2]->ToObject());
 				int iter = info[3]->ToNumber()->Int32Value();
 
-				res = k2pkcs8(obj->data.internal(), format, EVP_aes_256_gcm(), "", *pass, passlen, salt, saltlen, iter);
+				res = k2pkcs8(obj->data->internal(), format, EVP_aes_256_gcm(), "", *pass, passlen, salt, saltlen, iter);
 			}
 		}
 		V8_CATCH_OPENSSL();
@@ -999,7 +1005,7 @@ private:
 		if (strcmp(*formatStr, "pem") == 0)
 			format = DATA_FORMAT_PEM;
 		try {
-			res = k2spki(obj->data.internal(), format);
+			res = k2spki(obj->data->internal(), format);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -1031,7 +1037,7 @@ private:
 		}
 		V8_CATCH_OPENSSL();
 
-		obj->data.internal(pkey);
+		obj->data->internal(pkey);
 
 		info.GetReturnValue().SetUndefined();
 	}
@@ -1060,7 +1066,7 @@ private:
 		}
 		V8_CATCH_OPENSSL();
 
-		obj->data.internal(pkey);
+		obj->data->internal(pkey);
 
 		info.GetReturnValue().SetUndefined();
 	}
@@ -1090,7 +1096,7 @@ private:
 
 		std::string enc;
 		try {
-			enc = RSA_OAEP_encrypt(obj->data.internal(), *hash, (const byte*)data, datalen, label, labellen);
+			enc = RSA_OAEP_encrypt(obj->data->internal(), *hash, (const byte*)data, datalen, label, labellen);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -1124,7 +1130,7 @@ private:
 
 		std::string dec;
 		try {
-			dec = RSA_OAEP_decrypt(obj->data.internal(), *hash, (const byte*)data, datalen, label, labellen);
+			dec = RSA_OAEP_decrypt(obj->data->internal(), *hash, (const byte*)data, datalen, label, labellen);
 		}
 		V8_CATCH_OPENSSL();
 
@@ -1139,7 +1145,7 @@ private:
 		int modulus = info[0]->Uint32Value();
 		int publicExponent = info[1]->Uint32Value();
 
-		if (!obj->data.generateRsa(modulus, publicExponent)) {
+		if (!obj->data->generateRsa(modulus, publicExponent)) {
 			Nan::ThrowError("Can not to generate RSA key");
 			return;
 		}
@@ -1148,11 +1154,13 @@ private:
 	}
 
 	static NAN_METHOD(GenerateEc) {
+		LOG_FUNC();
+
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
 
 		int nidEc = info[0]->Uint32Value();
 
-		if (!obj->data.generateEc(nidEc)) {
+		if (!obj->data->generateEc(nidEc)) {
 			Nan::ThrowError("Can not to generate EC key");
 			return;
 		}
@@ -1162,13 +1170,13 @@ private:
 
 	static NAN_GETTER(Type) {
 		WKey* obj = ObjectWrap::Unwrap<WKey>(info.Holder());
-		info.GetReturnValue().Set(Nan::New<v8::Number>(obj->data.type()));
+		info.GetReturnValue().Set(Nan::New<v8::Number>(obj->data->type()));
 	}
 
 	static NAN_METHOD(ExportJWK) {
 		LOG_FUNC();
 
-		Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
+		Key* key = ObjectWrap::Unwrap<WKey>(info.Holder())->data.get();
 
 		LOG_INFO("Get part of key (private/public)");
 		v8::String::Utf8Value v8Part(info[0]->ToString());
@@ -1255,7 +1263,7 @@ private:
 		LOG_FUNC();
 
 		try {
-			Key* key = &ObjectWrap::Unwrap<WKey>(info.Holder())->data;
+			Key* key = ObjectWrap::Unwrap<WKey>(info.Holder())->data.get();
 
 			v8::String::Utf8Value v8Type(info[0]->ToString());
 			char *type = *v8Type;
@@ -1351,7 +1359,7 @@ NAN_METHOD(Sign) {
 	EVP_PKEY * key = NULL;
 	LOG_INFO("Unwrap Wkey");
 	WKey* obj = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
-	key = obj->data.internal();
+	key = obj->data->internal();
 
 	LOG_INFO("get data from buffer");
 	const byte * buf = (byte*)node::Buffer::Data(info[1]);
@@ -1371,7 +1379,7 @@ NAN_METHOD(Sign) {
 			v8::Local<v8::Object> v8Buf = ConvertDerSignatureToWebCryptoSignature(key, sig, (size_t*)&siglen);
 
 			OPENSSL_free(sig);
-				
+
 			info.GetReturnValue().Set(v8Buf);
 			return;
 		}
@@ -1403,7 +1411,7 @@ NAN_METHOD(Verify) {
 	LOG_INFO("get key");
 	EVP_PKEY * key = NULL;
 	WKey* obj = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
-	key = obj->data.internal();
+	key = obj->data->internal();
 
 	LOG_INFO("get data from buffer");
 	const byte * buf = (byte*)node::Buffer::Data(info[1]);
@@ -1454,12 +1462,12 @@ NAN_METHOD(DeriveKey) {
 	LOG_INFO("get private key");
 	EVP_PKEY * pkey = NULL;
 	WKey* obj1 = Nan::ObjectWrap::Unwrap<WKey>(info[0]->ToObject());
-	pkey = obj1->data.internal();
+	pkey = obj1->data->internal();
 
 	LOG_INFO("get public key");
 	EVP_PKEY * pubkey = NULL;
 	WKey* obj2 = Nan::ObjectWrap::Unwrap<WKey>(info[1]->ToObject());
-	pubkey = obj2->data.internal();
+	pubkey = obj2->data->internal();
 
 	LOG_INFO("get secret size");
 	size_t secret_len = info[2]->ToNumber()->Int32Value();
@@ -1480,6 +1488,54 @@ NAN_METHOD(DeriveKey) {
 	info.GetReturnValue().Set(v8Buf);
 }
 
+class RsaGenerateKeyAsync : public Nan::AsyncWorker {
+public:
+	RsaGenerateKeyAsync(Nan::Callback *callback, int modulusBits, int publicExponent)
+		: AsyncWorker(callback), modulusBits(modulusBits), publicExponent(publicExponent) {}
+	~RsaGenerateKeyAsync() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		key = std::shared_ptr<Key>(new Key());
+		key->generateRsa(modulusBits, publicExponent);
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+				
+		v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+		wkey->data = this->key;
+		
+		v8::Local<v8::Value> argv[] = {
+			v8Key
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	int modulusBits;
+	int publicExponent;
+	std::shared_ptr<Key> key;
+};
+
+NAN_METHOD(GenerateRsaAsync) {
+	LOG_FUNC();
+
+	int modulus = Nan::To<int>(info[0]).FromJust();
+	int publicExponent = Nan::To<int>(info[1]).FromJust();
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new RsaGenerateKeyAsync(callback, modulus, publicExponent));
+}
+
 NAN_MODULE_INIT(Init) {
 	LOG_FUNC();
 
@@ -1492,6 +1548,13 @@ NAN_MODULE_INIT(Init) {
 
 	target->Set(Nan::New("Pki").ToLocalChecked(), pki);
 	WKey::Init(pki);
+
+	v8::Local<v8::Object> v8KeyClass = Nan::Get(pki, Nan::New("Key").ToLocalChecked()).ToLocalChecked()->ToObject();
+
+	Nan::Set(v8KeyClass
+		, Nan::New<v8::String>("generateRsaAsync").ToLocalChecked()
+		, Nan::New<v8::FunctionTemplate>(GenerateRsaAsync)->GetFunction()
+		);
 
 	Nan::Set(pki
 		, Nan::New<v8::String>("sign").ToLocalChecked()

@@ -78,8 +78,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let key = AlgClass.generateKey(_alg, extractable, keyUsages);
-            resolve(key);
+            let key = AlgClass.generateKey(_alg, extractable, keyUsages, function(e, k) {
+                if (e)
+                    reject(e);
+                else
+                    resolve(k);
+            });
         });
     }
 

@@ -4,7 +4,7 @@ import * as native from "./native_key";
 let base64url = require("base64url");
 
 export interface IAlgorithmBase {
-    generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey | iwc.ICryptoKeyPair;
+    generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb?): any;
     sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer);
     verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer): boolean;
     encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer): Buffer;
@@ -24,6 +24,7 @@ export interface IAlgorithmBase {
 export class AlgorithmBase {
     static ALGORITHM_NAME: string = "";
 
+    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: Function);
     static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey | iwc.ICryptoKeyPair {
         throw new Error("Method is not supported");
     }

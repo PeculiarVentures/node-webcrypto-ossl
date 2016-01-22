@@ -12,7 +12,7 @@ let ALG_NAME_RSA_OAEP = "RSA-OAEP";
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
 
 export class Rsa extends alg.AlgorithmBase {
-    static generateKey(alg: any, extractable: boolean, keyUsages: string[]): iwc.ICryptoKeyPair {
+    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: Function) {
         let size = alg.modulusLength;
         let exp = new Buffer(alg.publicExponent);
         this.checkExponent(exp);
@@ -20,12 +20,17 @@ export class Rsa extends alg.AlgorithmBase {
         let nExp: number = 0;
         if (exp.toString("hex") === "010001")
             nExp = 1;
-        let _key = native.KeyPair.generateRsa(size, nExp);
-
-        return {
-            privateKey: new RsaKey(_key, alg, "private"),
-            publicKey: new RsaKey(_key, alg, "public")
-        };
+        let _key = native.KeyPair.generateRsa(size, nExp, function(k) {
+            if (!k || !k.handle) {
+                cb("Rsa: Can not generate new key");
+            }
+            else {
+                cb(null, {
+                    privateKey: new RsaKey(_key, alg, "private"),
+                    publicKey: new RsaKey(_key, alg, "public")
+                });
+            }
+        });
     }
 
     static importKey(
@@ -117,15 +122,16 @@ export class RsaKey extends CryptoKey {
 export class RsaPKCS1 extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_PKCS1;
 
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKeyPair {
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
         this.checkAlgorithmIdentifier(alg);
         this.checkRsaGenParams(alg);
         this.checkAlgorithmHashedParams(alg);
 
-        let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
-        keyPair.privateKey.usages = ["sign"];
-        keyPair.publicKey.usages = ["verify"];
-        return keyPair;
+        super.generateKey.apply(this, arguments);
+        // let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
+        // keyPair.privateKey.usages = ["sign"];
+        // keyPair.publicKey.usages = ["verify"];
+        // return keyPair;
     }
 
     static sign(alg: iwc.IAlgorithmIdentifier, key: CryptoKey, data: Buffer) {
@@ -153,7 +159,7 @@ export class RsaPKCS1 extends Rsa {
 export class RsaPSS extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_PSS;
 
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKeyPair {
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
         throw new Error("not realized in this implementation");
     }
 }
@@ -161,15 +167,15 @@ export class RsaPSS extends Rsa {
 export class RsaOAEP extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_OAEP;
 
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKeyPair {
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
         this.checkAlgorithmIdentifier(alg);
         this.checkRsaGenParams(alg);
         this.checkAlgorithmHashedParams(alg);
 
-        let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
-        keyPair.privateKey.usages = ["decrypt", "unwrapKey"];
-        keyPair.publicKey.usages = ["encrypt", "wrapKey"];
-        return keyPair;
+        super.generateKey.apply(this, arguments);
+        // keyPair.privateKey.usages = ["decrypt", "unwrapKey"];
+        // keyPair.publicKey.usages = ["encrypt", "wrapKey"];
+        // return keyPair;
     }
 
     static encrypt(alg: IRsaOaepEncryptParams, key: CryptoKey, data: Buffer): Buffer {
