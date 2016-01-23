@@ -4,7 +4,7 @@
 #pragma message("OSSL_EXCEP_H_INCLUDE")
 
 #include <stdexcept>
-#include <openssl\err.h>
+#include <openssl/err.h>
 
 #include "ossl_wrap.h"
 

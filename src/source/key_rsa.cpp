@@ -1,5 +1,3 @@
-#include <openssl\x509.h>
-
 #include "key_rsa.h"
 
 Handle<ScopedEVP_PKEY> generateRsa(int modulus, int publicExponent) {

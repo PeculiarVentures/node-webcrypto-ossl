@@ -6,7 +6,7 @@
 
 #include "logger.h"
 
-#include <openssl\x509.h>
+#include <openssl/x509.h>
 
 
 // Create name for Scoped class
