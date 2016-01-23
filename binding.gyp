@@ -10,8 +10,9 @@
             "target_name": "nodessl",
             "sources": [
                  "src/main.cpp",
-                 "src//source/common.h",
-                 "src//source/ossl_wrap.h",
+                 "src/source/common.h",
+                 "src/source/ossl_wrap.h",
+				 "src/source/ossl_wrap.cpp",
                  "src/source/logger.cpp",
                  "src/source/excep.cpp",
                  # "src/source/key.cpp",

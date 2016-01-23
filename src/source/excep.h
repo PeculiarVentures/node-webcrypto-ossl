@@ -1,11 +1,11 @@
 #ifndef OSSL_EXCEP_H_INCLUDE
 #define OSSL_EXCEP_H_INCLUDE
-
 #pragma message("OSSL_EXCEP_H_INCLUDE")
 
 #include <stdexcept>
 #include <openssl/err.h>
 
+#include "ossl_wrap.h"
 #include "ossl_wrap.h"
 
 std::string OPENSSL_get_errors();

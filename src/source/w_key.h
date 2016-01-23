@@ -1,5 +1,6 @@
 #ifndef OSSL_W_KEY_H_INCLUDE
 #define OSSL_W_KEY_H_INCLUDE
+#pragma message("OSSL_W_KEY_H_INCLUDE")
 
 #include "key_rsa.h"
 

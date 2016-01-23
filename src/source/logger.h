@@ -1,5 +1,6 @@
 #ifndef OSSL_LOGGER_H_INCLUDE
 #define OSSL_LOGGER_H_INCLUDE
+#pragma message("OSSL_LOGGER_H_INCLUDE")
 
 #include <string>
 

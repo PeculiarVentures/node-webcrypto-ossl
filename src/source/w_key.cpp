@@ -1,4 +1,4 @@
-#include "w_key.h";
+#include "w_key.h"
 
 const char* WKey::ClassName = "Key";
 

@@ -1,8 +1,6 @@
 #ifndef OSSL_SSL_WRAP_H_INCLUDE
-#define OSSL_SSL_WRAP_H_INCLUDE "WoW!"
-
+#define OSSL_SSL_WRAP_H_INCLUDE
 #pragma message("OSSL_SSL_WRAP_H_INCLUDE")
-#pragma message(OSSL_SSL_WRAP_H_INCLUDE ) // WoW!
 
 #include "logger.h"
 
@@ -16,6 +14,9 @@
 // Create name for Scoped class free function
 #define ScopedSSL_name_free(ossl_st)					\
 	Scoped##ossl_st##_free
+
+#define ScopedSSL_free_define(ossl_st, ossl_free)							\
+	void ScopedSSL_name_free(ossl_st)(void* handle);
 
 // Create wrap function for OpenSSL free functions (some OpenSSL struts use macros fo free)
 #define ScopedSSL_free(ossl_st, ossl_free)							\
@@ -78,7 +79,7 @@ protected:
 };
 
 #define ScopedSSL_create(type, free)											\
-	ScopedSSL_free(type, free);													\
+	ScopedSSL_free_define(type, free);											\
 	using ScopedSSL_name(type) = ScopedSSL<type, &ScopedSSL_name_free(type)>;
 
 ScopedSSL_create(BIGNUM, BN_free);
