@@ -1,6 +1,5 @@
 #ifndef OSSL_COMMON_H_INCLUDE
 #define OSSL_COMMON_H_INCLUDE
-#pragma message("OSSL_COMMON_H_INCLUDE")
 
 #include <memory>
 #include <nan.h>

@@ -1,6 +1,5 @@
 #ifndef OSSL_SSL_WRAP_H_INCLUDE
 #define OSSL_SSL_WRAP_H_INCLUDE
-#pragma message("OSSL_SSL_WRAP_H_INCLUDE")
 
 #include "logger.h"
 

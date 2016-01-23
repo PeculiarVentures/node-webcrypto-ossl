@@ -10,8 +10,8 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	//generate
 	//SetPrototypeMethod(tpl, "generateRsa", GenerateRsa);
 
-	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
-	//Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
+	// v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
+	// Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
