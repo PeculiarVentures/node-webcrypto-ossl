@@ -9,7 +9,14 @@
             ],
             "target_name": "nodessl",
             "sources": [
-                "src/key.cpp"
+                 "src/main.cpp",
+                 "src//source/common.h",
+                 "src//source/ossl_wrap.h",
+                 "src/source/logger.cpp",
+                 "src/source/excep.cpp",
+                 # "src/source/key.cpp",
+                 "src/source/key_rsa.cpp",
+                 "src/source/w_key.cpp"
             ],
             "cflags_cc": ["-fexceptions"],
             "conditions": [
