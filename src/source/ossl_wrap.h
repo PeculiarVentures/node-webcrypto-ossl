@@ -15,7 +15,7 @@
 
 // Create name for Scoped class free function
 #define ScopedSSL_name_free(ossl_st)					\
-	ScopedSSL_name(ossl_st)##_free
+	Scoped##ossl_st##_free
 
 // Create wrap function for OpenSSL free functions (some OpenSSL struts use macros fo free)
 #define ScopedSSL_free(ossl_st, ossl_free)							\

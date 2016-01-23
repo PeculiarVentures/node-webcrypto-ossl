@@ -1,7 +1,7 @@
 #ifndef OSSL_W_KEY_H_INCLUDE
 #define OSSL_W_KEY_H_INCLUDE
 
-#include "key_rsa.h";
+#include "key_rsa.h"
 
 using namespace node;
 
@@ -29,7 +29,6 @@ protected:
 		static Nan::Persistent<v8::Function> my_constructor;
 		return my_constructor;
 	}
-
 
 };
 
