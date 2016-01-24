@@ -27,6 +27,7 @@ public:
 	static NAN_METHOD(ExportJwk);
 	static NAN_METHOD(ExportSpki);
 	static NAN_METHOD(ExportPkcs8);
+	static NAN_METHOD(ImportSpki);
 	static NAN_METHOD(ImportPkcs8);
 
 	Handle<ScopedEVP_PKEY> data;

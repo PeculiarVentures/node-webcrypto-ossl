@@ -20,6 +20,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	//static functions
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsaAsync);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importSpki", ImportSpki);
 
 	exports->Set(Nan::New(WKey::ClassName).ToLocalChecked(), tpl->GetFunction());
 }
@@ -60,7 +61,12 @@ public:
 	// here, so everything we need for input and output
 	// should go on `this`.
 	void Execute() {
-		key = RSA_generate(modulusBits, publicExponent);
+		try {
+			key = RSA_generate(modulusBits, publicExponent);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
 	}
 
 	// Executed when the async work is complete
@@ -174,7 +180,12 @@ public:
 	// here, so everything we need for input and output
 	// should go on `this`.
 	void Execute() {
-		buffer = KEY_export_spki(key->Get());
+		try {
+			buffer = KEY_export_spki(key->Get());
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
 	}
 
 	// Executed when the async work is complete
@@ -220,7 +231,12 @@ public:
 	// here, so everything we need for input and output
 	// should go on `this`.
 	void Execute() {
-		buffer = KEY_export_pkcs8(key->Get());
+		try {
+			buffer = KEY_export_pkcs8(key->Get());
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
 	}
 
 	// Executed when the async work is complete
@@ -266,7 +282,12 @@ public:
 	// here, so everything we need for input and output
 	// should go on `this`.
 	void Execute() {
-		key = KEY_import_pkcs8(in);
+		try {
+			key = KEY_import_pkcs8(in);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
 	}
 
 	// Executed when the async work is complete
@@ -300,4 +321,56 @@ NAN_METHOD(WKey::ImportPkcs8) {
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncImportPkcs8(callback, in));
+}
+
+class AsyncImportSpki : public Nan::AsyncWorker {
+public:
+	AsyncImportSpki(Nan::Callback *callback, BIO* in)
+		: AsyncWorker(callback), in(in) {}
+	~AsyncImportSpki() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		try {
+			key = KEY_import_spki(in);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+		wkey->data = this->key;
+
+		v8::Local<v8::Value> argv[] = {
+			v8Key
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	BIO *in;
+	Handle<ScopedEVP_PKEY> key;
+};
+
+NAN_METHOD(WKey::ImportSpki) {
+	LOG_FUNC();
+
+	v8::Local<v8::Object> v8Buffer = info[0]->ToObject();
+	BIO *in = BIO_new_mem_buf(node::Buffer::Data(v8Buffer), node::Buffer::Length(v8Buffer));
+
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncImportSpki(callback, in));
 }
