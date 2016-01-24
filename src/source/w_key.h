@@ -21,6 +21,12 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	
 	static NAN_METHOD(New);
+	
+	static NAN_GETTER(Type);
+	static NAN_METHOD(GenerateRsaAsync);
+	static NAN_METHOD(ExportJwk);
+	static NAN_METHOD(ExportSpki);
+	static NAN_METHOD(ExportPkcs8);
 
 	Handle<ScopedEVP_PKEY> data;
 
@@ -32,6 +38,5 @@ protected:
 
 };
 
-NAN_METHOD(GenerateRsaAsync);
 
 #endif // OSSL_W_KEY_H_INCLUDE

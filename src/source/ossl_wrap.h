@@ -5,7 +5,6 @@
 
 #include <openssl/x509.h>
 
-
 // Create name for Scoped class
 #define ScopedSSL_name(ossl_st)							\
 	Scoped##ossl_st
@@ -17,7 +16,7 @@
 #define ScopedSSL_free_define(ossl_st, ossl_free)							\
 	void ScopedSSL_name_free(ossl_st)(void* handle);
 
-// Create wrap function for OpenSSL free functions (some OpenSSL struts use macros fo free)
+// Create wrap function for OpenSSL free functions (some OpenSSL struts use macros for free)
 #define ScopedSSL_free(ossl_st, ossl_free)							\
 	void ScopedSSL_name_free(ossl_st)(void* handle){	\
 		ossl_free((ossl_st*)handle);				\
@@ -30,6 +29,9 @@ public:
 
 	ScopedSSL() : ptr(NULL), free(CB) {}
 	ScopedSSL(T* handle) : ptr(handle), free(CB) {}
+	ScopedSSL(MyType &handle) : ptr(handle.Get()), free(CB) {
+		handle.ptr = NULL;
+	}
 	~ScopedSSL() {
 		if (ptr) {
 			free(ptr);
@@ -41,6 +43,10 @@ public:
 	T* Get() { // return wrapped OpenSSL object
 		return ptr;
 	}
+
+	/*Handle<MyType> Handle() {
+		return Handle<MyType>(new MyType((*this)));
+	}*/
 
 	MyType& operator=(T* _Right)
 	{	// take resource from _Right

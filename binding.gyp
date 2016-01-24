@@ -11,6 +11,7 @@
             "sources": [
                  "src/main.cpp",
                  "src/source/common.h",
+                 "src/source/common.cpp",
                  "src/source/ossl_wrap.h",
 				 "src/source/ossl_wrap.cpp",
                  "src/source/logger.cpp",

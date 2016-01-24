@@ -1488,11 +1488,11 @@ NAN_METHOD(DeriveKey) {
 	info.GetReturnValue().Set(v8Buf);
 }
 
-class RsaGenerateKeyAsync : public Nan::AsyncWorker {
+class AsyncRsaGenerateKey : public Nan::AsyncWorker {
 public:
-	RsaGenerateKeyAsync(Nan::Callback *callback, int modulusBits, int publicExponent)
+	AsyncRsaGenerateKey(Nan::Callback *callback, int modulusBits, int publicExponent)
 		: AsyncWorker(callback), modulusBits(modulusBits), publicExponent(publicExponent) {}
-	~RsaGenerateKeyAsync() {}
+	~AsyncRsaGenerateKey() {}
 
 	// Executed inside the worker-thread.
 	// It is not safe to access V8, or V8 data structures
@@ -1533,7 +1533,7 @@ NAN_METHOD(GenerateRsaAsync) {
 	int publicExponent = Nan::To<int>(info[1]).FromJust();
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new RsaGenerateKeyAsync(callback, modulus, publicExponent));
+	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent));
 }
 
 NAN_MODULE_INIT(Init) {
