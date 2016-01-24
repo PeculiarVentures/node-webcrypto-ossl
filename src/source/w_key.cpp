@@ -19,6 +19,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 
 	//static functions
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsaAsync);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
 
 	exports->Set(Nan::New(WKey::ClassName).ToLocalChecked(), tpl->GetFunction());
 }
@@ -252,4 +253,51 @@ NAN_METHOD(WKey::ExportPkcs8) {
 	Nan::Callback *callback = new Nan::Callback(info[0].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncExportPkcs8(callback, wkey->data));
+}
+
+class AsyncImportPkcs8 : public Nan::AsyncWorker {
+public:
+	AsyncImportPkcs8(Nan::Callback *callback, BIO* in)
+		: AsyncWorker(callback), in(in) {}
+	~AsyncImportPkcs8() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		key = KEY_import_pkcs8(in);
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+		wkey->data = this->key;
+
+		v8::Local<v8::Value> argv[] = {
+			v8Key
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	BIO *in;
+	Handle<ScopedEVP_PKEY> key;
+};
+
+NAN_METHOD(WKey::ImportPkcs8) {
+	LOG_FUNC();
+
+	v8::Local<v8::Object> v8Buffer = info[0]->ToObject();
+	BIO *in = BIO_new_mem_buf(node::Buffer::Data(v8Buffer), node::Buffer::Length(v8Buffer));
+
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncImportPkcs8(callback, in));
 }

@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define V8_DEBUG
+// #define V8_DEBUG
 
 class FunctionLog {
 public:

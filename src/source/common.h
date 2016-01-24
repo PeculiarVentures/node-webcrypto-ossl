@@ -19,8 +19,8 @@ Handle<ScopedBIO> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *bp, EVP
 
 Handle<ScopedBIO> KEY_export_spki(EVP_PKEY *pkey);
 Handle<ScopedBIO> KEY_export_pkcs8(EVP_PKEY *pkey);
-Handle<ScopedEVP_PKEY> KEY_import_spki(v8::Local<v8::Object> v8Buffer);
-Handle<ScopedEVP_PKEY> KEY_import_pkcs8(v8::Local<v8::Object> v8Buffer);
+Handle<ScopedEVP_PKEY> KEY_import_spki(BIO *in);
+Handle<ScopedEVP_PKEY> KEY_import_pkcs8(BIO *in);
 
 // #include "key_rsa.h"
 
