@@ -36,6 +36,7 @@ public:
 	static NAN_METHOD(ImportPkcs8);
 
 	static NAN_METHOD(Sign);
+	static NAN_METHOD(Verify);
 
 	Handle<ScopedEVP_PKEY> data;
 

@@ -12,6 +12,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "exportSpki", ExportSpki);
 	SetPrototypeMethod(tpl, "exportPkcs8", ExportPkcs8);
 	SetPrototypeMethod(tpl, "sign", Sign);
+	SetPrototypeMethod(tpl, "verify", Verify);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
@@ -541,4 +542,76 @@ NAN_METHOD(WKey::Sign) {
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
+}
+
+class AsyncVerifyRsa : public Nan::AsyncWorker {
+public:
+	AsyncVerifyRsa(Nan::Callback *callback, const EVP_MD *md, Handle<ScopedEVP_PKEY> pkey, Handle<ScopedBIO> in, Handle<ScopedBIO> signature)
+		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature){}
+	~AsyncVerifyRsa() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		try {
+			res = RSA_verify_buf(pkey, md, in, signature);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Value> argv[] = {
+			Nan::New<v8::Boolean>(res)
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedBIO> in;
+	Handle<ScopedBIO> signature;
+	bool res;
+};
+
+/*
+* digestName: string
+* data: Buffer
+* signature: Buffer
+* cb: function
+*/
+NAN_METHOD(WKey::Verify) {
+	LOG_FUNC();
+
+	LOG_INFO("digestName");
+	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+	if (!md) {
+		Nan::ThrowError("Unknown digest name");
+		return;
+	}
+
+	LOG_INFO("data");
+	Handle<ScopedBIO> data = v8Buffer_to_ScopedBIO(info[1]);
+
+	LOG_INFO("signature");
+	Handle<ScopedBIO> sig = v8Buffer_to_ScopedBIO(info[2]);
+
+	LOG_INFO("this->Key");
+	WKey *wkey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> pkey = wkey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
 }
