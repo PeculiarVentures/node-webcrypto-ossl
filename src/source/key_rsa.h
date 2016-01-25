@@ -38,5 +38,6 @@ ScopedSSL_create(JWK_RSA, JWK_RSA_free);
 Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent);
 Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type);
 Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type);
+Handle<ScopedBIO> RSA_sign_buf(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in);
 
 #endif // OSSL_KEY_RSA_H_INCLUDE

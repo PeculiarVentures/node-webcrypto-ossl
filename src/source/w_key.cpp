@@ -11,6 +11,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "exportJwk", ExportJwk);
 	SetPrototypeMethod(tpl, "exportSpki", ExportSpki);
 	SetPrototypeMethod(tpl, "exportPkcs8", ExportPkcs8);
+	SetPrototypeMethod(tpl, "sign", Sign);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
@@ -217,9 +218,7 @@ public:
 	void HandleOKCallback() {
 		Nan::HandleScope scope;
 
-		char* buf;
-		int len = BIO_get_mem_data(buffer->Get(), &buf);
-		v8::Local<v8::Object> v8Buffer = Nan::NewBuffer(buf, len).ToLocalChecked();
+		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
 
 		v8::Local<v8::Value> argv[] = {
 			v8Buffer
@@ -268,9 +267,7 @@ public:
 	void HandleOKCallback() {
 		Nan::HandleScope scope;
 
-		char* buf;
-		int len = BIO_get_mem_data(buffer->Get(), &buf);
-		v8::Local<v8::Object> v8Buffer = Nan::NewBuffer(buf, len).ToLocalChecked();
+		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
 
 		v8::Local<v8::Value> argv[] = {
 			v8Buffer
@@ -296,7 +293,7 @@ NAN_METHOD(WKey::ExportPkcs8) {
 
 class AsyncImportPkcs8 : public Nan::AsyncWorker {
 public:
-	AsyncImportPkcs8(Nan::Callback *callback, BIO* in)
+	AsyncImportPkcs8(Nan::Callback *callback, Handle<ScopedBIO> in)
 		: AsyncWorker(callback), in(in) {}
 	~AsyncImportPkcs8() {}
 
@@ -306,7 +303,7 @@ public:
 	// should go on `this`.
 	void Execute() {
 		try {
-			key = KEY_import_pkcs8(in);
+			key = KEY_import_pkcs8(in->Get());
 		}
 		catch (std::exception& e) {
 			this->SetErrorMessage(e.what());
@@ -331,15 +328,14 @@ public:
 	}
 
 private:
-	BIO *in;
+	Handle<ScopedBIO> in;
 	Handle<ScopedEVP_PKEY> key;
 };
 
 NAN_METHOD(WKey::ImportPkcs8) {
 	LOG_FUNC();
 
-	v8::Local<v8::Object> v8Buffer = info[0]->ToObject();
-	BIO *in = BIO_new_mem_buf(node::Buffer::Data(v8Buffer), node::Buffer::Length(v8Buffer));
+	Handle<ScopedBIO> in = v8Buffer_to_ScopedBIO(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
@@ -348,7 +344,7 @@ NAN_METHOD(WKey::ImportPkcs8) {
 
 class AsyncImportSpki : public Nan::AsyncWorker {
 public:
-	AsyncImportSpki(Nan::Callback *callback, BIO* in)
+	AsyncImportSpki(Nan::Callback *callback, Handle<ScopedBIO> in)
 		: AsyncWorker(callback), in(in) {}
 	~AsyncImportSpki() {}
 
@@ -358,7 +354,7 @@ public:
 	// should go on `this`.
 	void Execute() {
 		try {
-			key = KEY_import_spki(in);
+			key = KEY_import_spki(in->Get());
 		}
 		catch (std::exception& e) {
 			this->SetErrorMessage(e.what());
@@ -383,15 +379,14 @@ public:
 	}
 
 private:
-	BIO *in;
+	Handle<ScopedBIO> in;
 	Handle<ScopedEVP_PKEY> key;
 };
 
 NAN_METHOD(WKey::ImportSpki) {
 	LOG_FUNC();
 
-	v8::Local<v8::Object> v8Buffer = info[0]->ToObject();
-	BIO *in = BIO_new_mem_buf(node::Buffer::Data(v8Buffer), node::Buffer::Length(v8Buffer));
+	Handle<ScopedBIO> in = v8Buffer_to_ScopedBIO(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
@@ -478,4 +473,72 @@ NAN_METHOD(WKey::ImportJwk) {
 		Nan::ThrowError("JWK: Unsupported kty value");
 		return;
 	}
+}
+
+class AsyncSignRsa : public Nan::AsyncWorker {
+public:
+	AsyncSignRsa(Nan::Callback *callback, const EVP_MD *md, Handle<ScopedEVP_PKEY> pkey, Handle<ScopedBIO> in)
+		: AsyncWorker(callback), md(md), pkey(pkey), in(in) {}
+	~AsyncSignRsa() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		try {
+			out = RSA_sign_buf(pkey, md, in);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
+
+		v8::Local<v8::Value> argv[] = {
+			v8Buffer
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedBIO> in;
+	Handle<ScopedBIO> out;
+};
+
+/*
+ * digestName: string
+ * data: Buffer
+ */
+NAN_METHOD(WKey::Sign) {
+	LOG_FUNC();
+
+	LOG_INFO("digestName");
+	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+	if (!md) {
+		Nan::ThrowError("Unknown digest name");
+		return;
+	}
+
+	LOG_INFO("data");
+	Handle<ScopedBIO> hBio = v8Buffer_to_ScopedBIO(info[1]);
+
+	LOG_INFO("this->Key");
+	WKey *wkey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> pkey = wkey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
 }
