@@ -91,5 +91,6 @@ ScopedSSL_create(BIGNUM, BN_free);
 ScopedSSL_create(EVP_PKEY, EVP_PKEY_free);
 ScopedSSL_create(RSA, RSA_free);
 ScopedSSL_create(BIO, BIO_free);
+ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 
 #endif // OSSL_SSL_WRAP_H_INCLUDE
