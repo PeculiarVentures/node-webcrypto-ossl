@@ -22,6 +22,10 @@ Handle<ScopedBIO> KEY_export_pkcs8(EVP_PKEY *pkey);
 Handle<ScopedEVP_PKEY> KEY_import_spki(BIO *in);
 Handle<ScopedEVP_PKEY> KEY_import_pkcs8(BIO *in);
 
+Handle<ScopedBIO> v8Buffer_to_ScopedBIO(v8::Local<v8::Value> v8Buffer);
+Handle<ScopedBIO> v8Buffer_to_ScopedBIO(v8::Local<v8::Object> v8Buffer);
+v8::Local<v8::Object> ScopedBIO_to_v8Buffer(Handle<ScopedBIO> bio);
+
 // #include "key_rsa.h"
 
 #endif // OSSL_COMMON_H_INCLUDE
