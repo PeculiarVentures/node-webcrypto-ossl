@@ -20,6 +20,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	//static functions
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsaAsync);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importJwk", ImportJwk);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importSpki", ImportSpki);
 
 	exports->Set(Nan::New(WKey::ClassName).ToLocalChecked(), tpl->GetFunction());
@@ -102,21 +103,26 @@ NAN_METHOD(WKey::GenerateRsaAsync) {
 	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent));
 }
 
-class AsyncExportJwk : public Nan::AsyncWorker {
+class AsyncExportJwkRsa : public Nan::AsyncWorker {
 public:
-	AsyncExportJwk(
+	AsyncExportJwkRsa(
 		Nan::Callback *callback,
 		int key_type,
-		Handle<ScopedEVP_PKEY> key,
-		v8::Local<v8::Object>(*fn)(EVP_PKEY *pkey, int &key_type))
-		: AsyncWorker(callback), isolate(isolate), key_type(key_type), key(key), export_fn(fn) {}
-	~AsyncExportJwk() {}
+		Handle<ScopedEVP_PKEY> key)
+		: AsyncWorker(callback), key_type(key_type), key(key) {}
+	~AsyncExportJwkRsa() {}
 
 	// Executed inside the worker-thread.
 	// It is not safe to access V8, or V8 data structures
 	// here, so everything we need for input and output
 	// should go on `this`.
 	void Execute() {
+		try {
+			jwk = RSA_export_jwk(key->Get(), key_type);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
 	}
 
 	// Executed when the async work is complete
@@ -125,23 +131,40 @@ public:
 	void HandleOKCallback() {
 		Nan::HandleScope scope;
 
-		jwk = export_fn(key->Get(), key_type);
+		v8::Local<v8::Object> v8Jwk = Nan::New<v8::Object>();
+
+		LOG_INFO("Convert RSA to JWK");
+		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked(), Nan::New(jwk->Get()->kty).ToLocalChecked());
+		LOG_INFO("Get RSA public key");
+		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_N).ToLocalChecked(), bn2buf(jwk->Get()->n.Get()));
+		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_E).ToLocalChecked(), bn2buf(jwk->Get()->e.Get()));
+		if (key_type == NODESSL_KT_PRIVATE) {
+			LOG_INFO("Get RSA private key");
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_D).ToLocalChecked(), bn2buf(jwk->Get()->d.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_P).ToLocalChecked(), bn2buf(jwk->Get()->p.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_Q).ToLocalChecked(), bn2buf(jwk->Get()->q.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DP).ToLocalChecked(), bn2buf(jwk->Get()->dp.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DQ).ToLocalChecked(), bn2buf(jwk->Get()->dq.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_QI).ToLocalChecked(), bn2buf(jwk->Get()->qi.Get()));
+		}
 
 		v8::Local<v8::Value> argv[] = {
-			jwk
+			v8Jwk
 		};
 
 		callback->Call(1, argv);
 	}
 
 private:
-	v8::Local<v8::Object> jwk;
+	Handle<ScopedJWK_RSA> jwk;
 	int key_type;
 	Handle<ScopedEVP_PKEY> key;
-	v8::Isolate* isolate;
-	v8::Local<v8::Object>(*export_fn)(EVP_PKEY *pkey, int &key_type);
 };
 
+/*
+ * key_type: number
+ * cb: function
+ */
 NAN_METHOD(WKey::ExportJwk) {
 	LOG_FUNC();
 
@@ -154,7 +177,7 @@ NAN_METHOD(WKey::ExportJwk) {
 	try {
 		switch (wkey->data->Get()->type) {
 		case EVP_PKEY_RSA: {
-			Nan::AsyncQueueWorker(new AsyncExportJwk(callback, key_type, wkey->data, &RSA_export_jwk));
+			Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
 			break;
 		}
 		case EVP_PKEY_EC:
@@ -373,4 +396,86 @@ NAN_METHOD(WKey::ImportSpki) {
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncImportSpki(callback, in));
+}
+
+class AsyncImportJwkRsa : public Nan::AsyncWorker {
+public:
+	AsyncImportJwkRsa(Nan::Callback *callback, Handle<ScopedJWK_RSA> jwk, int key_type)
+		: AsyncWorker(callback), jwk(jwk), key_type(key_type) {}
+	~AsyncImportJwkRsa() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		try {
+			pkey = RSA_import_jwk(jwk, key_type);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+		wkey->data = pkey;
+
+		v8::Local<v8::Value> argv[] = {
+			v8Key
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	int key_type;
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedJWK_RSA> jwk;
+};
+
+/*
+ * jwk: v8::Object
+ * key_type: number
+ */
+NAN_METHOD(WKey::ImportJwk) {
+	LOG_FUNC();
+
+	int key_type = Nan::To<int>(info[1]).FromJust();
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+
+	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
+	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
+
+	if (strcmp(*v8Kty, JWK_KTY_RSA) == 0) {
+		JWK_RSA *jwk = JWK_RSA_new();
+		Handle<ScopedJWK_RSA> hJwk(new ScopedJWK_RSA(jwk));
+
+		LOG_INFO("set public key");
+		v8Object_get_BN(v8Jwk, n, jwk, n);
+		v8Object_get_BN(v8Jwk, e, jwk, e);
+
+		if (key_type == NODESSL_KT_PRIVATE) {
+			LOG_INFO("set private key");
+			v8Object_get_BN(v8Jwk, d, jwk, d);
+			v8Object_get_BN(v8Jwk, p, jwk, p);
+			v8Object_get_BN(v8Jwk, q, jwk, q);
+			v8Object_get_BN(v8Jwk, dp, jwk, dp);
+			v8Object_get_BN(v8Jwk, dq, jwk, dq);
+			v8Object_get_BN(v8Jwk, qi, jwk, qi);
+		}
+
+		Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, hJwk, key_type));
+	}
+	else {
+		Nan::ThrowError("JWK: Unsupported kty value");
+		return;
+	}
 }

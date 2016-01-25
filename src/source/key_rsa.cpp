@@ -1,20 +1,13 @@
 #include "key_rsa.h"
 
-#define JWK_KTY_RSA "RSA"
+JWK_RSA* JWK_RSA_new() {
+	return new JWK_RSA;
+}
+void JWK_RSA_free(JWK_RSA *jwk) {
+	delete jwk;
+};
 
-#define JWK_ATTR_KTY "kty"
-#define JWK_ATTR_N "n"
-#define JWK_ATTR_E "e"
-#define JWK_ATTR_D "d"
-#define JWK_ATTR_P "p"
-#define JWK_ATTR_Q "q"
-#define JWK_ATTR_DP "dp"
-#define JWK_ATTR_DQ "dq"
-#define JWK_ATTR_QI "qi"
-
-#define RSA_set_BN(v8Obj, v8Param, RsaKey, RsaKeyParam) \
-	unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()); \
-	RsaKey->RsaKeyParam = BN_bin2bn(v8Param, node::Buffer::Length(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()), RsaKey->RsaKeyParam);
+ScopedSSL_free(JWK_RSA, JWK_RSA_free);
 
 Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 	LOG_FUNC();
@@ -56,10 +49,8 @@ Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 	return Handle<ScopedEVP_PKEY>(new ScopedEVP_PKEY(pkey));
 }
 
-v8::Local<v8::Object> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
+Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
 	LOG_FUNC();
-
-	Nan::HandleScope();
 
 	LOG_INFO("Check key_type");
 	if (!(key_type == NODESSL_KT_PRIVATE || key_type == NODESSL_KT_PUBLIC)) {
@@ -75,29 +66,30 @@ v8::Local<v8::Object> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
 	}
 
 	LOG_INFO("Create JWK Object");
-	v8::Local<v8::Object> v8Jwk = Nan::New<v8::Object>();
+	JWK_RSA* jwk = JWK_RSA_new();
+	Handle<ScopedJWK_RSA> hJwk(new ScopedJWK_RSA(jwk));
 
 	RSA *rsa = pkey->pkey.rsa;
 
 	LOG_INFO("Convert RSA to JWK");
-	Nan::Set(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked(), Nan::New(JWK_KTY_RSA).ToLocalChecked());
+	jwk->type = key_type;
 	LOG_INFO("Get RSA public key");
-	Nan::Set(v8Jwk, Nan::New(JWK_ATTR_N).ToLocalChecked(), bn2buf(rsa->n));
-	Nan::Set(v8Jwk, Nan::New(JWK_ATTR_E).ToLocalChecked(), bn2buf(rsa->e));
+	jwk->n = BN_dup(rsa->n);
+	jwk->e = BN_dup(rsa->e);
 	if (key_type == NODESSL_KT_PRIVATE) {
 		LOG_INFO("Get RSA private key");
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_D).ToLocalChecked(), bn2buf(rsa->d));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_P).ToLocalChecked(), bn2buf(rsa->p));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_Q).ToLocalChecked(), bn2buf(rsa->q));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DP).ToLocalChecked(), bn2buf(rsa->dmp1));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DQ).ToLocalChecked(), bn2buf(rsa->dmq1));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_QI).ToLocalChecked(), bn2buf(rsa->iqmp));
+		jwk->d = BN_dup(rsa->d);
+		jwk->p = BN_dup(rsa->p);
+		jwk->q = BN_dup(rsa->q);
+		jwk->dp = BN_dup(rsa->dmp1);
+		jwk->dq = BN_dup(rsa->dmq1);
+		jwk->qi = BN_dup(rsa->iqmp);
 	}
 
-	return v8Jwk;
+	return hJwk;
 }
 
-Handle<ScopedEVP_PKEY> RSA_import_jwk(v8::Local<v8::Object> v8Jwk, int &key_type) {
+Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type) {
 	LOG_FUNC();
 
 	LOG_INFO("Check key_type");
@@ -105,30 +97,27 @@ Handle<ScopedEVP_PKEY> RSA_import_jwk(v8::Local<v8::Object> v8Jwk, int &key_type
 		THROW_ERROR("Wrong value of key_type");
 	}
 
-	v8::String::Utf8Value v8JwkKty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked()->ToString());
-
-	if (strcmp(*v8JwkKty, "RSA") != 0) {
+	if (strcmp(hJwk->Get()->kty, "RSA") != 0) {
 		THROW_ERROR("JWK key is not RSA");
 	}
 
 	RSA* rsa_key = RSA_new();
 
 	LOG_INFO("set public key");
-	RSA_set_BN(v8Jwk, n, rsa_key, n);
-	RSA_set_BN(v8Jwk, e, rsa_key, e);
+	rsa_key->n = BN_dup(hJwk->Get()->n.Get());
+	rsa_key->e = BN_dup(hJwk->Get()->e.Get());
 
 	if (key_type == NODESSL_KT_PRIVATE) {
 		LOG_INFO("set private key");
-		RSA_set_BN(v8Jwk, d, rsa_key, d);
-		RSA_set_BN(v8Jwk, p, rsa_key, p);
-		RSA_set_BN(v8Jwk, q, rsa_key, q);
-		RSA_set_BN(v8Jwk, dp, rsa_key, dmp1);
-		RSA_set_BN(v8Jwk, dq, rsa_key, dmq1);
-		RSA_set_BN(v8Jwk, qi, rsa_key, iqmp);
+		rsa_key->d = BN_dup(hJwk->Get()->d.Get());
+		rsa_key->p = BN_dup(hJwk->Get()->p.Get());
+		rsa_key->q = BN_dup(hJwk->Get()->q.Get());
+		rsa_key->dmp1 = BN_dup(hJwk->Get()->dp.Get());
+		rsa_key->dmq1 = BN_dup(hJwk->Get()->dq.Get());
+		rsa_key->iqmp = BN_dup(hJwk->Get()->qi.Get());
 	}
 
 	LOG_INFO("set key");
-
 	ScopedEVP_PKEY pkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(pkey.Get(), rsa_key);
 

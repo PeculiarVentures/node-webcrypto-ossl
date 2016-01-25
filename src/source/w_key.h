@@ -5,6 +5,10 @@
 
 using namespace node;
 
+#define v8Object_get_BN(v8Obj, v8Param, RsaKey, RsaKeyParam) \
+	{unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()); \
+	RsaKey->RsaKeyParam = BN_bin2bn(v8Param, node::Buffer::Length(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()), NULL);}
+
 class WKey : public ObjectWrap {
 public:
 	static v8::Local<v8::Object> NewInstance() {
@@ -27,6 +31,7 @@ public:
 	static NAN_METHOD(ExportJwk);
 	static NAN_METHOD(ExportSpki);
 	static NAN_METHOD(ExportPkcs8);
+	static NAN_METHOD(ImportJwk);
 	static NAN_METHOD(ImportSpki);
 	static NAN_METHOD(ImportPkcs8);
 
