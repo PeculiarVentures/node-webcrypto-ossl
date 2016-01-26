@@ -27,7 +27,7 @@ public:
 	static NAN_METHOD(New);
 	
 	static NAN_GETTER(Type);
-	static NAN_METHOD(GenerateRsaAsync);
+	static NAN_METHOD(GenerateRsa);
 	static NAN_METHOD(ExportJwk);
 	static NAN_METHOD(ExportSpki);
 	static NAN_METHOD(ExportPkcs8);

@@ -21,7 +21,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsaAsync);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsa);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importJwk", ImportJwk);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importSpki", ImportSpki);
@@ -84,10 +84,11 @@ public:
 		wkey->data = this->key;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Key
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -96,7 +97,7 @@ private:
 	Handle<ScopedEVP_PKEY> key;
 };
 
-NAN_METHOD(WKey::GenerateRsaAsync) {
+NAN_METHOD(WKey::GenerateRsa) {
 	LOG_FUNC();
 
 	int modulus = Nan::To<int>(info[0]).FromJust();
@@ -152,10 +153,11 @@ public:
 		}
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Jwk
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -223,10 +225,11 @@ public:
 		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Buffer
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -272,10 +275,11 @@ public:
 		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Buffer
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -323,10 +327,11 @@ public:
 		wkey->data = this->key;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Key
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -374,10 +379,11 @@ public:
 		wkey->data = this->key;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Key
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -385,6 +391,9 @@ private:
 	Handle<ScopedEVP_PKEY> key;
 };
 
+/*
+ * in: buffer 
+ */
 NAN_METHOD(WKey::ImportSpki) {
 	LOG_FUNC();
 
@@ -425,10 +434,11 @@ public:
 		wkey->data = pkey;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Key
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -505,10 +515,11 @@ public:
 		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			v8Buffer
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -571,10 +582,11 @@ public:
 		Nan::HandleScope scope;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			Nan::New<v8::Boolean>(res)
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
@@ -650,10 +662,11 @@ public:
 		Nan::HandleScope scope;
 
 		v8::Local<v8::Value> argv[] = {
+			Nan::Null(),
 			ScopedBIO_to_v8Buffer(hResult)
 		};
 
-		callback->Call(1, argv);
+		callback->Call(2, argv);
 	}
 
 private:
