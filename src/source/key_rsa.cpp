@@ -173,11 +173,12 @@ bool RSA_verify_buf(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedB
 	return res == 1;
 }
 
-Handle<ScopedBIO> RSA_OAEP_encrypt(
+Handle<ScopedBIO> RSA_OAEP_enc_dec(
 	Handle<ScopedEVP_PKEY> hKey,
 	const EVP_MD *md,
 	Handle<ScopedBIO> hData,
-	Handle<ScopedBIO> hLabel
+	Handle<ScopedBIO> hLabel,
+	bool decrypt
 	)
 {
 	LOG_FUNC();
@@ -190,6 +191,16 @@ Handle<ScopedBIO> RSA_OAEP_encrypt(
 	}
 
 	// EVP_EncryptInit | EVP_DecryptInit
+	if (!decrypt) {
+		if (EVP_PKEY_encrypt_init(ctx.Get()) < 1) {
+			THROW_OPENSSL("EVP_PKEY_encrypt_init");
+		}
+	}
+	else {
+		if (EVP_PKEY_decrypt_init(ctx.Get()) < 1) {
+			THROW_OPENSSL("EVP_PKEY_decrypt_init");
+		}
+	}
 
 	if (EVP_PKEY_CTX_set_rsa_padding(ctx.Get(), RSA_PKCS1_OAEP_PADDING) < 1) {
 		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_padding");
@@ -200,87 +211,48 @@ Handle<ScopedBIO> RSA_OAEP_encrypt(
 	if (EVP_PKEY_CTX_set_rsa_mgf1_md(ctx.Get(), md) < 1) {
 		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_mgf1_md");
 	}
-		
+
 	if (!hLabel->isEmpty()) {
 		LOG_INFO("Set label for RSA OAEP");
 		char *label;
 		int label_len = BIO_get_mem_data(hLabel->Get(), &label);
-		char *label_copy;
+		char *label_copy = (char*)OPENSSL_malloc(label_len);
 		memcpy(label_copy, label, label_len);
-		if (EVP_PKEY_CTX_set0_rsa_oaep_label(ctx.Get(), label_copy,	label_len)<1) {
+		if (EVP_PKEY_CTX_set0_rsa_oaep_label(ctx.Get(), label_copy, label_len) < 1) {
 			THROW_OPENSSL("EVP_PKEY_CTX_set0_rsa_oaep_label");
 		}
 	}
 
+	unsigned char* data;
+	int datalen = BIO_get_mem_data(hData->Get(), &data);
+
+	int(*func_enc_dec)(EVP_PKEY_CTX*,
+		unsigned char *, size_t *,
+		const unsigned char *, size_t);
+	if (!decrypt) {
+		func_enc_dec = &EVP_PKEY_encrypt;
+	}
+	else {
+		func_enc_dec = &EVP_PKEY_decrypt;
+	}
+
 	// EVP_PKEY_encrypt | EVP_PKEY_decrypt
 	// Determine the maximum length of the output.
-	
-	// Do the actual encryption/decryption.
-	
+	size_t outlen = 0;
+	if (func_enc_dec(ctx.Get(), NULL, &outlen, data, datalen) <= 0) {
+		THROW_OPENSSL("func_enc_dec");
+	}
+
+	byte *out = static_cast<byte*>(OPENSSL_malloc(outlen));
+
+	if (func_enc_dec(ctx.Get(), out, &outlen, data, datalen) <= 0) {
+		OPENSSL_free(out);
+		THROW_OPENSSL("func_enc_dec");
+	}
 
 	//Put result to ScopdBIO	
-}
-
-static std::string RSA_OAEP_decrypt(
-	EVP_PKEY *pkey,
-	char *digestName,
-	const byte *data,
-	size_t datalen,
-	char *label,
-	int labellen)
-{
-	LOG_FUNC();
-
-	EVP_PKEY_CTX *rctx = EVP_PKEY_CTX_new(pkey, NULL);
-
-	const EVP_MD *md = EVP_get_digestbyname(digestName);
-	if (!md) {
-		THROW_OPENSSL("EVP_get_digestbyname");
-	}
-
-	if (EVP_PKEY_decrypt_init(rctx) < 0) {
-		THROW_OPENSSL("EVP_PKEY_decrypt_init");
-	}
-
-	if (EVP_PKEY_CTX_set_rsa_padding(rctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
-		EVP_PKEY_CTX_free(rctx);
-		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_padding");
-	}
-
-	if (label && labellen) {
-		LOG_INFO("RsaOAEP::Set label parameter");
-		unsigned char *buf = NULL;
-		int num = BN_num_bytes(pkey->pkey.rsa->n);
-		buf = static_cast<unsigned char*>(OPENSSL_malloc(num));
-		if (RSA_padding_add_PKCS1_OAEP(buf, num, data, datalen, (const unsigned char*)(label), labellen) < 1) {
-			OPENSSL_free(buf);
-			EVP_PKEY_CTX_free(rctx);
-			THROW_OPENSSL("RSA_padding_add_PKCS1_OAEP");
-		}
-	}
-
-	if (EVP_PKEY_CTX_set_rsa_oaep_md(rctx, md) <= 0) {
-		EVP_PKEY_CTX_free(rctx);
-		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_oaep_md");
-	}
-
-	size_t declen;
-	if (EVP_PKEY_decrypt(rctx, NULL, &declen, data, datalen) <= 0) {
-		EVP_PKEY_CTX_free(rctx);
-		THROW_OPENSSL("EVP_PKEY_decrypt");
-	}
-
-	byte *dec = (byte*)OPENSSL_malloc(declen);
-
-	if (EVP_PKEY_decrypt(rctx, dec, &declen, data, datalen) <= 0) {
-		OPENSSL_free(dec);
-		EVP_PKEY_CTX_free(rctx);
-		THROW_OPENSSL("EVP_PKEY_decrypt");
-	}
-
-	std::string res((char *)dec, declen);
-
-	EVP_PKEY_CTX_free(rctx);
+	Handle<ScopedBIO> res(new ScopedBIO(BIO_new_mem_buf(out, outlen)));
+	BIO_set_flags(res->Get(), BIO_CLOSE);
 
 	return res;
 }

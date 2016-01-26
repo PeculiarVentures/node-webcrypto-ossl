@@ -7,19 +7,20 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	tpl->SetClassName(Nan::New(WKey::ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	//generate
+	// methods
 	SetPrototypeMethod(tpl, "exportJwk", ExportJwk);
 	SetPrototypeMethod(tpl, "exportSpki", ExportSpki);
 	SetPrototypeMethod(tpl, "exportPkcs8", ExportPkcs8);
 	SetPrototypeMethod(tpl, "sign", Sign);
 	SetPrototypeMethod(tpl, "verify", Verify);
+	SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
-	//static functions
+	// static methods
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsaAsync);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importJwk", ImportJwk);
@@ -547,7 +548,7 @@ NAN_METHOD(WKey::Sign) {
 class AsyncVerifyRsa : public Nan::AsyncWorker {
 public:
 	AsyncVerifyRsa(Nan::Callback *callback, const EVP_MD *md, Handle<ScopedEVP_PKEY> pkey, Handle<ScopedBIO> in, Handle<ScopedBIO> signature)
-		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature){}
+		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature) {}
 	~AsyncVerifyRsa() {}
 
 	// Executed inside the worker-thread.
@@ -614,4 +615,91 @@ NAN_METHOD(WKey::Verify) {
 	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
+}
+
+class AsyncEncrypDecryptRsaOAEP : public Nan::AsyncWorker {
+public:
+	AsyncEncrypDecryptRsaOAEP(
+		Nan::Callback *callback,
+		Handle<ScopedEVP_PKEY> hKey,
+		const EVP_MD *md,
+		Handle<ScopedBIO> hData,
+		Handle<ScopedBIO> hLabel,
+		bool decrypt
+		)
+		: AsyncWorker(callback), hKey(hKey), md(md), hData(hData), hLabel(hLabel), decrypt(decrypt) {}
+	~AsyncEncrypDecryptRsaOAEP() {}
+
+	// Executed inside the worker-thread.
+	// It is not safe to access V8, or V8 data structures
+	// here, so everything we need for input and output
+	// should go on `this`.
+	void Execute() {
+		try {
+			hResult = RSA_OAEP_enc_dec(hKey, md, hData, hLabel, decrypt);
+		}
+		catch (std::exception& e) {
+			this->SetErrorMessage(e.what());
+		}
+	}
+
+	// Executed when the async work is complete
+	// this function will be run inside the main event loop
+	// so it is safe to use V8 again
+	void HandleOKCallback() {
+		Nan::HandleScope scope;
+
+		v8::Local<v8::Value> argv[] = {
+			ScopedBIO_to_v8Buffer(hResult)
+		};
+
+		callback->Call(1, argv);
+	}
+
+private:
+	Handle<ScopedEVP_PKEY> hKey;
+	const EVP_MD *md;
+	Handle<ScopedBIO> hData;
+	Handle<ScopedBIO> hLabel;
+	Handle<ScopedBIO> hResult;
+	bool decrypt;
+};
+
+/*
+ * digestName: string
+ * data: Buffer
+ * label: Buffer
+ * decrypt: boolean
+ * cb: function
+ */
+NAN_METHOD(WKey::RsaOaepEncDec) {
+	LOG_FUNC();
+
+	LOG_INFO("digestName");
+	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+	if (!md) {
+		Nan::ThrowError("Unknown digest name");
+		return;
+	}
+
+	LOG_INFO("data");
+	Handle<ScopedBIO> hData = v8Buffer_to_ScopedBIO(info[1]);
+
+	LOG_INFO("label");
+	Handle<ScopedBIO> hLabel(new ScopedBIO(NULL));
+	if (!info[2]->IsNull()) {
+		hLabel = v8Buffer_to_ScopedBIO(info[2]);
+	}
+
+	LOG_INFO("decrypt");
+	bool decrypt = info[3]->BooleanValue();
+
+	LOG_INFO("this->Key");
+	WKey *wKey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> hKey = wKey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, hKey, md, hData, hLabel, decrypt));
 }
