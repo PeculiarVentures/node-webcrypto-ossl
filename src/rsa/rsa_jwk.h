@@ -1,8 +1,7 @@
-#ifndef OSSL_KEY_RSA_H_INCLUDE
-#define OSSL_KEY_RSA_H_INCLUDE
+#ifndef OSSL_RSA_JWK_H_INCLUDE
+#define OSSL_RSA_JWK_H_INCLUDE
 
 #include "common.h"
-#include "excep.h"
 
 #define JWK_KTY_RSA "RSA"
 
@@ -35,17 +34,7 @@ void JWK_RSA_free();
 
 ScopedSSL_create(JWK_RSA, JWK_RSA_free);
 
-Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent);
 Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type);
 Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type);
-Handle<ScopedBIO> RSA_sign_buf(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in);
-bool RSA_verify_buf(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in, Handle<ScopedBIO> signature);
-Handle<ScopedBIO> RSA_OAEP_enc_dec(
-	Handle<ScopedEVP_PKEY> hKey,
-	const EVP_MD *md,
-	Handle<ScopedBIO> hData,
-	Handle<ScopedBIO> hLabel,
-	bool decrypt
-	);
 
-#endif // OSSL_KEY_RSA_H_INCLUDE
+#endif // OSSL_RSA_JWK_H_INCLUDE

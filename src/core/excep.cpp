@@ -1,5 +1,7 @@
 #include "excep.h"
 
+#include "scoped_ssl.h"
+
 std::string OPENSSL_get_errors() {
 	LOG_FUNC();
 

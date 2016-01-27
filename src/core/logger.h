@@ -1,5 +1,5 @@
-#ifndef OSSL_LOGGER_H_INCLUDE
-#define OSSL_LOGGER_H_INCLUDE
+#ifndef OSSL_CORE_LOGGER_H_INCLUDE
+#define OSSL_CORE_LOGGER_H_INCLUDE
 
 #include <string>
 
@@ -28,4 +28,4 @@ protected:
 
 #endif
 
-#endif // OSSL_LOGGER_H_INCLUDE
+#endif // OSSL_CORE_LOGGER_H_INCLUDE

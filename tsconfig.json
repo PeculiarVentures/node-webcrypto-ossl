@@ -3,9 +3,10 @@
         "target": "es5",
         "module": "commonjs",
         "rootDir": "lib",
-        "outDir": "buildjs"
+        "outDir": "buildjs",
+        "declaration": true
     },
     "exclude": [
-        "/node_modules"
+        "node_modules", "buildjs"
     ]
 }

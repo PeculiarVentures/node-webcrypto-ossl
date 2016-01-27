@@ -1,7 +1,8 @@
 #ifndef OSSL_W_KEY_H_INCLUDE
 #define OSSL_W_KEY_H_INCLUDE
 
-#include "key_rsa.h"
+#include "../core/common.h"
+#include "../rsa/common.h"
 
 using namespace node;
 
@@ -48,6 +49,8 @@ protected:
 	}
 
 };
+
+#include "common.h"
 
 
 #endif // OSSL_W_KEY_H_INCLUDE

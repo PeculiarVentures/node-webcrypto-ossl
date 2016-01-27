@@ -1,4 +1,4 @@
-#include "source/w_key.h"
+#include "node/common.h"
 
 NAN_MODULE_INIT(InitModule) {
 

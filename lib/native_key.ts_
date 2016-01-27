@@ -9,6 +9,11 @@ export enum KeyType {
     Secret
 }
 
+export enum RsaPublicExponent {
+    RSA_3,
+    RSA_F4
+}
+
 export enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
@@ -84,23 +89,21 @@ export class KeyPair extends BaseObject {
             this.handle = nativeKey;
         }
         else {
-            this.handle = new native.Pki.Key();
+            this.handle = new native.Key();
         }
     }
 
-    static generateRsa(m: number, e: number): KeyPair;
-    static generateRsa(m: number, e: number, cb: Function): KeyPair;
-    static generateRsa(m, e, cb?): KeyPair {
-        if (cb) {
-            native.Pki.Key.generateRsaAsync(m, e, function(k){
-                cb(new KeyPair(k));
-            });
-        }
-        else {
-            let key = new KeyPair();
-            key.handle.generateRsa(m, e);
-            return key;
-        }
+    /**
+     * Generate RSA key pair
+     * @param m modulus
+     * @param e public exponent
+     * @param cb callback function (err: Error, key: KeyPair)
+     */
+    static generateRsa(m: number, e: RsaPublicExponent, cb: (err: Error, key?: KeyPair) => any) {
+        native.Key.generateRsa(m, e, function(e, k) {
+            if (!e) k = new KeyPair(k);
+            cb(e, k);
+        });
     }
 
     static generateEc(namedCurve: string): KeyPair {

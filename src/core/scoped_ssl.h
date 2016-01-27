@@ -1,5 +1,5 @@
-#ifndef OSSL_SSL_WRAP_H_INCLUDE
-#define OSSL_SSL_WRAP_H_INCLUDE
+#ifndef OSSL_CORE_SCOPED_SSL_H_INCLUDE
+#define OSSL_CORE_SCOPED_SSL_H_INCLUDE
 
 #include "logger.h"
 
@@ -18,8 +18,8 @@
 
 // Create wrap function for OpenSSL free functions (some OpenSSL struts use macros for free)
 #define ScopedSSL_free(ossl_st, ossl_free)							\
-	void ScopedSSL_name_free(ossl_st)(void* handle){	\
-		ossl_free((ossl_st*)handle);				\
+	void ScopedSSL_name_free(ossl_st)(void* handle){				\
+		ossl_free((ossl_st*)handle);								\
 	}
 
 template <typename T, void(*CB)(void*)>
@@ -93,4 +93,4 @@ ScopedSSL_create(RSA, RSA_free);
 ScopedSSL_create(BIO, BIO_free);
 ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 
-#endif // OSSL_SSL_WRAP_H_INCLUDE
+#endif // OSSL_CORE_SCOPED_SSL_H_INCLUDE
