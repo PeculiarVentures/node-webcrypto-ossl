@@ -665,5 +665,5 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 
 	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, hKey, md, hData, hLabel, decrypt));
+	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, new ParamsEncrypDecryptRsaOAEP(hKey, md, hData, hLabel, decrypt)));
 }
