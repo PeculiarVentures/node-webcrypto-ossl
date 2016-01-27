@@ -6,6 +6,6 @@
 #include "logger.h"
 #include "scoped_ssl.h"
 #include "excep.h"
-#include "export.h"
+#include "key_exp.h"
 
 #endif // OSSL_CORE_COMMON_H_INCLUDE

@@ -1,7 +1,7 @@
 #ifndef OSSL_RSA_OAEP_H_INCLUDE
 #define OSSL_RSA_OAEP_H_INCLUDE
 
-#include "common.h"
+#include "../core/common.h"
 
 Handle<ScopedBIO> RSA_OAEP_enc_dec(
 	Handle<ScopedEVP_PKEY> hKey,

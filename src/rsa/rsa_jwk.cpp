@@ -1,15 +1,6 @@
 #include "rsa_jwk.h"
 
-JWK_RSA* JWK_RSA_new() {
-	return new JWK_RSA;
-}
-void JWK_RSA_free(JWK_RSA *jwk) {
-	delete jwk;
-};
-
-ScopedSSL_free(JWK_RSA, JWK_RSA_free);
-
-Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
+Handle<JwkRsa> JwkRsa::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	LOG_FUNC();
 
 	LOG_INFO("Check key_type");
@@ -21,15 +12,14 @@ Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
 	if (pkey == NULL) {
 		THROW_ERROR("Key value is NULL");
 	}
-	if (pkey->type != EVP_PKEY_RSA) {
+	if (pkey->Get()->type!= EVP_PKEY_RSA) {
 		THROW_ERROR("Key is not RSA type");
 	}
 
 	LOG_INFO("Create JWK Object");
-	JWK_RSA* jwk = JWK_RSA_new();
-	Handle<ScopedJWK_RSA> hJwk(new ScopedJWK_RSA(jwk));
+	Handle<JwkRsa> jwk(new JwkRsa());
 
-	RSA *rsa = pkey->pkey.rsa;
+	RSA *rsa = pkey->Get()->pkey.rsa;
 
 	LOG_INFO("Convert RSA to JWK");
 	jwk->type = key_type;
@@ -46,10 +36,10 @@ Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type) {
 		jwk->qi = BN_dup(rsa->iqmp);
 	}
 
-	return hJwk;
+	return jwk;
 }
 
-Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type) {
+Handle<ScopedEVP_PKEY> JwkRsa::To(int &key_type) {
 	LOG_FUNC();
 
 	LOG_INFO("Check key_type");
@@ -57,24 +47,24 @@ Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type)
 		THROW_ERROR("Wrong value of key_type");
 	}
 
-	if (strcmp(hJwk->Get()->kty, "RSA") != 0) {
+	if (strcmp(this->kty, "RSA") != 0) {
 		THROW_ERROR("JWK key is not RSA");
 	}
 
 	RSA* rsa_key = RSA_new();
 
 	LOG_INFO("set public key");
-	rsa_key->n = BN_dup(hJwk->Get()->n.Get());
-	rsa_key->e = BN_dup(hJwk->Get()->e.Get());
+	rsa_key->n = BN_dup(this->n.Get());
+	rsa_key->e = BN_dup(this->e.Get());
 
 	if (key_type == NODESSL_KT_PRIVATE) {
 		LOG_INFO("set private key");
-		rsa_key->d = BN_dup(hJwk->Get()->d.Get());
-		rsa_key->p = BN_dup(hJwk->Get()->p.Get());
-		rsa_key->q = BN_dup(hJwk->Get()->q.Get());
-		rsa_key->dmp1 = BN_dup(hJwk->Get()->dp.Get());
-		rsa_key->dmq1 = BN_dup(hJwk->Get()->dq.Get());
-		rsa_key->iqmp = BN_dup(hJwk->Get()->qi.Get());
+		rsa_key->d = BN_dup(this->d.Get());
+		rsa_key->p = BN_dup(this->p.Get());
+		rsa_key->q = BN_dup(this->q.Get());
+		rsa_key->dmp1 = BN_dup(this->dp.Get());
+		rsa_key->dmq1 = BN_dup(this->dq.Get());
+		rsa_key->iqmp = BN_dup(this->qi.Get());
 	}
 
 	LOG_INFO("set key");

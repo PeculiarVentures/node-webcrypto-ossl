@@ -54,49 +54,6 @@ NAN_GETTER(WKey::Type) {
 	info.GetReturnValue().Set(Nan::New<v8::Number>(wkey->data->Get()->type));
 }
 
-class AsyncRsaGenerateKey : public Nan::AsyncWorker {
-public:
-	AsyncRsaGenerateKey(Nan::Callback *callback, int modulusBits, int publicExponent)
-		: AsyncWorker(callback), modulusBits(modulusBits), publicExponent(publicExponent) {}
-	~AsyncRsaGenerateKey() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			key = RSA_generate(modulusBits, publicExponent);
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Key = WKey::NewInstance();
-		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
-		wkey->data = this->key;
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Key
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	int modulusBits;
-	int publicExponent;
-	Handle<ScopedEVP_PKEY> key;
-};
-
 NAN_METHOD(WKey::GenerateRsa) {
 	LOG_FUNC();
 
@@ -106,65 +63,6 @@ NAN_METHOD(WKey::GenerateRsa) {
 
 	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent));
 }
-
-class AsyncExportJwkRsa : public Nan::AsyncWorker {
-public:
-	AsyncExportJwkRsa(
-		Nan::Callback *callback,
-		int key_type,
-		Handle<ScopedEVP_PKEY> key)
-		: AsyncWorker(callback), key_type(key_type), key(key) {}
-	~AsyncExportJwkRsa() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			jwk = RSA_export_jwk(key->Get(), key_type);
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Jwk = Nan::New<v8::Object>();
-
-		LOG_INFO("Convert RSA to JWK");
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked(), Nan::New(jwk->Get()->kty).ToLocalChecked());
-		LOG_INFO("Get RSA public key");
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_N).ToLocalChecked(), bn2buf(jwk->Get()->n.Get()));
-		Nan::Set(v8Jwk, Nan::New(JWK_ATTR_E).ToLocalChecked(), bn2buf(jwk->Get()->e.Get()));
-		if (key_type == NODESSL_KT_PRIVATE) {
-			LOG_INFO("Get RSA private key");
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_D).ToLocalChecked(), bn2buf(jwk->Get()->d.Get()));
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_P).ToLocalChecked(), bn2buf(jwk->Get()->p.Get()));
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_Q).ToLocalChecked(), bn2buf(jwk->Get()->q.Get()));
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DP).ToLocalChecked(), bn2buf(jwk->Get()->dp.Get()));
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DQ).ToLocalChecked(), bn2buf(jwk->Get()->dq.Get()));
-			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_QI).ToLocalChecked(), bn2buf(jwk->Get()->qi.Get()));
-		}
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Jwk
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	Handle<ScopedJWK_RSA> jwk;
-	int key_type;
-	Handle<ScopedEVP_PKEY> key;
-};
 
 /*
  * key_type: number
@@ -197,46 +95,6 @@ NAN_METHOD(WKey::ExportJwk) {
 	}
 }
 
-class AsyncExportSpki : public Nan::AsyncWorker {
-public:
-	AsyncExportSpki(Nan::Callback *callback, Handle<ScopedEVP_PKEY>key)
-		: AsyncWorker(callback), key(key) {}
-	~AsyncExportSpki() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			buffer = KEY_export_spki(key->Get());
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Buffer
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	Handle<ScopedBIO> buffer;
-	Handle<ScopedEVP_PKEY> key;
-};
-
 NAN_METHOD(WKey::ExportSpki) {
 	LOG_FUNC();
 
@@ -246,46 +104,6 @@ NAN_METHOD(WKey::ExportSpki) {
 
 	Nan::AsyncQueueWorker(new AsyncExportSpki(callback, wkey->data));
 }
-
-class AsyncExportPkcs8 : public Nan::AsyncWorker {
-public:
-	AsyncExportPkcs8(Nan::Callback *callback, Handle<ScopedEVP_PKEY>key)
-		: AsyncWorker(callback), key(key) {}
-	~AsyncExportPkcs8() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			buffer = KEY_export_pkcs8(key->Get());
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Buffer
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	Handle<ScopedBIO> buffer;
-	Handle<ScopedEVP_PKEY> key;
-};
 
 NAN_METHOD(WKey::ExportPkcs8) {
 	LOG_FUNC();
@@ -297,48 +115,6 @@ NAN_METHOD(WKey::ExportPkcs8) {
 	Nan::AsyncQueueWorker(new AsyncExportPkcs8(callback, wkey->data));
 }
 
-class AsyncImportPkcs8 : public Nan::AsyncWorker {
-public:
-	AsyncImportPkcs8(Nan::Callback *callback, Handle<ScopedBIO> in)
-		: AsyncWorker(callback), in(in) {}
-	~AsyncImportPkcs8() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			key = KEY_import_pkcs8(in->Get());
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Key = WKey::NewInstance();
-		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
-		wkey->data = this->key;
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Key
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	Handle<ScopedBIO> in;
-	Handle<ScopedEVP_PKEY> key;
-};
-
 NAN_METHOD(WKey::ImportPkcs8) {
 	LOG_FUNC();
 
@@ -349,50 +125,8 @@ NAN_METHOD(WKey::ImportPkcs8) {
 	Nan::AsyncQueueWorker(new AsyncImportPkcs8(callback, in));
 }
 
-class AsyncImportSpki : public Nan::AsyncWorker {
-public:
-	AsyncImportSpki(Nan::Callback *callback, Handle<ScopedBIO> in)
-		: AsyncWorker(callback), in(in) {}
-	~AsyncImportSpki() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			key = KEY_import_spki(in->Get());
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Key = WKey::NewInstance();
-		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
-		wkey->data = this->key;
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Key
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	Handle<ScopedBIO> in;
-	Handle<ScopedEVP_PKEY> key;
-};
-
 /*
- * in: buffer 
+ * in: buffer
  */
 NAN_METHOD(WKey::ImportSpki) {
 	LOG_FUNC();
@@ -403,49 +137,6 @@ NAN_METHOD(WKey::ImportSpki) {
 
 	Nan::AsyncQueueWorker(new AsyncImportSpki(callback, in));
 }
-
-class AsyncImportJwkRsa : public Nan::AsyncWorker {
-public:
-	AsyncImportJwkRsa(Nan::Callback *callback, Handle<ScopedJWK_RSA> jwk, int key_type)
-		: AsyncWorker(callback), jwk(jwk), key_type(key_type) {}
-	~AsyncImportJwkRsa() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			pkey = RSA_import_jwk(jwk, key_type);
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Key = WKey::NewInstance();
-		WKey *wkey = WKey::Unwrap<WKey>(v8Key);
-		wkey->data = pkey;
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Key
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	int key_type;
-	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedJWK_RSA> jwk;
-};
 
 /*
  * jwk: v8::Object
@@ -462,8 +153,7 @@ NAN_METHOD(WKey::ImportJwk) {
 	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
 
 	if (strcmp(*v8Kty, JWK_KTY_RSA) == 0) {
-		JWK_RSA *jwk = JWK_RSA_new();
-		Handle<ScopedJWK_RSA> hJwk(new ScopedJWK_RSA(jwk));
+		Handle<JwkRsa> jwk(new JwkRsa());
 
 		LOG_INFO("set public key");
 		v8Object_get_BN(v8Jwk, n, jwk, n);
@@ -479,55 +169,13 @@ NAN_METHOD(WKey::ImportJwk) {
 			v8Object_get_BN(v8Jwk, qi, jwk, qi);
 		}
 
-		Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, hJwk, key_type));
+		Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type));
 	}
 	else {
 		Nan::ThrowError("JWK: Unsupported kty value");
 		return;
 	}
 }
-
-class AsyncSignRsa : public Nan::AsyncWorker {
-public:
-	AsyncSignRsa(Nan::Callback *callback, const EVP_MD *md, Handle<ScopedEVP_PKEY> pkey, Handle<ScopedBIO> in)
-		: AsyncWorker(callback), md(md), pkey(pkey), in(in) {}
-	~AsyncSignRsa() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			out = RSA_PKCS1_sign(pkey, md, in);
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			v8Buffer
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	const EVP_MD *md;
-	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
-	Handle<ScopedBIO> out;
-};
 
 /*
  * digestName: string
@@ -555,47 +203,6 @@ NAN_METHOD(WKey::Sign) {
 
 	Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
 }
-
-class AsyncVerifyRsa : public Nan::AsyncWorker {
-public:
-	AsyncVerifyRsa(Nan::Callback *callback, const EVP_MD *md, Handle<ScopedEVP_PKEY> pkey, Handle<ScopedBIO> in, Handle<ScopedBIO> signature)
-		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature) {}
-	~AsyncVerifyRsa() {}
-
-	// Executed inside the worker-thread.
-	// It is not safe to access V8, or V8 data structures
-	// here, so everything we need for input and output
-	// should go on `this`.
-	void Execute() {
-		try {
-			res = RSA_PKCS1_verify(pkey, md, in, signature);
-		}
-		catch (std::exception& e) {
-			this->SetErrorMessage(e.what());
-		}
-	}
-
-	// Executed when the async work is complete
-	// this function will be run inside the main event loop
-	// so it is safe to use V8 again
-	void HandleOKCallback() {
-		Nan::HandleScope scope;
-
-		v8::Local<v8::Value> argv[] = {
-			Nan::Null(),
-			Nan::New<v8::Boolean>(res)
-		};
-
-		callback->Call(2, argv);
-	}
-
-private:
-	const EVP_MD *md;
-	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
-	Handle<ScopedBIO> signature;
-	bool res;
-};
 
 /*
 * digestName: string
@@ -665,5 +272,5 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 
 	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, new ParamsEncrypDecryptRsaOAEP(hKey, md, hData, hLabel, decrypt)));
+	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, hKey, md, hData, hLabel, decrypt));
 }

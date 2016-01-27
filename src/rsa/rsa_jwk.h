@@ -1,7 +1,7 @@
 #ifndef OSSL_RSA_JWK_H_INCLUDE
 #define OSSL_RSA_JWK_H_INCLUDE
 
-#include "common.h"
+#include "../core/common.h"
 
 #define JWK_KTY_RSA "RSA"
 
@@ -15,9 +15,10 @@
 #define JWK_ATTR_DQ "dq"
 #define JWK_ATTR_QI "qi"
 
-typedef struct JWK_RSA_st
-{
-	char *kty = JWK_KTY_RSA;
+class JwkRsa {
+public:
+	JwkRsa() : kty(JWK_KTY_RSA) {}
+	const char *kty;
 	ScopedBIGNUM n;
 	ScopedBIGNUM e;
 	ScopedBIGNUM d;
@@ -27,14 +28,9 @@ typedef struct JWK_RSA_st
 	ScopedBIGNUM dq;
 	ScopedBIGNUM qi;
 	int type;
-} JWK_RSA;
 
-JWK_RSA* JWK_RSA_new();
-void JWK_RSA_free();
-
-ScopedSSL_create(JWK_RSA, JWK_RSA_free);
-
-Handle<ScopedJWK_RSA> RSA_export_jwk(EVP_PKEY *pkey, int &key_type);
-Handle<ScopedEVP_PKEY> RSA_import_jwk(Handle<ScopedJWK_RSA> hJwk, int &key_type);
+	static Handle<JwkRsa> From(Handle<ScopedEVP_PKEY> pkey, int &key_type);
+	Handle<ScopedEVP_PKEY> To(int &key_type);
+};
 
 #endif // OSSL_RSA_JWK_H_INCLUDE

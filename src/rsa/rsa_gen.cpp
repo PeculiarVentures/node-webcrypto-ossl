@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../core/common.h"
 
 Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 	LOG_FUNC();
