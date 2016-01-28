@@ -65,7 +65,7 @@ describe("native", function () {
             })
         })
     })
-    
+
     it("pksc8 RSA", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             key.exportPkcs8(function (err, raw) {
@@ -77,23 +77,27 @@ describe("native", function () {
             })
         })
     })
-    
-    it("sign RSA", function(done){
-        var md = "sha1";
+
+    function test_sign(key, md, done) {
         var message = new Buffer("Hello");
-        
-        native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
-            key.sign(md, message, function (err, sig) {
-                assert(sig != null, true, "Error on sign");
-                key.verify(md, message, sig, function (err, v) {
-                    assert(v, true, "Signature is not valid");
-                    done();
-                })
+
+        key.sign(md, message, function (err, sig) {
+            assert(sig != null, true, "Error on sign");
+            key.verify(md, message, sig, function (err, v) {
+                assert(v, true, "Signature is not valid");
+                done();
             })
         })
+    }
+
+    it("sign RSA sha1", function (done) {
+        native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
+            assert.equal(err == null, true, "error on sign");
+            test_sign(key, "sha1", done);
+        });
     })
-    
-    function test_rsa_oaep_enc_dec(md, message, label, done){        
+
+    function test_rsa_oaep_enc_dec(md, message, label, done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             key.RsaOaepEncDec(md, message, label, false, function (err, dec) {
                 assert(dec != null, true, "Error on encrypt");
@@ -105,13 +109,37 @@ describe("native", function () {
             })
         })
     }
-    
-    it("encypt RSA OAEP without label", function(done){
+
+    it("encypt RSA OAEP without label", function (done) {
         test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), null, done);
     })
-    
-    it("encypt RSA OAEP with label", function(done){
+
+    it("encypt RSA OAEP with label", function (done) {
         test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), new Buffer("1234567890"), done);
+    })
+
+    it("generate EC secp192k1", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            done();
+        })
+    })
+
+    it("sign EC secp192k1 sha1", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            test_sign(key, "sha1", done);
+        })
+    })
+
+    it("deriveKey EC secp192k1", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            key.EcdhDeriveKey(key, 128, function(err, b){
+                assert(b != null, true, "Error on key derive");
+                done();
+            })
+        })
     })
 
 })
