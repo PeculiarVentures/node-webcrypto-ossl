@@ -42,4 +42,39 @@ protected:
 	Handle<ScopedBIO> dkey;
 };
 
+class AsyncEcExportJwk : public Nan::AsyncWorker {
+public:
+	AsyncEcExportJwk(
+		Nan::Callback *callback,
+		int key_type,
+		Handle<ScopedEVP_PKEY> key)
+		: AsyncWorker(callback), key_type(key_type), key(key) {}
+	~AsyncEcExportJwk() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	int key_type;
+	Handle<ScopedEVP_PKEY> key;
+	// Result
+	Handle<JwkEc> jwk;
+};
+
+class AsyncEcImportJwk : public Nan::AsyncWorker {
+public:
+	AsyncEcImportJwk(Nan::Callback *callback, Handle<JwkEc> jwk, int key_type)
+		: AsyncWorker(callback), jwk(jwk), key_type(key_type) {}
+	~AsyncEcImportJwk() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	int key_type;
+	Handle<JwkEc> jwk;
+	//Result
+	Handle<ScopedEVP_PKEY> pkey;
+};
+
 #endif // OSSL_NODE_ASYNC_EC_H_INCLUDE
