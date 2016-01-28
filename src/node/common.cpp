@@ -33,6 +33,8 @@ v8::Local<v8::Object> ScopedBIO_to_v8Buffer(Handle<ScopedBIO> bio) {
 	char *buffer = node::Buffer::Data(v8Buffer);
 	memcpy(buffer, data, datalen);
 
+	BIO_set_flags(bio->Get(), BIO_CLOSE);
+
 	return v8Buffer;
 }
 

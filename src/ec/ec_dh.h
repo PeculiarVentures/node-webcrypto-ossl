@@ -3,4 +3,6 @@
 
 #include "../core/common.h"
 
+Handle<ScopedBIO> ECDH_derive_key(Handle<ScopedEVP_PKEY> pkey, Handle<ScopedEVP_PKEY> pubkey, size_t &secret_len);
+
 #endif // OSSL_EC_DH_H_INCLUDE

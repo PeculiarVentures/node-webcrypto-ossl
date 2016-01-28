@@ -24,3 +24,23 @@ void AsyncEcGenerateKey::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncEcdhDeriveKey::Execute() {
+	try {
+		dkey = ECDH_derive_key(pkey,pubkey, secret_len);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncEcdhDeriveKey::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		ScopedBIO_to_v8Buffer(dkey)
+	};
+
+	callback->Call(2, argv);
+}
