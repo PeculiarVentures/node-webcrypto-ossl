@@ -31,7 +31,8 @@
                  "src/node/common.h",
                  "src/node/common.cpp",
                  "src/node/w_key.cpp",
-                 "src/node/async_rsa.cpp"
+                 "src/node/async_rsa.cpp",
+                 "src/node/async_ec.cpp"
             ],
             "cflags_cc": ["-fexceptions"],
             "conditions": [

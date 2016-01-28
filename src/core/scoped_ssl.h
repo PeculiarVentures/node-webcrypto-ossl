@@ -68,6 +68,10 @@ public:
 		}
 	}
 
+	void unref() {
+		this->ptr = NULL;
+	}
+
 	bool isEmpty() {
 		return ptr == NULL;
 	}
@@ -90,6 +94,7 @@ protected:
 ScopedSSL_create(BIGNUM, BN_free);
 ScopedSSL_create(EVP_PKEY, EVP_PKEY_free);
 ScopedSSL_create(RSA, RSA_free);
+ScopedSSL_create(EC_KEY, EC_KEY_free);
 ScopedSSL_create(BIO, BIO_free);
 ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 
