@@ -1,5 +1,41 @@
 export let Key: INativeKey = require("../build/Debug/nodessl.node").Key;
 
+export enum EcNamedCurves {
+    secp112r1 = 704,
+    secp112r2 = 705,
+    secp128r1 = 706,
+    secp128r2 = 707,
+    secp160k1 = 708,
+    secp160r1 = 709,
+    secp160r2 = 710,
+    secp192r1 = 409,
+    secp192k1 = 711,
+    secp224k1 = 712,
+    secp224r1 = 713,
+    secp256k1 = 714,
+    secp256r1 = 415,
+    secp384r1 = 715,
+    secp521r1 = 716,
+    sect113r1 = 717,
+    sect113r2 = 718,
+    sect131r1 = 719,
+    sect131r2 = 720,
+    sect163k1 = 721,
+    sect163r1 = 722,
+    sect163r2 = 723,
+    sect193r1 = 724,
+    sect193r2 = 725,
+    sect233k1 = 726,
+    sect233r1 = 727,
+    sect239k1 = 728,
+    sect283k1 = 729,
+    sect283r1 = 730,
+    sect409k1 = 731,
+    sect409r1 = 732,
+    sect571k1 = 733,
+    sect571r1 = 734
+}
+
 export enum RsaPublicExponent {
     RSA_3,
     RSA_F4
@@ -19,6 +55,13 @@ export interface INativeKey {
      * @param callback callback function (err: Error, key: KeyPair)
      */
     generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: NativeKey) => void): void;
+
+    /**
+     * Generate EC key pair
+     * @param namedCurve NID of curve name
+     * @param callback callback function (err: Error, key: KeyPair)
+     */
+    generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: NativeKey) => void): void;
 
     /**
      * create Key from JWK data
@@ -70,7 +113,7 @@ export declare class NativeKey {
     exportPkcs8(callback: (err: Error, raw: Buffer) => void): void;
 
     /**
-     * sign data
+     * sign data EC, RSA
      * @param digestName name of digest algorithm
      * @param message message
      * @param callback callback function
@@ -78,7 +121,7 @@ export declare class NativeKey {
     sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void
 
     /**
-     * sign data
+     * verify data RSA, EC
      * @param digestName name of digest algorithm
      * @param message message
      * @param signature signature from message
@@ -95,4 +138,11 @@ export declare class NativeKey {
      * @param callback callback function
      */
     RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void
+
+    /**
+     * derives key with ECDH
+     * @param pubkey public key for key derivation
+     * @param derivedLen size of derived key (bytes)
+     */
+    EcdhDeriveKey(pubkey: NativeKey, derivedLen: number): Buffer;
 }

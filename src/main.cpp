@@ -6,6 +6,7 @@ NAN_MODULE_INIT(InitModule) {
 
 	OPENSSL_init();
 	OpenSSL_add_all_algorithms();
+	ERR_load_crypto_strings();
 
 	WKey::Init(target);
 

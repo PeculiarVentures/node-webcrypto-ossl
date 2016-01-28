@@ -39,8 +39,6 @@ Handle<ScopedBIO> ECDH_derive_key(Handle<ScopedEVP_PKEY> pkey, Handle<ScopedEVP_
 	}
 
 	Handle<ScopedBIO> dkey(new ScopedBIO(BIO_new_mem_buf(secret, secret_len)));
-	OPENSSL_free(secret);
-
 	BIO_set_flags(dkey->Get(), BIO_CLOSE);
 
 	return dkey;

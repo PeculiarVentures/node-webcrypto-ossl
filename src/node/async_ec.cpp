@@ -101,3 +101,45 @@ void AsyncEcImportJwk::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncEcdsaSign::Execute() {
+	try {
+		out = EC_DSA_sign(pkey, md, in);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncEcdsaSign::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		v8Buffer
+	};
+
+	callback->Call(2, argv);
+}
+
+void AsyncEcdsaVerify::Execute() {
+	try {
+		res = EC_DSA_verify(pkey, md, in, signature);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncEcdsaVerify::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		Nan::New<v8::Boolean>(res)
+	};
+
+	callback->Call(2, argv);
+}

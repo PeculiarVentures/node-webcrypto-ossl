@@ -3,6 +3,7 @@
 
 #include "../core/common.h"
 #include "../rsa/common.h"
+#include "../ec/common.h"
 
 using namespace node;
 
@@ -29,6 +30,7 @@ public:
 	
 	static NAN_GETTER(Type);
 	static NAN_METHOD(GenerateRsa);
+	static NAN_METHOD(GenerateEc);
 	static NAN_METHOD(ExportJwk);
 	static NAN_METHOD(ExportSpki);
 	static NAN_METHOD(ExportPkcs8);
@@ -36,6 +38,7 @@ public:
 	static NAN_METHOD(ImportSpki);
 	static NAN_METHOD(ImportPkcs8);
 	static NAN_METHOD(RsaOaepEncDec);
+	static NAN_METHOD(EcdhDeriveKey);
 
 	static NAN_METHOD(Sign);
 	static NAN_METHOD(Verify);

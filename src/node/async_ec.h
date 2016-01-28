@@ -77,4 +77,48 @@ protected:
 	Handle<ScopedEVP_PKEY> pkey;
 };
 
+class AsyncEcdsaSign : public Nan::AsyncWorker {
+public:
+	AsyncEcdsaSign(
+		Nan::Callback *callback,
+		const EVP_MD *md,
+		Handle<ScopedEVP_PKEY> pkey,
+		Handle<ScopedBIO> in)
+		: AsyncWorker(callback), md(md), pkey(pkey), in(in) {}
+	~AsyncEcdsaSign() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedBIO> in;
+	//Result
+	Handle<ScopedBIO> out;
+};
+
+class AsyncEcdsaVerify : public Nan::AsyncWorker {
+public:
+	AsyncEcdsaVerify(
+		Nan::Callback *callback,
+		const EVP_MD *md,
+		Handle<ScopedEVP_PKEY> pkey,
+		Handle<ScopedBIO> in,
+		Handle<ScopedBIO> signature)
+		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature) {}
+	~AsyncEcdsaVerify() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedBIO> in;
+	Handle<ScopedBIO> signature;
+	// Result
+	bool res;
+};
+
 #endif // OSSL_NODE_ASYNC_EC_H_INCLUDE

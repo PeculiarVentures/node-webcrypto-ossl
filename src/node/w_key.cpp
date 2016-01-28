@@ -14,6 +14,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "sign", Sign);
 	SetPrototypeMethod(tpl, "verify", Verify);
 	SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
+	SetPrototypeMethod(tpl, "EcdhDeriveKey", EcdhDeriveKey);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
@@ -22,6 +23,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 
 	// static methods
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsa);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateEc", GenerateEc);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importJwk", ImportJwk);
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importSpki", ImportSpki);
@@ -62,6 +64,19 @@ NAN_METHOD(WKey::GenerateRsa) {
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent));
+}
+
+/*
+ * namedCurve: number
+ * cb: function
+ */
+NAN_METHOD(WKey::GenerateEc) {
+	LOG_FUNC();
+
+	int namedCurve = Nan::To<int>(info[0]).FromJust();
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncEcGenerateKey(callback, namedCurve));
 }
 
 /*
@@ -199,9 +214,29 @@ NAN_METHOD(WKey::Sign) {
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
-	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+	LOG_INFO("Check key RSA, EC");
+	switch (pkey->Get()->type) {
+	case EVP_PKEY_RSA:
+	case EVP_PKEY_EC:
+		break;
+	default:
+		v8::Local<v8::Value> argv[] = {
+			Nan::New("Unsupported Key in use").ToLocalChecked()
+		};
 
-	Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
+		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		return;
+	}
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+	switch (pkey->Get()->type) {
+	case EVP_PKEY_RSA:
+		Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
+		break;
+	case EVP_PKEY_EC:
+		Nan::AsyncQueueWorker(new AsyncEcdsaSign(callback, md, pkey, hBio));
+		break;
+	}
 }
 
 /*
@@ -231,9 +266,30 @@ NAN_METHOD(WKey::Verify) {
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
-	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+	LOG_INFO("Check key RSA, EC");
+	switch (pkey->Get()->type) {
+	case EVP_PKEY_RSA:
+	case EVP_PKEY_EC:
+		break;
+	default:
 
-	Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
+		v8::Local<v8::Value> argv[] = {
+			Nan::New("Unsupported Key in use").ToLocalChecked()
+		};
+
+		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		return;
+	}
+
+	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+	switch (pkey->Get()->type) {
+	case EVP_PKEY_RSA:
+		Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
+		break;
+	case EVP_PKEY_EC:
+		Nan::AsyncQueueWorker(new AsyncEcdsaVerify(callback, md, pkey, data, sig));
+		break;
+	}
 }
 
 /*
@@ -273,4 +329,28 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, hKey, md, hData, hLabel, decrypt));
+}
+
+/*
+ * publicKey: Key
+ * derivedLen: number
+ * cb: function
+ */
+NAN_METHOD(WKey::EcdhDeriveKey) {
+	LOG_FUNC();
+
+	LOG_INFO("publicKey");
+	WKey *wPubKey = WKey::Unwrap<WKey>(info[0]->ToObject());
+	Handle<ScopedEVP_PKEY> hPubKey = wPubKey->data;
+
+	LOG_INFO("derivedLen");
+	int derivedLen = Nan::To<int>(info[1]).FromJust();
+
+	LOG_INFO("this->Key");
+	WKey *wPKey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> hPKey = wPKey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncEcdhDeriveKey(callback, hPKey, hPubKey, derivedLen));
 }
