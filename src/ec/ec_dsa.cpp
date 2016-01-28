@@ -18,6 +18,7 @@ Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Hand
 		THROW_OPENSSL(RSA_sign);
 	}
 
+	LOG_INFO("write to BIO");
 	char *bio = (char*)OPENSSL_malloc(siglen);
 	BIO *out = BIO_new_mem_buf(sig, siglen);
 	BIO_set_flags(out, BIO_CLOSE);
