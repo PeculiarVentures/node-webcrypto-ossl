@@ -10,11 +10,13 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	// methods
 	SetPrototypeMethod(tpl, "encrypt", Encrypt);
 	SetPrototypeMethod(tpl, "decrypt", Decrypt);
+	SetPrototypeMethod(tpl, "export", Export);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
 	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generate", Generate);
+	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "import", Import);
 
 	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
 }
@@ -113,4 +115,31 @@ NAN_METHOD(WAes::Decrypt) {
 		};
 		callback->Call(info.This(), 1, argv);
 	}
+}
+
+/*
+ * cb: function
+ */
+NAN_METHOD(WAes::Export) {
+	LOG_FUNC();
+
+	LOG_INFO("this");
+	WAes *wAes = WAes::Unwrap<WAes>(info.This());
+
+	Nan::Callback *callback = new Nan::Callback(info[0].As<v8::Function>());
+	Nan::AsyncQueueWorker(new AsyncAesExport(callback, wAes->data));
+}
+
+/*
+ * raw: buffer 
+ cb: function
+ */
+NAN_METHOD(WAes::Import) {
+	LOG_FUNC();
+
+	LOG_INFO("raw");
+	Handle<ScopedBIO> hRaw = v8Buffer_to_ScopedBIO(info[0]);
+
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+	Nan::AsyncQueueWorker(new AsyncAesImport(callback, hRaw));
 }

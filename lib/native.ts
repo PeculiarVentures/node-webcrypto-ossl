@@ -146,6 +146,8 @@ export declare class AesKey {
     static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
     encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
+    export(callback: (err: Error, raw: Buffer) => void): void;
+    static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
 }
 
 let native = require("../build/Debug/nodessl.node");

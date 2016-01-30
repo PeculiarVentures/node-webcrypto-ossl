@@ -44,4 +44,38 @@ protected:
 	Handle<ScopedBIO> hOutput;
 };
 
+class AsyncAesExport : public Nan::AsyncWorker {
+public:
+	AsyncAesExport(
+		Nan::Callback *callback,
+		Handle<ScopedAES> hKey
+		) : AsyncWorker(callback), hKey(hKey) {}
+	~AsyncAesExport() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	Handle<ScopedAES> hKey;
+	// Result
+	Handle<ScopedBIO> hOutput;
+};
+
+class AsyncAesImport: public Nan::AsyncWorker {
+public:
+	AsyncAesImport(
+		Nan::Callback *callback,
+		Handle<ScopedBIO> hInput
+		) : AsyncWorker(callback), hInput(hInput) {}
+	~AsyncAesImport() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	Handle<ScopedBIO> hInput;
+	// Result
+	Handle<ScopedAES> hKey;
+};
+
 #endif // OSSL_NODE_ASYNC_AES_H_INCLUDE

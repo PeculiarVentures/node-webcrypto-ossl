@@ -27,6 +27,8 @@ public:
 	static NAN_METHOD(Generate);
 	static NAN_METHOD(Encrypt);
 	static NAN_METHOD(Decrypt);
+	static NAN_METHOD(Export);
+	static NAN_METHOD(Import);
 
 	Handle<ScopedAES> data;
 

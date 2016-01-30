@@ -258,4 +258,24 @@ describe("native", function () {
         });
     })
 
+    it("AES export", function (done) {
+        var raw;
+        native.AesKey.generate(32, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            key.export(function (err, r) {
+                assert(!err, true, `export: ${err}`);
+                assert(r.length, 32, `export: wrong key length`);
+                raw = r;
+                native.AesKey.import(r, function (err, key) {
+                    assert(!err, true, `import: ${err}`);
+                    key.export(function (err, r) {
+                        assert(!err, true, `export: ${err}`);
+                        assert.equal(Buffer.compare(raw, r) == 0, true, "exported datas are not equal");
+                        done();
+                    });
+                });
+            });
+        });
+    })
+
 })

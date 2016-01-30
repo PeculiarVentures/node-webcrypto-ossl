@@ -49,3 +49,47 @@ void AsyncAesEncryptCBC::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncAesExport::Execute() {
+	try {
+		hOutput = hKey->value;
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncAesExport::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		ScopedBIO_to_v8Buffer(hOutput)
+	};
+
+	callback->Call(2, argv);
+}
+
+void AsyncAesImport::Execute() {
+	try {
+		hKey = Handle<ScopedAES>(new ScopedAES(hInput));
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncAesImport::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Object> v8Key = WAes::NewInstance();
+	WAes *wkey = WAes::Unwrap<WAes>(v8Key);
+	wkey->data = this->hKey;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		v8Key
+	};
+
+	callback->Call(2, argv);
+}
