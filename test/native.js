@@ -135,11 +135,50 @@ describe("native", function () {
     it("deriveKey EC secp192k1", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
             assert(key != null, true, "Error on key generation");
-            key.EcdhDeriveKey(key, 128, function(err, b){
+            key.EcdhDeriveKey(key, 128, function (err, b) {
                 assert(b != null, true, "Error on key derive");
                 done();
             })
         })
+    })
+
+    function jwk_equal(a, b) {
+        var json1 = JSON.stringify(a);
+        var json2 = JSON.stringify(b);
+        return json1 == json2;
+    }
+
+    function test_ec_jwk(curveName, keyType, done) {
+
+        var curve = native.EcNamedCurves[curveName]
+        assert.equal(curve != null, true, "Unknown curve name");
+
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            key.exportJwk(keyType, function (err, jwkA) {
+                assert(!err, true, "Export: " + err);
+                assert.equal(jwkA.kty, "EC", "Export: Wrong key type value");
+                assert.equal(jwkA.crv == curve, true, "Export: Wrong curve name value");
+                assert.equal(jwkA.x != null, true, "Export: X is missing");
+                assert.equal(jwkA.y != null, true, "Export: Y is missing");
+                assert.equal(jwkA.d != null, keyType == native.KeyType.PRIVATE, "Export: Key is missing");
+                native.Key.importJwk(jwkA, keyType, function (err, key) {
+                    assert(!err, true, "Import: " + err);
+                    key.exportJwk(keyType, function (err, jwkB) {
+                        assert(!err, true, "Export: " + err);
+                        assert.equal(jwk_equal(jwkA, jwkB), true, "export values are different");
+                        done();
+                    });
+                })
+            })
+        })
+    }
+
+    it("jwk EC private secp192k1", function (done) {
+        test_ec_jwk("secp192k1", native.KeyType.PRIVATE, done);
+    })
+
+    it("jwk EC public secp192k1", function (done) {
+        test_ec_jwk("secp192k1", native.KeyType.PUBLIC, done);
     })
 
 })

@@ -90,23 +90,29 @@ NAN_METHOD(WKey::ExportJwk) {
 
 	int key_type = Nan::To<int>(info[0]).FromJust();
 
+	switch (wkey->data->Get()->type) {
+	case EVP_PKEY_RSA:
+	case EVP_PKEY_EC:
+		break;
+	default:
+		v8::Local<v8::Value> argv[] = {
+			Nan::New("Unsupported Key in use").ToLocalChecked()
+		};
+
+		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		return;
+	}
+
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
-	try {
-		switch (wkey->data->Get()->type) {
-		case EVP_PKEY_RSA: {
-			Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
-			break;
-		}
-		case EVP_PKEY_EC:
-			Nan::ThrowError("Not implemented yet");
-			break;
-		default:
-			Nan::ThrowError("Unknow key type in use");
-		}
+	switch (wkey->data->Get()->type) {
+	case EVP_PKEY_RSA: {
+		Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
+		break;
 	}
-	catch (std::exception* e) {
-		Nan::ThrowError(e->what());
+	case EVP_PKEY_EC:
+		Nan::AsyncQueueWorker(new AsyncEcExportJwk(callback, key_type, wkey->data));
+		break;
 	}
 }
 
@@ -162,10 +168,19 @@ NAN_METHOD(WKey::ImportJwk) {
 
 	int key_type = Nan::To<int>(info[1]).FromJust();
 
-	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
-
 	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
 	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
+
+	if (!(strcmp(*v8Kty, JWK_KTY_RSA)==0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)){
+		v8::Local<v8::Value> argv[] = {
+			Nan::New("Unsupported Key in use").ToLocalChecked()
+		};
+
+		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		return;
+	}
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
 	if (strcmp(*v8Kty, JWK_KTY_RSA) == 0) {
 		Handle<JwkRsa> jwk(new JwkRsa());
@@ -187,9 +202,22 @@ NAN_METHOD(WKey::ImportJwk) {
 		Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type));
 	}
 	else {
-		Nan::ThrowError("JWK: Unsupported kty value");
+		Handle<JwkEc> jwk(new JwkEc());
+
+		LOG_INFO("set public key");
+		v8Object_get_BN(v8Jwk, x, jwk, x);
+		v8Object_get_BN(v8Jwk, y, jwk, y);
+		jwk->crv = Nan::To<int>(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_CRV).ToLocalChecked()).ToLocalChecked()).FromJust();
+
+		if (key_type == NODESSL_KT_PRIVATE) {
+			LOG_INFO("set private key");
+			v8Object_get_BN(v8Jwk, d, jwk, d);
+		}
+
+		Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type));
 		return;
 	}
+
 }
 
 /*
