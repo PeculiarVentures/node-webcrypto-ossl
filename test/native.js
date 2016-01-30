@@ -5,6 +5,32 @@ var native = require("../buildjs/native")
 
 describe("native", function () {
 
+    function test_export(key, spki, done) {
+        var export_fn, import_fn, error_text;
+        if (spki) {
+            export_fn = key.exportSpki;
+            import_fn = native.Key.importSpki;
+            error_text = "SPKI";
+        }
+        else {
+            export_fn = key.exportPkcs8;
+            import_fn = native.Key.importPkcs8;
+            error_text = "PKCS8"
+        }
+
+        export_fn.call(key, function (err, rawA) {
+            assert(!err, true, `${error_text}::Export: ${err}`);
+            import_fn(rawA, function (err, key) {
+                assert(!err, true, `${error_text}::Import: ${err}`);
+                export_fn.call(key, function (err, rawB) {
+                    assert(!err, true, `${error_text}::Export: ${err}`);
+                    assert.equal(Buffer.compare(rawA, rawB), 0, `${error_text}::Export: export values are different`);
+                    done();
+                });
+            })
+        })
+    }
+
     it("generate RSA 1024,3", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             assert(key != null, true, "Error on key generation");
@@ -56,25 +82,13 @@ describe("native", function () {
 
     it("spki RSA", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
-            key.exportSpki(function (err, raw) {
-                assert(raw != null, true, "Error on key export");
-                native.Key.importSpki(raw, function (err, key) {
-                    assert(key != null, true, "Error on key import");
-                    done();
-                })
-            })
+            test_export(key, true, done);
         })
     })
 
     it("pksc8 RSA", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
-            key.exportPkcs8(function (err, raw) {
-                assert(raw != null, true, "Error on key export");
-                native.Key.importPkcs8(raw, function (err, key) {
-                    assert(key != null, true, "Error on key import");
-                    done();
-                })
-            })
+            test_export(key, false, done);
         })
     })
 
@@ -179,6 +193,18 @@ describe("native", function () {
 
     it("jwk EC public secp192k1", function (done) {
         test_ec_jwk("secp192k1", native.KeyType.PUBLIC, done);
+    })
+    
+    it("spki EC", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            test_export(key, true, done);
+        })
+    })
+
+    it("pksc8 EC", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+            test_export(key, false, done);
+        })
     })
 
 })
