@@ -3,6 +3,7 @@
 
 #include "logger.h"
 
+#include <openssl/aes.h>
 #include <openssl/x509.h>
 
 // Create name for Scoped class
@@ -99,5 +100,6 @@ ScopedSSL_create(BIO, BIO_free);
 ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 ScopedSSL_create(BN_CTX, BN_CTX_free);
 ScopedSSL_create(ECDSA_SIG, ECDSA_SIG_free);
+ScopedSSL_create(EVP_CIPHER_CTX, EVP_CIPHER_CTX_free);
 
 #endif // OSSL_CORE_SCOPED_SSL_H_INCLUDE

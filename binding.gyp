@@ -17,7 +17,6 @@
 				 "src/core/scoped_ssl.cpp",
                  "src/core/logger.cpp",
                  "src/core/excep.cpp",
-                 # "src/source/key.cpp",
                  "src/rsa/common.h",
                  "src/rsa/rsa_gen.cpp",
                  "src/rsa/rsa_jwk.cpp",
@@ -28,11 +27,17 @@
                  "src/ec/ec_dsa.cpp",
                  "src/ec/ec_dh.cpp",
                  "src/ec/ec_jwk.cpp",
+                 "src/aes/common.h",
+                 "src/aes/aes_def.h",
+                 "src/aes/aes_gen.cpp",
+                 "src/aes/aes_enc.cpp",
                  "src/node/common.h",
                  "src/node/common.cpp",
                  "src/node/w_key.cpp",
+                 "src/node/w_aes.cpp",
                  "src/node/async_rsa.cpp",
-                 "src/node/async_ec.cpp"
+                 "src/node/async_ec.cpp",
+                 "src/node/async_aes.cpp"
             ],
             "cflags_cc": ["-fexceptions"],
             "conditions": [

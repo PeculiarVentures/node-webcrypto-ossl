@@ -1,5 +1,3 @@
-export let Key: INativeKey = require("../build/Debug/nodessl.node").Key;
-
 export enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
@@ -46,47 +44,7 @@ export enum KeyType {
     PRIVATE
 }
 
-export interface INativeKey {
-
-    /**
-     * Generate RSA key pair
-     * @param modulus modulus size of RSA key pair
-     * @param publicExponent public exponent of RSA key pair
-     * @param callback callback function (err: Error, key: KeyPair)
-     */
-    generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: NativeKey) => void): void;
-
-    /**
-     * Generate EC key pair
-     * @param namedCurve NID of curve name
-     * @param callback callback function (err: Error, key: KeyPair)
-     */
-    generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: NativeKey) => void): void;
-
-    /**
-     * create Key from JWK data
-     * @param jwk key in JWK format
-     * @param keyType type of imported key (PRIVATE or PUBLIC)
-     * @param callback
-     */
-    importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: NativeKey) => void): void;
-
-    /**
-     * create Key from SPKI
-     * @param raw DER data raw
-     * @param callback callback function
-     */
-    importSpki(raw: Buffer, callback: (err: Error, key: NativeKey) => void): void;
-
-    /**
-     * create Key from PKCS8
-     * @param raw DER data raw
-     * @param callback callback function
-     */
-    importPkcs8(raw: Buffer, callback: (err: Error, key: NativeKey) => void): void;
-}
-
-export declare class NativeKey {
+export declare class Key {
 
     /**
      * type of key
@@ -144,5 +102,53 @@ export declare class NativeKey {
      * @param pubkey public key for key derivation
      * @param derivedLen size of derived key (bytes)
      */
-    EcdhDeriveKey(pubkey: NativeKey, derivedLen: number): Buffer;
+    EcdhDeriveKey(pubkey: Key, derivedLen: number): Buffer;
+
+    /**
+     * Generate RSA key pair
+     * @param modulus modulus size of RSA key pair
+     * @param publicExponent public exponent of RSA key pair
+     * @param callback callback function (err: Error, key: KeyPair)
+     */
+    static generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: Key) => void): void;
+
+    /**
+     * Generate EC key pair
+     * @param namedCurve NID of curve name
+     * @param callback callback function (err: Error, key: KeyPair)
+     */
+    static generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: Key) => void): void;
+
+    /**
+     * create Key from JWK data
+     * @param jwk key in JWK format
+     * @param keyType type of imported key (PRIVATE or PUBLIC)
+     * @param callback
+     */
+    static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
+
+    /**
+     * create Key from SPKI
+     * @param raw DER data raw
+     * @param callback callback function
+     */
+    static importSpki(raw: Buffer, callback: (err: Error, key: Key) => void): void;
+
+    /**
+     * create Key from PKCS8
+     * @param raw DER data raw
+     * @param callback callback function
+     */
+    static importPkcs8(raw: Buffer, callback: (err: Error, key: Key) => void): void;
 }
+
+export declare class AesKey {
+    static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
+    encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
+    decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
+}
+
+let native = require("../build/Debug/nodessl.node");
+
+module.exports.Key = native.Key;
+module.exports.AesKey = native.AesKey;

@@ -5,8 +5,6 @@
 
 #define JWK_KTY_EC "EC"
 
-#define JWK_ATTR_KTY "kty"
-
 #define JWK_ATTR_X "x"
 #define JWK_ATTR_Y "y"
 #define JWK_ATTR_D "d"

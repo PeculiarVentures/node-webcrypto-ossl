@@ -9,6 +9,7 @@ NAN_MODULE_INIT(InitModule) {
 	ERR_load_crypto_strings();
 
 	WKey::Init(target);
+	WAes::Init(target);
 
 }
 

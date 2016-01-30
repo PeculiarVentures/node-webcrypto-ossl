@@ -194,7 +194,7 @@ describe("native", function () {
     it("jwk EC public secp192k1", function (done) {
         test_ec_jwk("secp192k1", native.KeyType.PUBLIC, done);
     })
-    
+
     it("spki EC", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
             test_export(key, true, done);
@@ -205,6 +205,57 @@ describe("native", function () {
         native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
             test_export(key, false, done);
         })
+    })
+
+    it("AES generate 128", function (done) {
+        native.AesKey.generate(16, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            done();
+        });
+    })
+
+    it("AES generate 196", function (done) {
+        native.AesKey.generate(24, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            done();
+        });
+    })
+
+    it("AES generate 256", function (done) {
+        native.AesKey.generate(32, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            done();
+        });
+    })
+
+    it("AES CBC encrypt 256", function (done) {
+        var msg = new Buffer("Hello world");
+        native.AesKey.generate(32, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            key.encrypt("CBC", new Buffer("1234567890123456"), msg, function (err, data) {
+                assert(!err, true, `encrypt: ${err}`);
+                key.decrypt("CBC", new Buffer("1234567890123456"), data, function (err, m) {
+                    assert(!err, true, `decrypt: ${err}`);
+                    assert.equal(msg.toString(), m.toString());
+                    done();
+                });
+            });
+        });
+    })
+
+    it("AES CBC encrypt 256 error", function (done) {
+        var msg = new Buffer("Hello world");
+        native.AesKey.generate(32, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            key.encrypt("CBC", new Buffer("1234567890123456"), msg, function (err, data) {
+                assert(!err, true, `encrypt: ${err}`);
+                data[0] += 1;
+                key.decrypt("CBC", new Buffer("1234567890123456"), data, function (err, m) {
+                    assert(err, true, `must be error`);
+                    done();
+                });
+            });
+        });
     })
 
 })
