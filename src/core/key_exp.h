@@ -4,8 +4,6 @@
 #include "define.h"
 #include "scoped_ssl.h"
 
-Handle<ScopedBIO> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *bp, EVP_PKEY *key));
-
 Handle<ScopedBIO> KEY_export_spki(EVP_PKEY *pkey);
 Handle<ScopedBIO> KEY_export_pkcs8(EVP_PKEY *pkey);
 Handle<ScopedEVP_PKEY> KEY_import_spki(BIO *in);

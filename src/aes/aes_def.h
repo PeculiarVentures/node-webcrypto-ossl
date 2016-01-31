@@ -15,7 +15,7 @@ public:
 
 	Handle<ScopedBIO> value;
 
-	static Handle<ScopedAES> ScopedAES::generate(int &keySize);
+	static Handle<ScopedAES> generate(int &keySize);
 	
 	Handle<ScopedBIO> encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv);
 	Handle<ScopedBIO> decrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv);
