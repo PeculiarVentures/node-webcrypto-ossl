@@ -1,50 +1,59 @@
 #include "rsa_pkcs1.h"
 
-Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in) {
+Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData) {
 	LOG_FUNC();
 
-	ScopedRSA rsa = EVP_PKEY_get1_RSA(key->Get());
-	if (rsa.isEmpty()) {
-		THROW_OPENSSL("EVP_PKEY_get1_RSA");
+	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	EVP_PKEY_CTX* pctx = NULL;  // Owned by |ctx|.
+	// NOTE: A call to EVP_DigestSignFinal() with a NULL second parameter
+	// returns a maximum allocation size, while the call without a NULL returns
+	// the real one, which may be smaller.
+	size_t siglen = 0;
+	if (ctx.isEmpty() ||
+		!EVP_DigestSignInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	unsigned char sig[2048] = { 0 };
-	unsigned int siglen = 0;
+	unsigned char* data = NULL;
+	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
 
-	unsigned char* buf = NULL;
-	unsigned int buflen = BIO_get_mem_data(in->Get(), &buf);
-
-	if (RSA_sign(md->type, buf, buflen, sig, &siglen, rsa.Get()) < 1) {
-		THROW_OPENSSL(RSA_sign);
+	if (!EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
+		THROW_OPENSSL("EVP_DigestSignUpdate");
+	}
+	if (!EVP_DigestSignFinal(ctx.Get(), NULL, &siglen)) {
+		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 
-	char *bio = (char*)OPENSSL_malloc(siglen);
-	BIO *out = BIO_new_mem_buf(sig, siglen);
-	BIO_set_flags(out, BIO_CLOSE);
+	byte *output = (byte*)OPENSSL_malloc(siglen);
+	Handle<ScopedBIO> hOutput(new ScopedBIO(BIO_new_mem_buf(output, siglen)));
 
-	return Handle<ScopedBIO>(new ScopedBIO(out));
+	if (!EVP_DigestSignFinal(ctx.Get(), output, &siglen))
+		THROW_OPENSSL("EVP_DigestSignFinal");
+
+	return hOutput;
 }
 
-bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in, Handle<ScopedBIO> signature) {
+bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
 	LOG_FUNC();
 
-	ScopedRSA rsa = EVP_PKEY_get1_RSA(key->Get());
-	if (rsa.isEmpty()) {
-		THROW_OPENSSL("EVP_PKEY_get1_RSA");
+	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	EVP_PKEY_CTX* pctx = NULL;
+
+	if (ctx.isEmpty() ||
+		!EVP_DigestVerifyInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	LOG_INFO("prepare data");
-	unsigned char* data = NULL;
-	unsigned int datalen = BIO_get_mem_data(in->Get(), &data);
+	byte* signature = NULL;
+	size_t signaturelen = BIO_get_mem_data(hSignature->Get(), &signature);
 
-	LOG_INFO("prepare signature");
-	unsigned char* sig = NULL;
-	unsigned int siglen = BIO_get_mem_data(signature->Get(), &sig);
+	byte* data = NULL;
+	size_t datalen = BIO_get_mem_data(hData->Get(), &data);
 
-	int res = RSA_verify(md->type, data, datalen, sig, siglen, rsa.Get());
-	if (res == -1) {
-		THROW_OPENSSL("RSA_verify");
+	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {
+		THROW_OPENSSL("EVP_DigestSignUpdate");
 	}
+	int res = EVP_DigestVerifyFinal(ctx.Get(), signature, signaturelen);
 
 	return res == 1;
 }

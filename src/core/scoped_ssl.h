@@ -4,6 +4,7 @@
 #include "logger.h"
 
 #include <openssl/aes.h>
+#include <openssl/evp.h>
 #include <openssl/x509.h>
 
 // Create name for Scoped class
@@ -80,7 +81,6 @@ public:
 	T* detach() {
 		T* new_ptr = ptr;
 		ptr = NULL;
-
 		return new_ptr;
 	}
 protected:
@@ -101,5 +101,6 @@ ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 ScopedSSL_create(BN_CTX, BN_CTX_free);
 ScopedSSL_create(ECDSA_SIG, ECDSA_SIG_free);
 ScopedSSL_create(EVP_CIPHER_CTX, EVP_CIPHER_CTX_free);
+ScopedSSL_create(EVP_MD_CTX, EVP_MD_CTX_destroy);
 
 #endif // OSSL_CORE_SCOPED_SSL_H_INCLUDE

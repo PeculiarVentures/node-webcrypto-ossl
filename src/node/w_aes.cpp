@@ -132,7 +132,7 @@ NAN_METHOD(WAes::Export) {
 
 /*
  * raw: buffer 
- cb: function
+ * cb: function
  */
 NAN_METHOD(WAes::Import) {
 	LOG_FUNC();
