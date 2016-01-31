@@ -22,6 +22,8 @@ var RSA_ENC = new Buffer("d9QbL9tbZ4ld0oAzC/upfsDClB/d2lfy/W8WwafJ6CIdclN5cZD5T4
 
 var RSA_ENC_LABEL = new Buffer("ADR0RhBr6aJ0K1dns5Hx5tHn8byEoqtlRVZ4VWpIgMp5e0E2S/8u1I4TDQ6+ZDshBWTzJfrA2oEvIBAgpaFKk68HDJJ3B6Nir/fn9naCRAwStqPfLeeDZJ+868vqtysbN8F9JeC3x1lw05Xoy4k8znIOTy9TbNmDHGK0LBa+D68Tre9Nvqhhz2th89FzRQ6Jf12jiiMYt9uKrEruW+xB59qi9YcT4rJOJND/WPdd4v27oYOGFRWOKYsdpbajhtHzjN2I76U327tmpGbulVJngy+V6X1XqLVMZbh0Jf9WX6CYH35Ryu1fP4xRzpYyXzxJEFhpJ9BEVrVilZIwnZyxjg==", "base64");
 
+var EC_DERIVED_KEY = new Buffer("cmk/LtRfc8JTBTM25SH7KXKkpSRkzYCodFYLsXeukNM=", "base64");
+
 function json_jwk(json) {
     var jwk = JSON.parse(json);
     var attrs = ["d", "dq", "n", "e", "p", "q", "qi", "dp", "dq"];
@@ -81,6 +83,17 @@ describe("native with webcrypto", function () {
         native.Key.importPkcs8(EC_KEY_PKCS8, function (err, key) {
             assert.equal(err == null, true, "Import: can not import from PKCS8");
             test_sign(key, "sha256", EC_SIGN, done);
+        });
+    })
+
+    it("EC deriveKey", function (done) {
+        native.Key.importPkcs8(EC_KEY_PKCS8, function (err, key) {
+            assert(!err, true, `"Import: ${err}`);
+            key.EcdhDeriveKey(key, 32, function (err, data) {
+                assert(!err, true, `"DeriveKey: ${err}`);
+                assert.equal(Buffer.compare(data, EC_DERIVED_KEY) == 0, true, "DeriveKey: wrong key value");
+                done();
+            })
         });
     })
 
