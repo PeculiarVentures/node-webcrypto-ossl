@@ -76,7 +76,7 @@ export declare class Key {
      * @param message message
      * @param callback callback function
      */
-    sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void
+    sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void;
 
     /**
      * verify data RSA, EC
@@ -85,7 +85,7 @@ export declare class Key {
      * @param signature signature from message
      * @param callback callback function
      */
-    verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void
+    verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void;
 
     /**
      * encrypt/decrypt operation for RSA OAEP key
@@ -95,14 +95,14 @@ export declare class Key {
      * @param decrypt type of operation
      * @param callback callback function
      */
-    RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void
+    RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
 
     /**
      * derives key with ECDH
      * @param pubkey public key for key derivation
      * @param derivedLen size of derived key (bytes)
      */
-    EcdhDeriveKey(pubkey: Key, derivedLen: number): Buffer;
+    EcdhDeriveKey(pubkey: Key, derivedLen: number, callback: (err: Error, raw: Buffer) => void): void;
 
     /**
      * Generate RSA key pair
