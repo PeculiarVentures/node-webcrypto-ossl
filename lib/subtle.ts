@@ -4,8 +4,8 @@ import {CryptoKey} from "./key";
 
 import * as alg from "./alg";
 import * as rsa from "./rsa";
-import * as aes from "./aes";
-import * as ec from "./ec";
+// import * as aes from "./aes";
+// import * as ec from "./ec";
 
 import * as iwc from "./iwebcrypto";
 
@@ -63,26 +63,26 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
+                // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesGCM;
+                //     break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
+                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdsa;
+                //     break;
+                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdh;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let key = AlgClass.generateKey(_alg, extractable, keyUsages, function(e, k) {
-                if (e)
-                    reject(e);
+            AlgClass.generateKey(_alg, extractable, keyUsages, function(err, key) {
+                if (err)
+                    reject(err);
                 else
-                    resolve(k);
+                    resolve(key);
             });
         });
     }
@@ -102,14 +102,19 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaPSS;
                     break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
+                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdsa;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let signature = AlgClass.sign(_alg, key, _data);
-            resolve(new Uint8Array(signature).buffer);
+            AlgClass.sign(_alg, key, _data, function(err, sig) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(new Uint8Array(sig).buffer);
+            });
+
         });
     }
 
@@ -129,14 +134,18 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaPSS;
                     break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
+                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdsa;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let valid = AlgClass.verify(_alg, key, _signature, _data);
-            resolve(valid);
+            AlgClass.verify(_alg, key, _signature, _data, function(err, valid) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(valid);
+            });
         });
     }
 
@@ -152,17 +161,21 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
+                // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesGCM;
+                //     break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let msg = AlgClass.encrypt(_alg, key, _data);
-            resolve(new Uint8Array(msg).buffer);
+            AlgClass.encrypt(_alg, key, _data, function(err, buf) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(new Uint8Array(buf).buffer);
+            });
         });
     }
 
@@ -178,18 +191,21 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-
+                // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesGCM;
+                //     break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let msg = AlgClass.decrypt(_alg, key, _data);
-            resolve(new Uint8Array(msg).buffer);
+            AlgClass.decrypt(_alg, key, _data, function(err, buf) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(new Uint8Array(buf).buffer);
+            });
         });
     }
 
@@ -209,14 +225,18 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 AlgClass = aes.AesGCM;
                 break;
                 */
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let wrappedKey = AlgClass.wrapKey(key, wrappingKey, _alg);
-            resolve(new Uint8Array(wrappedKey).buffer);
+            AlgClass.wrapKey(key, wrappingKey, _alg, function(err, buf) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(new Uint8Array(buf).buffer);
+            });
         });
     }
 
@@ -238,14 +258,18 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 AlgClass = aes.AesGCM;
                 break;
                 */
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let unwrappedKey = AlgClass.unwrapKey(_wrappedKey, unwrappingKey, _alg1, _alg2, extractable, keyUsages);
-            resolve(unwrappedKey);
+            AlgClass.unwrapKey(_wrappedKey, unwrappingKey, _alg1, _alg2, extractable, keyUsages, function(err, key) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(key);
+            });
         });
     }
 
@@ -258,14 +282,18 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
 
             let AlgClass: alg.IAlgorithmBase = null;
             switch (_alg1.name.toLowerCase()) {
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
+                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdh;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let key: CryptoKey = AlgClass.deriveKey(algorithm, baseKey, derivedKeyType, extractable, keyUsages);
-            resolve(key);
+            AlgClass.deriveKey(algorithm, baseKey, derivedKeyType, extractable, keyUsages, function(err, key) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(key);
+            });
         });
     }
 
@@ -273,13 +301,28 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
         let that = this;
 
         return new Promise(function(resolve, reject) {
-            let data = alg.AlgorithmBase.exportKey(format, key);
-            if (Buffer.isBuffer(data)) {
-                let ubuf = new Uint8Array(<any>data);
-                resolve(ubuf.buffer);
+            let KeyClass;
+            switch (key.algorithm.name) {
+                case rsa.RsaPKCS1.ALGORITHM_NAME:
+                    KeyClass = rsa.RsaPKCS1;
+                    break;
+                case rsa.RsaOAEP.ALGORITHM_NAME:
+                    KeyClass = rsa.RsaOAEP;
+                    break;
+                default:
+                    throw new Error(`ExportKey: Unsupported algorithm ${key.algorithm.name}`);
             }
-            else
-                resolve(data);
+            KeyClass.exportKey(format.toLocaleLowerCase(), key, function(err, data) {
+                if (err)
+                    reject(err);
+                else
+                    if (Buffer.isBuffer(data)) {
+                        let ubuf = new Uint8Array(<any>data);
+                        resolve(ubuf.buffer);
+                    }
+                    else
+                        resolve(data);
+            });
         });
     }
 
@@ -302,23 +345,38 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
+                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdsa;
+                //     break;
+                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = ec.Ecdh;
+                //     break;
+                // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesCBC;
+                //     break;
+                // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                //     AlgClass = aes.AesGCM;
+                //     break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            let key = AlgClass.importKey(format, _data, _alg, extractable, keyUsages);
-            resolve(key);
+            if (format.toLocaleLowerCase() === "jwk") {
+                if (Buffer.isBuffer(keyData)) {
+                    throw new Error("ImportKey: keydData must be Object");
+                }
+                // copy input object
+                let cpy = {};
+                for (let i in _data) {
+                    cpy[i] = _data[i];
+                }
+                _data = <any> cpy;
+            }
+            AlgClass.importKey(format.toLocaleLowerCase(), _data, _alg, extractable, keyUsages, function(err, key) {
+                if (err)
+                    reject(err);
+                else
+                    resolve(key);
+            });
         });
     }
 

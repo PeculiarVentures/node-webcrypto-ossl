@@ -15,10 +15,10 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 	unsigned char* data = NULL;
 	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
 
-	if (!EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
+	if (1 != EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");
 	}
-	if (!EVP_DigestSignFinal(ctx.Get(), NULL, &siglen)) {
+	if (1 != EVP_DigestSignFinal(ctx.Get(), NULL, &siglen)) {
 		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 

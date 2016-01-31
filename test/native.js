@@ -91,7 +91,7 @@ describe("native", function () {
     })
 
     function test_sign(key, md, done, wc_sig) {
-        var message = new Buffer("Hello world");
+        var message = new Buffer("This is test message for crypto functions");
 
         key.sign(md, message, function (err, sig) {
             assert(sig != null, true, "Error on sign");

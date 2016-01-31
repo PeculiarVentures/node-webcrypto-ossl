@@ -2,6 +2,10 @@ var assert = require('assert');
 var native = require("../buildjs/native");
 var base64url = require("base64url");
 
+/**
+ * Test with values from Chrome WebCrypto
+ */
+
 var RSA_KEY_JWK_JSON = '{"alg":"RS256","d":"Xm3Ko0c6w_cyFrIbkRQ-auHeOuZpdA5bvuRBCsG77A2ME2cvv_M6bVkrvNSvuDe4KcYwwXyWZrykfz9w0VZdvLKI_ijApfJLkgJLO63ij3Hu60c5jTfWWLQqmHzJAekC7gl7Bma-TU1LFz_1huXLnIBvYYr5U54g-KqKwB8tMbwDCvaLKfjREE8GcQMjMnajahlDvO5dntJH4LBPiJKteTMlDytPhIJYvVrwBqBeMjpNrxriR7uqq5anTs5KaQjkx4xojmJARuZUIGnD0xsxLyrimTGUdsfSCh99H1k05UtC1YpJETN_VRS6-byF5RA2RAs9trzE94nIqEHTrJgiAQ","dp":"3uqx9uTdbGnFfNYkHqiV5GPiPbrDsiEIZ5IUXLcHdxjqM0OxPMUJ4Ne_Q3gktFDhD3PsFW8uXTd8aU7pYEeKr_hXX6kGwCkKmhh9OXulkH-GzNgTtwWdl59dyS3jdgxjIy89YmvspzvQ9YGVUqFnvwTwY6GW1EqsV7F7ThDRngE","dq":"FqZZSuDyGFApAZL-7bEuqP5jm5RWx3X_mQPnMh6wNP6W-zK0SChQQgA6SkwD6YqJCfUheDUge0JzxiaLsfPH5qLnOhkNuCyFK7-nU-QZoY5YXMncRyQ_WVTD2EIGibfbNkXj3NAcLpcdn4KiTV8TGHQgvGFAii2UsGhmEYSj01k","e":"AQAB","ext":true,"key_ops":["sign"],"kty":"RSA","n":"wGOmA6DE8yF_Y-uMgBDufgxofCAXYr08HsiJc2VfVTDwCPB_hQSD9LpEwtvE_Ll_vMD3F4coYkN3Padb7zeRDTB4-WaA5qDB1r4CpFnqqn19888LzlGB1K2dyCR-VpaYx3FD8MQBuCnlgKxCXVDKWrYCWwQOyqJXbBBr8CFXLSYdi5Dm_2KeN3lXwLUFEXeYjfjAynKVoADvf4PouXzOxar40NPHAT7Jo32ZTv-TEfZGbW5XXsg-k0Dc98T31SRoUQEHqHY-4wEkh-HZBnWLm8gcjDLx92ZYekjO-HHiZvCX19FJZrrGu83_PipD7WQpVAd-fyoz4xlM30szPRTkdQ","p":"-wk92x0-1wQbsIS_CkdsZNTL5_x8tGl61pu0Q0QGm5U8JJb9sm42rZs_V1Ms-gZApeoOXTOE9HchT-qvkQKigwfuyplJbp-R714418MvXkhZuN-J0r_rS5hrlSPK4NZbLdjnoyK2VzTXPI7au7SYYXc1Vcms3liUYKBGYX-VyYE","q":"xDGIiMV_VQDsoxZqiaWabnmOyPtGcFxFiFcq53_GMrZwzPceEz0fAQgQDkn4voJsBRTBcw-nxRcLDQDxMmW0bOj8t83qyvQz-wUt7u1xInGd-5vh_OenrMSxMp0XeSUML2g32j0Ss3CuAPTCn1gw-ltldMzN1h2aBOi8u2fJDPU","qi":"ZtZnl4zsc4qUORq7QnOvBTGQFQTK-0OTZa9V4IfHNXXeTC76mtAhf5PmTAcFE-LPb_o3ivfwqbBITp8q2iGJYpiCMjgHUDg_UtOBp0J7EC5A5sBJT4GS0_4v9JbczmVS5qcDnOLf6-PbVCTogYaopguAGEasADPXAg1OgrDqNCs"}';
 
 var EC_KEY_JWK_JSON = '{"crv":"P-256","d":"xJpMyGE7Q4Cic7UXcJCgisOH068dbD1DIvJxXbFOjnk","ext":true,"key_ops":["sign"],"kty":"EC","x":"vocRMfLYClci4XiGTZMVks1S6jyqu9muhlsr7WFPPRM","y":"C2x62g1tkwwGxJjddEdGd8v6TdP8_zGlaNhc6V7htIk"}';

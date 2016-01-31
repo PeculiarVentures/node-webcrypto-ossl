@@ -54,19 +54,19 @@ export declare class Key {
     /**
      * Export Key to JWK data
      * @param keyType type of exported key (PRIVATE or PUBLIC)
-     * @param callback Callback function
+     * @param callback callback function (err: Error, jwk: Object)
      */
     exportJwk(keyType: KeyType, callback: (err: Error, jwk: Object) => void): void;
 
     /**
      * export Key to SPKI
-     * @param callback callback function
+     * @param callback callback function (err: Error, raw: Buffer)
      */
     exportSpki(callback: (err: Error, raw: Buffer) => void): void;
 
     /**
      * export Key to PKCS8
-     * @param callback callback function
+     * @param callback callback function (err: Error, raw: Buffer)
      */
     exportPkcs8(callback: (err: Error, raw: Buffer) => void): void;
 
@@ -74,7 +74,7 @@ export declare class Key {
      * sign data EC, RSA
      * @param digestName name of digest algorithm
      * @param message message
-     * @param callback callback function
+     * @param callback callback function (err: Error, signature: Buffer)
      */
     sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void;
 
@@ -83,7 +83,7 @@ export declare class Key {
      * @param digestName name of digest algorithm
      * @param message message
      * @param signature signature from message
-     * @param callback callback function
+     * @param callback callback function (err: Error, valid: boolean)
      */
     verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void;
 
@@ -93,7 +93,7 @@ export declare class Key {
      * @param data incoming data 
      * @param label label for operation. Can be NULL
      * @param decrypt type of operation
-     * @param callback callback function
+     * @param callback callback function (err: Error, raw: Buffer)
      */
     RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
 
@@ -101,6 +101,7 @@ export declare class Key {
      * derives key with ECDH
      * @param pubkey public key for key derivation
      * @param derivedLen size of derived key (bytes)
+     * @param callback callback function (err: Error, raw: Buffer)
      */
     EcdhDeriveKey(pubkey: Key, derivedLen: number, callback: (err: Error, raw: Buffer) => void): void;
 
@@ -108,14 +109,14 @@ export declare class Key {
      * Generate RSA key pair
      * @param modulus modulus size of RSA key pair
      * @param publicExponent public exponent of RSA key pair
-     * @param callback callback function (err: Error, key: KeyPair)
+     * @param callback callback function (err: Error, key: Key)
      */
     static generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: Key) => void): void;
 
     /**
      * Generate EC key pair
      * @param namedCurve NID of curve name
-     * @param callback callback function (err: Error, key: KeyPair)
+     * @param callback callback function (err: Error, raw: Key)
      */
     static generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: Key) => void): void;
 
@@ -123,26 +124,31 @@ export declare class Key {
      * create Key from JWK data
      * @param jwk key in JWK format
      * @param keyType type of imported key (PRIVATE or PUBLIC)
-     * @param callback
+     * @param callback callback function (err: Error, key: Key)
      */
     static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
 
     /**
      * create Key from SPKI
      * @param raw DER data raw
-     * @param callback callback function
+     * @param callback callback function (err: Error, key: Key)
      */
     static importSpki(raw: Buffer, callback: (err: Error, key: Key) => void): void;
 
     /**
      * create Key from PKCS8
      * @param raw DER data raw
-     * @param callback callback function
+     * @param callback callback function (err: Error, key: KeyPair)
      */
     static importPkcs8(raw: Buffer, callback: (err: Error, key: Key) => void): void;
 }
 
 export declare class AesKey {
+    /**
+     * generate key
+     * @param keySize size of generated key (should be 16, 24, 32)
+     * @param callback callback function (err: Error, key: KeyPair)
+     */
     static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
     encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
