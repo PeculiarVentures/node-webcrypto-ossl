@@ -11,6 +11,7 @@ var RSA_KEY_PKCS8 = new Buffer("MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIB
 var EC_KEY_PKCS8 = new Buffer("MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxJpMyGE7Q4Cic7UXcJCgisOH068dbD1DIvJxXbFOjnmhRANCAAS+hxEx8tgKVyLheIZNkxWSzVLqPKq72a6GWyvtYU89EwtsetoNbZMMBsSY3XRHRnfL+k3T/P8xpWjYXOle4bSJ", "base64");
 
 var RSA_OAEP_LABEL = new Buffer("1234567890123456");
+var AES_IV = RSA_OAEP_LABEL;
 
 var TEST_DATA = new Buffer("Hello world");
 
@@ -23,6 +24,10 @@ var RSA_ENC = new Buffer("d9QbL9tbZ4ld0oAzC/upfsDClB/d2lfy/W8WwafJ6CIdclN5cZD5T4
 var RSA_ENC_LABEL = new Buffer("ADR0RhBr6aJ0K1dns5Hx5tHn8byEoqtlRVZ4VWpIgMp5e0E2S/8u1I4TDQ6+ZDshBWTzJfrA2oEvIBAgpaFKk68HDJJ3B6Nir/fn9naCRAwStqPfLeeDZJ+868vqtysbN8F9JeC3x1lw05Xoy4k8znIOTy9TbNmDHGK0LBa+D68Tre9Nvqhhz2th89FzRQ6Jf12jiiMYt9uKrEruW+xB59qi9YcT4rJOJND/WPdd4v27oYOGFRWOKYsdpbajhtHzjN2I76U327tmpGbulVJngy+V6X1XqLVMZbh0Jf9WX6CYH35Ryu1fP4xRzpYyXzxJEFhpJ9BEVrVilZIwnZyxjg==", "base64");
 
 var EC_DERIVED_KEY = new Buffer("cmk/LtRfc8JTBTM25SH7KXKkpSRkzYCodFYLsXeukNM=", "base64");
+
+var AES_KEY_RAW = new Buffer("StQFwEYbLh6cUxmmdwzjgLnlkBWIt6Rs+E19chbqasE=", "base64");
+
+var AES_CBC_ENC = new Buffer("bcKv20ENhdt4G/IM79lGDA==", "base64");
 
 function json_jwk(json) {
     var jwk = JSON.parse(json);
@@ -92,6 +97,17 @@ describe("native with webcrypto", function () {
             key.EcdhDeriveKey(key, 32, function (err, data) {
                 assert(!err, true, `"DeriveKey: ${err}`);
                 assert.equal(Buffer.compare(data, EC_DERIVED_KEY) == 0, true, "DeriveKey: wrong key value");
+                done();
+            })
+        });
+    })
+
+    it("AES CBC encrypt", function (done) {
+        native.AesKey.import(AES_KEY_RAW, function (err, key) {
+            assert(!err, true, `"Import: ${err}`);
+            key.decrypt("CBC", AES_IV, AES_CBC_ENC, function (err, data) {
+                assert(!err, true, `"Decrypt: ${err}`);
+                assert.equal(Buffer.compare(TEST_DATA, data) == 0, true, "Decrypt: wrong decrypted value");
                 done();
             })
         });
