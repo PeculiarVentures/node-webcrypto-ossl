@@ -4,10 +4,8 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
-	EVP_PKEY_CTX* pctx = NULL;  // Owned by |ctx|.
-	// NOTE: A call to EVP_DigestSignFinal() with a NULL second parameter
-	// returns a maximum allocation size, while the call without a NULL returns
-	// the real one, which may be smaller.
+	EVP_PKEY_CTX* pctx = NULL;  
+
 	size_t siglen = 0;
 	if (ctx.isEmpty() ||
 		!EVP_DigestSignInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {

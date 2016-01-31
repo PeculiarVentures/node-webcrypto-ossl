@@ -68,7 +68,7 @@ static Handle<ScopedBIO> ConvertWebCryptoSignatureToDerSignature(
 static Handle<ScopedBIO> ConvertDerSignatureToWebCryptoSignature(
 	EVP_PKEY* key,
 	const byte* signature,
-	uint32_t &signaturelen) 
+	size_t &signaturelen) 
 {
 	LOG_FUNC();
 
@@ -93,60 +93,71 @@ static Handle<ScopedBIO> ConvertDerSignatureToWebCryptoSignature(
 	return hSignature;
 }
 
-Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in) {
+Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData) {
 	LOG_FUNC();
 
-	ScopedEC_KEY ec = EVP_PKEY_get1_EC_KEY(key->Get());
-	if (ec.isEmpty()) {
-		THROW_OPENSSL("EVP_PKEY_get1_EC_KEY");
+	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	EVP_PKEY_CTX* pctx = NULL;
+
+	size_t siglen = 0;
+	if (ctx.isEmpty() ||
+		!EVP_DigestSignInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte sig[2048] = { 0 };
-	uint32_t siglen = 0;
+	unsigned char* data = NULL;
+	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
 
-	byte* buf = NULL;
-	size_t buflen = BIO_get_mem_data(in->Get(), &buf);
-
-	if (ECDSA_sign(md->type, buf, buflen, sig, &siglen, ec.Get()) < 1) {
-		THROW_OPENSSL("ECDSA_sign");
+	if (!EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
+		THROW_OPENSSL("EVP_DigestSignUpdate");
+	}
+	if (!EVP_DigestSignFinal(ctx.Get(), NULL, &siglen)) {
+		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 
-	Handle<ScopedBIO> hSignature = ConvertDerSignatureToWebCryptoSignature(key->Get(), sig, siglen);
+	byte *sig = (byte*)OPENSSL_malloc(siglen);
+	Handle<ScopedBIO> hOutput(new ScopedBIO(BIO_new_mem_buf(sig, siglen)));
+
+	if (!EVP_DigestSignFinal(ctx.Get(), sig, &siglen))
+		THROW_OPENSSL("EVP_DigestSignFinal");
+
+	Handle<ScopedBIO> hSignature = ConvertDerSignatureToWebCryptoSignature(hKey->Get(), sig, siglen);
 
 	return hSignature;
 }
 
-bool EC_DSA_verify(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in, Handle<ScopedBIO> signature) {
+bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
 	LOG_FUNC();
 
 	unsigned char* wcSignature = NULL;
-	unsigned int wcSignatureLen = BIO_get_mem_data(signature->Get(), &wcSignature);
+	unsigned int wcSignatureLen = BIO_get_mem_data(hSignature->Get(), &wcSignature);
 
 	bool incorrect;
-	Handle<ScopedBIO> hSignature = ConvertWebCryptoSignatureToDerSignature(key->Get(), wcSignature, wcSignatureLen, &incorrect);
+	Handle<ScopedBIO> hFormatedSignature = ConvertWebCryptoSignatureToDerSignature(hKey->Get(), wcSignature, wcSignatureLen, &incorrect);
 
 	if (incorrect) {
 		LOG_INFO("Incorrect signature value");
 		return false;
 	}
 
-	ScopedEC_KEY ec = EVP_PKEY_get1_EC_KEY(key->Get());
-	if (ec.isEmpty()) {
-		THROW_OPENSSL("EVP_PKEY_get1_EC_KEY");
+	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	EVP_PKEY_CTX* pctx = NULL;
+
+	if (ctx.isEmpty() ||
+		!EVP_DigestVerifyInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	LOG_INFO("prepare data");
-	unsigned char* data = NULL;
-	unsigned int datalen = BIO_get_mem_data(in->Get(), &data);
+	byte* signature = NULL;
+	size_t signaturelen = BIO_get_mem_data(hFormatedSignature->Get(), &signature);
 
-	LOG_INFO("prepare signature");
-	unsigned char* sig = NULL;
-	unsigned int siglen = BIO_get_mem_data(hSignature->Get(), &sig);
+	byte* data = NULL;
+	size_t datalen = BIO_get_mem_data(hData->Get(), &data);
 
-	int res = ECDSA_verify(md->type, data, datalen, sig, siglen, ec.Get());
-	if (res == -1) {
-		THROW_OPENSSL("ECDSA_verify");
+	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {
+		THROW_OPENSSL("EVP_DigestSignUpdate");
 	}
+	int res = EVP_DigestVerifyFinal(ctx.Get(), signature, signaturelen);
 
 	return res == 1;
 }
