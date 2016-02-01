@@ -34,6 +34,7 @@ Handle<std::string> ECDH_derive_key(Handle<ScopedEVP_PKEY> pkey, Handle<ScopedEV
 	if (1 != (EVP_PKEY_derive(ctx.Get(), secret, &secret_len))) {
 		THROW_OPENSSL("EVP_PKEY_derive_init");
 	}
+	hSecret->resize(secret_len);
 
 	return hSecret;
 }

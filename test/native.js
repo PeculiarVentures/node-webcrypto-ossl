@@ -90,7 +90,7 @@ describe("native", function () {
         })
     })
 
-    function test_sign(key, md, done, wc_sig) {
+    function test_sign(key, md, done) {
         var message = new Buffer("This is test message for crypto functions");
 
         key.sign(md, message, function (err, sig) {
@@ -130,28 +130,53 @@ describe("native", function () {
         test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), new Buffer("1234567890"), done);
     })
 
-    it("generate EC secp192k1", function (done) {
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+    it("generate EC secp256k1", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             assert(key != null, true, "Error on key generation");
             done();
         })
     })
-
-    it("sign EC secp192k1 sha1", function (done) {
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+    
+    function test_sign_ec(curve, md, done){
+        native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
             assert(key != null, true, "Error on key generation");
-            test_sign(key, "sha1", done);
+            test_sign(key, md, done);
         })
-    })
+    }
 
-    it("deriveKey EC secp192k1", function (done) {
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+    it("sign EC secp256r1 sha256", function (done) {
+        test_sign_ec("secp256r1", "sha256", done);
+    })
+    
+    it("sign EC secp384r1 sha256", function (done) {
+        test_sign_ec("secp384r1", "sha256", done);
+    })
+    
+    it("sign EC secp521r1 sha256", function (done) {
+        test_sign_ec("secp521r1", "sha256", done);
+    })
+    
+    function test_derive_key_ec(curve, keySize, done){
+        native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
             assert(key != null, true, "Error on key generation");
-            key.EcdhDeriveKey(key, 128, function (err, b) {
+            key.EcdhDeriveKey(key, keySize, function (err, b) {
                 assert(b != null, true, "Error on key derive");
+                // console.log(b.toString("hex"));
                 done();
             })
         })
+    }
+
+    it("deriveKey EC secp256r1 -> AES 256", function (done) {
+        test_derive_key_ec("secp256r1", 32, done);
+    })
+    
+    it("deriveKey EC secp384r1 -> AES 256", function (done) {
+        test_derive_key_ec("secp384r1", 32, done);
+    })
+    
+    it("deriveKey EC secp521r1 -> AES 256", function (done) {
+        test_derive_key_ec("secp521r1", 32, done);
     })
 
     function jwk_equal(a, b) {
@@ -165,7 +190,7 @@ describe("native", function () {
         var curve = native.EcNamedCurves[curveName]
         assert.equal(curve != null, true, "Unknown curve name");
 
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             key.exportJwk(keyType, function (err, jwkA) {
                 assert(!err, true, "Export: " + err);
                 assert.equal(jwkA.kty, "EC", "Export: Wrong key type value");
@@ -185,22 +210,22 @@ describe("native", function () {
         })
     }
 
-    it("jwk EC private secp192k1", function (done) {
-        test_ec_jwk("secp192k1", native.KeyType.PRIVATE, done);
+    it("jwk EC private secp256k1", function (done) {
+        test_ec_jwk("secp256k1", native.KeyType.PRIVATE, done);
     })
 
-    it("jwk EC public secp192k1", function (done) {
-        test_ec_jwk("secp192k1", native.KeyType.PUBLIC, done);
+    it("jwk EC public secp256k1", function (done) {
+        test_ec_jwk("secp256k1", native.KeyType.PUBLIC, done);
     })
 
     it("spki EC", function (done) {
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             test_export(key, true, done);
         })
     })
 
     it("pksc8 EC", function (done) {
-        native.Key.generateEc(native.EcNamedCurves.secp192k1, function (err, key) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             test_export(key, false, done);
         })
     })
