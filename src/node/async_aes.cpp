@@ -44,7 +44,7 @@ void AsyncAesEncryptCBC::HandleOKCallback() {
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
-		ScopedBIO_to_v8Buffer(hOutput)
+		String_to_v8Buffer(hOutput)
 	};
 
 	callback->Call(2, argv);
@@ -64,7 +64,7 @@ void AsyncAesExport::HandleOKCallback() {
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
-		ScopedBIO_to_v8Buffer(hOutput)
+		String_to_v8Buffer(hOutput)
 	};
 
 	callback->Call(2, argv);

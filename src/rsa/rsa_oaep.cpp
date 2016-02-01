@@ -1,10 +1,10 @@
 #include "rsa_oaep.h"
 
-Handle<ScopedBIO> RSA_OAEP_enc_dec(
+Handle<std::string> RSA_OAEP_enc_dec(
 	Handle<ScopedEVP_PKEY> hKey,
 	const EVP_MD *md,
-	Handle<ScopedBIO> hData,
-	Handle<ScopedBIO> hLabel,
+	Handle<std::string> hData,
+	Handle<std::string> hLabel,
 	bool decrypt
 	)
 {
@@ -39,10 +39,11 @@ Handle<ScopedBIO> RSA_OAEP_enc_dec(
 		THROW_OPENSSL("EVP_PKEY_CTX_set_rsa_mgf1_md");
 	}
 
-	if (!hLabel->isEmpty()) {
+
+	if (hLabel->length()) {
 		LOG_INFO("Set label for RSA OAEP");
-		char *label;
-		int label_len = BIO_get_mem_data(hLabel->Get(), &label);
+		char *label = (char*)hLabel->c_str();
+		int label_len = hLabel->length();
 		char *label_copy = (char*)OPENSSL_malloc(label_len);
 		memcpy(label_copy, label, label_len);
 		if (EVP_PKEY_CTX_set0_rsa_oaep_label(ctx.Get(), label_copy, label_len) < 1) {
@@ -50,16 +51,18 @@ Handle<ScopedBIO> RSA_OAEP_enc_dec(
 		}
 	}
 
-	unsigned char* data;
-	int datalen = BIO_get_mem_data(hData->Get(), &data);
+	byte* data = (byte*)hData->c_str();
+	size_t datalen = hData->length();
 
 	int(*func_enc_dec)(EVP_PKEY_CTX*,
-		unsigned char *, size_t *,
-		const unsigned char *, size_t);
+		byte *, size_t *,
+		const byte *, size_t);
 	if (!decrypt) {
+		LOG_INFO("Set encrypt function");
 		func_enc_dec = &EVP_PKEY_encrypt;
 	}
 	else {
+		LOG_INFO("Set deecrypt function");
 		func_enc_dec = &EVP_PKEY_decrypt;
 	}
 
@@ -70,16 +73,16 @@ Handle<ScopedBIO> RSA_OAEP_enc_dec(
 		THROW_OPENSSL("func_enc_dec");
 	}
 
-	byte *out = static_cast<byte*>(OPENSSL_malloc(outlen));
+	Handle<std::string> hOutput(new std::string());
+	hOutput->resize(outlen);
+	byte *out = (byte*)hOutput->c_str();
+
 
 	if (func_enc_dec(ctx.Get(), out, &outlen, data, datalen) <= 0) {
-		OPENSSL_free(out);
 		THROW_OPENSSL("func_enc_dec");
 	}
 
-	//Put result to ScopdBIO	
-	Handle<ScopedBIO> res(new ScopedBIO(BIO_new_mem_buf(out, outlen)));
-	BIO_set_flags(res->Get(), BIO_CLOSE);
+	hOutput->resize(outlen);
 
-	return res;
+	return hOutput;
 }

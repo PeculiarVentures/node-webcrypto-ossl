@@ -139,7 +139,7 @@ NAN_METHOD(WKey::ExportPkcs8) {
 NAN_METHOD(WKey::ImportPkcs8) {
 	LOG_FUNC();
 
-	Handle<ScopedBIO> in = v8Buffer_to_ScopedBIO(info[0]);
+	Handle<std::string> in = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
@@ -152,7 +152,7 @@ NAN_METHOD(WKey::ImportPkcs8) {
 NAN_METHOD(WKey::ImportSpki) {
 	LOG_FUNC();
 
-	Handle<ScopedBIO> in = v8Buffer_to_ScopedBIO(info[0]);
+	Handle<std::string> in = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
@@ -236,7 +236,7 @@ NAN_METHOD(WKey::Sign) {
 	}
 
 	LOG_INFO("data");
-	Handle<ScopedBIO> hBio = v8Buffer_to_ScopedBIO(info[1]);
+	Handle<std::string> hBio = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("this->Key");
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
@@ -285,10 +285,10 @@ NAN_METHOD(WKey::Verify) {
 	}
 
 	LOG_INFO("data");
-	Handle<ScopedBIO> data = v8Buffer_to_ScopedBIO(info[1]);
+	Handle<std::string> data = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("signature");
-	Handle<ScopedBIO> sig = v8Buffer_to_ScopedBIO(info[2]);
+	Handle<std::string> sig = v8Buffer_to_String(info[2]);
 
 	LOG_INFO("this->Key");
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
@@ -339,12 +339,12 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	}
 
 	LOG_INFO("data");
-	Handle<ScopedBIO> hData = v8Buffer_to_ScopedBIO(info[1]);
+	Handle<std::string> hData = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("label");
-	Handle<ScopedBIO> hLabel(new ScopedBIO(nullptr));
+	Handle<std::string> hLabel(new std::string());
 	if (!info[2]->IsNull()) {
-		hLabel = v8Buffer_to_ScopedBIO(info[2]);
+		hLabel = v8Buffer_to_String(info[2]);
 	}
 
 	LOG_INFO("decrypt");

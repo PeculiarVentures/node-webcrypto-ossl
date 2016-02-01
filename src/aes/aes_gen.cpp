@@ -5,9 +5,10 @@
 Handle<ScopedAES> ScopedAES::generate(int &keySize){
 	LOG_FUNC();
 
-	byte *rnd = (byte*)OPENSSL_malloc(keySize);
-	RAND_bytes(rnd, keySize);
+	Handle<std::string> hValue(new std::string());
+	hValue->resize(keySize);
+	unsigned char *value = (unsigned char*)hValue->c_str();
+	RAND_bytes(value, keySize);
 	
-	Handle<ScopedBIO> value(new ScopedBIO(BIO_new_mem_buf(rnd, keySize)));
-	return Handle<ScopedAES>(new ScopedAES(value));
+	return Handle<ScopedAES>(new ScopedAES(hValue));
 }

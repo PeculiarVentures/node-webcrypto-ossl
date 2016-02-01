@@ -2,7 +2,7 @@
 
 #include "excep.h"
 
-static Handle<ScopedBIO> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *bp, EVP_PKEY *key)) {
+static Handle<std::string> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *bp, EVP_PKEY *key)) {
 	LOG_FUNC();
 
 	ScopedBIO out(BIO_new(BIO_s_mem()));
@@ -11,7 +11,11 @@ static Handle<ScopedBIO> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *
 		THROW_OPENSSL("Can not write key to BIO");
 	}
 
-	return Handle<ScopedBIO>(new ScopedBIO(out));
+	char *data;
+	size_t datalen = BIO_get_mem_data(out.Get(), &data);
+	Handle<std::string> hOutput(new std::string(data, datalen));
+
+	return hOutput;
 }
 
 static Handle<ScopedEVP_PKEY> KEY_import(BIO *in, EVP_PKEY *(*d2i_function_bio)(BIO *bp, EVP_PKEY **a)) {
@@ -29,26 +33,28 @@ static Handle<ScopedEVP_PKEY> KEY_import(BIO *in, EVP_PKEY *(*d2i_function_bio)(
 	return Handle<ScopedEVP_PKEY>(new ScopedEVP_PKEY(pkey));
 }
 
-Handle<ScopedBIO> KEY_export_spki(EVP_PKEY *pkey) {
+Handle<std::string> KEY_export_spki(EVP_PKEY *pkey) {
 	LOG_FUNC();
 
 	return KEY_export(pkey, &i2d_PUBKEY_bio);
 }
 
-Handle<ScopedEVP_PKEY> KEY_import_spki(BIO *in) {
+Handle<ScopedEVP_PKEY> KEY_import_spki(Handle<std::string> in) {
 	LOG_FUNC();
 
-	return KEY_import(in, &d2i_PUBKEY_bio);
+	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), in->length()));
+	return KEY_import(bio.Get(), &d2i_PUBKEY_bio);
 }
 
-Handle<ScopedBIO> KEY_export_pkcs8(EVP_PKEY *pkey) {
+Handle<std::string> KEY_export_pkcs8(EVP_PKEY *pkey) {
 	LOG_FUNC();
 
 	return KEY_export(pkey, &i2d_PKCS8PrivateKeyInfo_bio);
 }
 
-Handle<ScopedEVP_PKEY> KEY_import_pkcs8(BIO *in) {
+Handle<ScopedEVP_PKEY> KEY_import_pkcs8(Handle<std::string> in) {
 	LOG_FUNC();
 
-	return KEY_import(in, &d2i_PrivateKey_bio);
+	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), in->length()));
+	return KEY_import(bio.Get(), &d2i_PrivateKey_bio);
 }

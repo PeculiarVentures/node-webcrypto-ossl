@@ -39,7 +39,7 @@ protected:
 	Handle<ScopedEVP_PKEY> pubkey;
 	size_t secret_len;
 	// Result
-	Handle<ScopedBIO> dkey;
+	Handle<std::string> dkey;
 };
 
 class AsyncEcExportJwk : public Nan::AsyncWorker {
@@ -83,7 +83,7 @@ public:
 		Nan::Callback *callback,
 		const EVP_MD *md,
 		Handle<ScopedEVP_PKEY> pkey,
-		Handle<ScopedBIO> in)
+		Handle<std::string> in)
 		: AsyncWorker(callback), md(md), pkey(pkey), in(in) {}
 	~AsyncEcdsaSign() {}
 
@@ -93,9 +93,9 @@ public:
 private:
 	const EVP_MD *md;
 	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
+	Handle<std::string> in;
 	//Result
-	Handle<ScopedBIO> out;
+	Handle<std::string> out;
 };
 
 class AsyncEcdsaVerify : public Nan::AsyncWorker {
@@ -104,8 +104,8 @@ public:
 		Nan::Callback *callback,
 		const EVP_MD *md,
 		Handle<ScopedEVP_PKEY> pkey,
-		Handle<ScopedBIO> in,
-		Handle<ScopedBIO> signature)
+		Handle<std::string> in,
+		Handle<std::string> signature)
 		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature) {}
 	~AsyncEcdsaVerify() {}
 
@@ -115,8 +115,8 @@ public:
 private:
 	const EVP_MD *md;
 	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
-	Handle<ScopedBIO> signature;
+	Handle<std::string> in;
+	Handle<std::string> signature;
 	// Result
 	bool res;
 };

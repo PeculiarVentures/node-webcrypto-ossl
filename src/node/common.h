@@ -6,9 +6,9 @@
 #include "../ec/common.h"
 
 v8::Local<v8::Object> bn2buf(BIGNUM* bn);
-Handle<ScopedBIO> v8Buffer_to_ScopedBIO(v8::Local<v8::Value> v8Buffer);
-Handle<ScopedBIO> v8Buffer_to_ScopedBIO(v8::Local<v8::Object> v8Buffer);
-v8::Local<v8::Object> ScopedBIO_to_v8Buffer(Handle<ScopedBIO> bio);
+Handle<std::string> v8Buffer_to_String(v8::Local<v8::Value> v8Buffer);
+Handle<std::string> v8Buffer_to_String(v8::Local<v8::Object> v8Buffer);
+v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer);
 
 #include "./async_rsa.h"
 #include "./async_ec.h"

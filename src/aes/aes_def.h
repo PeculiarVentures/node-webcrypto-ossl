@@ -10,18 +10,18 @@
 class ScopedAES {
 public:
 	ScopedAES() {}
-	explicit ScopedAES(Handle<ScopedBIO> aes): value(aes) {}
+	explicit ScopedAES(Handle<std::string> aes): value(aes) {}
 	~ScopedAES() {}
 
-	Handle<ScopedBIO> value;
+	Handle<std::string> value;
 
 	static Handle<ScopedAES> generate(int &keySize);
 	
-	Handle<ScopedBIO> encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv);
-	Handle<ScopedBIO> decrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv);
+	Handle<std::string> encrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv);
+	Handle<std::string> decrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv);
 
-	Handle<ScopedBIO> wrap();
-	Handle<ScopedBIO> unwrap();
+	Handle<std::string> wrap();
+	Handle<std::string> unwrap();
 };
 
 #endif // OSSL_AES_DEF_H_INCLUDE

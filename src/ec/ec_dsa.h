@@ -3,7 +3,7 @@
 
 #include "../core/common.h"
 
-Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in);
-bool EC_DSA_verify(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<ScopedBIO> in, Handle<ScopedBIO> signature);
+Handle<std::string> EC_DSA_sign(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<std::string> in);
+bool EC_DSA_verify(Handle<ScopedEVP_PKEY> key, const EVP_MD *md, Handle<std::string> in, Handle<std::string> signature);
 
 #endif // OSSL_EC_DSA_H_INCLUDE

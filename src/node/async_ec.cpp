@@ -39,7 +39,7 @@ void AsyncEcdhDeriveKey::HandleOKCallback() {
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
-		ScopedBIO_to_v8Buffer(dkey)
+		String_to_v8Buffer(dkey)
 	};
 
 	callback->Call(2, argv);
@@ -114,7 +114,7 @@ void AsyncEcdsaSign::Execute() {
 void AsyncEcdsaSign::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
+	v8::Local<v8::Object> v8Buffer = String_to_v8Buffer(out);
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),

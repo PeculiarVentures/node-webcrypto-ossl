@@ -29,8 +29,8 @@ public:
 		Nan::Callback *callback,
 		Handle<ScopedEVP_PKEY> hKey,
 		const EVP_MD *md,
-		Handle<ScopedBIO> hData,
-		Handle<ScopedBIO> hLabel,
+		Handle<std::string> hData,
+		Handle<std::string> hLabel,
 		bool decrypt
 		) : AsyncWorker(callback), hKey(hKey), md(md), hData(hData), hLabel(hLabel), decrypt(decrypt) {}
 
@@ -39,11 +39,11 @@ public:
 protected:
 	Handle<ScopedEVP_PKEY> hKey;
 	const EVP_MD *md;
-	Handle<ScopedBIO> hData;
-	Handle<ScopedBIO> hLabel;
+	Handle<std::string> hData;
+	Handle<std::string> hLabel;
 	bool decrypt;
 	// Result
-	Handle<ScopedBIO> hResult;
+	Handle<std::string> hResult;
 };
 
 class AsyncExportJwkRsa : public Nan::AsyncWorker {
@@ -79,7 +79,7 @@ public:
 protected:
 	Handle<ScopedEVP_PKEY> key;
 	// Result
-	Handle<ScopedBIO> buffer;
+	Handle<std::string> buffer;
 };
 
 class AsyncExportPkcs8 : public Nan::AsyncWorker {
@@ -96,14 +96,14 @@ public:
 protected:
 	Handle<ScopedEVP_PKEY> key;
 	// Result
-	Handle<ScopedBIO> buffer;
+	Handle<std::string> buffer;
 };
 
 class AsyncImportPkcs8 : public Nan::AsyncWorker {
 public:
 	AsyncImportPkcs8(
 		Nan::Callback *callback,
-		Handle<ScopedBIO> in)
+		Handle<std::string> in)
 		: AsyncWorker(callback), in(in) {}
 	~AsyncImportPkcs8() {}
 
@@ -111,7 +111,7 @@ public:
 	void HandleOKCallback();
 
 protected:
-	Handle<ScopedBIO> in;
+	Handle<std::string> in;
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
@@ -120,7 +120,7 @@ class AsyncImportSpki : public Nan::AsyncWorker {
 public:
 	AsyncImportSpki(
 		Nan::Callback *callback,
-		Handle<ScopedBIO> in)
+		Handle<std::string> in)
 		: AsyncWorker(callback), in(in) {}
 	~AsyncImportSpki() {}
 
@@ -128,7 +128,7 @@ public:
 	void HandleOKCallback();
 
 private:
-	Handle<ScopedBIO> in;
+	Handle<std::string> in;
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
@@ -155,7 +155,7 @@ public:
 		Nan::Callback *callback,
 		const EVP_MD *md,
 		Handle<ScopedEVP_PKEY> pkey,
-		Handle<ScopedBIO> in)
+		Handle<std::string> in)
 		: AsyncWorker(callback), md(md), pkey(pkey), in(in) {}
 	~AsyncSignRsa() {}
 
@@ -165,9 +165,9 @@ public:
 private:
 	const EVP_MD *md;
 	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
+	Handle<std::string> in;
 	//Result
-	Handle<ScopedBIO> out;
+	Handle<std::string> out;
 };
 
 class AsyncVerifyRsa : public Nan::AsyncWorker {
@@ -176,8 +176,8 @@ public:
 		Nan::Callback *callback,
 		const EVP_MD *md,
 		Handle<ScopedEVP_PKEY> pkey,
-		Handle<ScopedBIO> in,
-		Handle<ScopedBIO> signature)
+		Handle<std::string> in,
+		Handle<std::string> signature)
 		: AsyncWorker(callback), md(md), pkey(pkey), in(in), signature(signature) {}
 	~AsyncVerifyRsa() {}
 
@@ -187,8 +187,8 @@ public:
 private:
 	const EVP_MD *md;
 	Handle<ScopedEVP_PKEY> pkey;
-	Handle<ScopedBIO> in;
-	Handle<ScopedBIO> signature;
+	Handle<std::string> in;
+	Handle<std::string> signature;
 	// Result
 	bool res;
 };

@@ -63,10 +63,10 @@ NAN_METHOD(WAes::Encrypt) {
 	v8::String::Utf8Value v8Cipher(info[0]->ToString());
 
 	LOG_INFO("iv");
-	Handle<ScopedBIO> hIv = v8Buffer_to_ScopedBIO(info[1]);
+	Handle<std::string> hIv = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("iv");
-	Handle<ScopedBIO> hInput = v8Buffer_to_ScopedBIO(info[2]);
+	Handle<std::string> hInput = v8Buffer_to_String(info[2]);
 
 	LOG_INFO("this");
 	WAes *wAes = WAes::Unwrap<WAes>(info.This());
@@ -96,10 +96,10 @@ NAN_METHOD(WAes::Decrypt) {
 	v8::String::Utf8Value v8Cipher(info[0]->ToString());
 
 	LOG_INFO("iv");
-	Handle<ScopedBIO> hIv = v8Buffer_to_ScopedBIO(info[1]);
+	Handle<std::string> hIv = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("iv");
-	Handle<ScopedBIO> hInput = v8Buffer_to_ScopedBIO(info[2]);
+	Handle<std::string> hInput = v8Buffer_to_String(info[2]);
 
 	LOG_INFO("this");
 	WAes *wAes = WAes::Unwrap<WAes>(info.This());
@@ -138,7 +138,7 @@ NAN_METHOD(WAes::Import) {
 	LOG_FUNC();
 
 	LOG_INFO("raw");
-	Handle<ScopedBIO> hRaw = v8Buffer_to_ScopedBIO(info[0]);
+	Handle<std::string> hRaw = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 	Nan::AsyncQueueWorker(new AsyncAesImport(callback, hRaw));

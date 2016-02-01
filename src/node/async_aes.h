@@ -26,8 +26,8 @@ public:
 	AsyncAesEncryptCBC(
 		Nan::Callback *callback,
 		Handle<ScopedAES> hKey,
-		Handle<ScopedBIO> hInput,
-		Handle<ScopedBIO> hIv,
+		Handle<std::string> hInput,
+		Handle<std::string> hIv,
 		bool encrypt
 		) : AsyncWorker(callback), hKey(hKey), hInput(hInput), hIv(hIv), encrypt(encrypt) {}
 	~AsyncAesEncryptCBC() {}
@@ -37,11 +37,11 @@ public:
 
 protected:
 	bool encrypt;
-	Handle<ScopedBIO> hIv;
-	Handle<ScopedBIO> hInput;
+	Handle<std::string> hIv;
+	Handle<std::string> hInput;
 	Handle<ScopedAES> hKey;
 	// Result
-	Handle<ScopedBIO> hOutput;
+	Handle<std::string> hOutput;
 };
 
 class AsyncAesExport : public Nan::AsyncWorker {
@@ -58,14 +58,14 @@ public:
 protected:
 	Handle<ScopedAES> hKey;
 	// Result
-	Handle<ScopedBIO> hOutput;
+	Handle<std::string> hOutput;
 };
 
 class AsyncAesImport: public Nan::AsyncWorker {
 public:
 	AsyncAesImport(
 		Nan::Callback *callback,
-		Handle<ScopedBIO> hInput
+		Handle<std::string> hInput
 		) : AsyncWorker(callback), hInput(hInput) {}
 	~AsyncAesImport() {}
 
@@ -73,7 +73,7 @@ public:
 	void HandleOKCallback();
 
 protected:
-	Handle<ScopedBIO> hInput;
+	Handle<std::string> hInput;
 	// Result
 	Handle<ScopedAES> hKey;
 };

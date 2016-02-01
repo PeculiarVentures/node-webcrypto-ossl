@@ -14,7 +14,7 @@ void AsyncEncrypDecryptRsaOAEP::HandleOKCallback() {
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
-		ScopedBIO_to_v8Buffer(hResult)
+		String_to_v8Buffer(hResult)
 	};
 
 	callback->Call(2, argv);
@@ -94,7 +94,7 @@ void AsyncExportSpki::Execute() {
 void AsyncExportSpki::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
+	v8::Local<v8::Object> v8Buffer = String_to_v8Buffer(buffer);
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
@@ -117,7 +117,7 @@ void AsyncExportPkcs8::Execute() {
 void AsyncExportPkcs8::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(buffer);
+	v8::Local<v8::Object> v8Buffer = String_to_v8Buffer(buffer);
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),
@@ -130,7 +130,7 @@ void AsyncExportPkcs8::HandleOKCallback() {
 
 void AsyncImportPkcs8::Execute() {
 	try {
-		key = KEY_import_pkcs8(in->Get());
+		key = KEY_import_pkcs8(in);
 	}
 	catch (std::exception& e) {
 		this->SetErrorMessage(e.what());
@@ -155,7 +155,7 @@ void AsyncImportPkcs8::HandleOKCallback() {
 
 void AsyncImportSpki::Execute() {
 	try {
-		key = KEY_import_spki(in->Get());
+		key = KEY_import_spki(in);
 	}
 	catch (std::exception& e) {
 		this->SetErrorMessage(e.what());
@@ -216,7 +216,7 @@ void AsyncSignRsa::Execute() {
 void AsyncSignRsa::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Buffer = ScopedBIO_to_v8Buffer(out);
+	v8::Local<v8::Object> v8Buffer = String_to_v8Buffer(out);
 
 	v8::Local<v8::Value> argv[] = {
 		Nan::Null(),

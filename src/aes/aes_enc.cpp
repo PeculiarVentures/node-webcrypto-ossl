@@ -1,23 +1,24 @@
 #include "aes_def.h"
 
-Handle<ScopedBIO> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv, bool encrypt) {
+static Handle<std::string> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv, bool encrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("AES key");
-	byte *key;
-	uint8_t keylen = BIO_get_mem_data(hKey->value->Get(), &key);
+
+	const byte *key = reinterpret_cast<const byte*>(hKey->value->c_str());
+	uint8_t keylen = hKey->value->length();
 
 	if (!keylen) {
 		THROW_ERROR("Error on AES key getting");
 	}
 
 	LOG_INFO("data");
-	byte *data;
-	uint8_t datalen = BIO_get_mem_data(hMsg->Get(), &data);
+	const byte *data = reinterpret_cast<const byte*> (hMsg->c_str());
+	uint8_t datalen = hMsg->length();
 
-	LOG_INFO("data");
-	byte *iv;
-	uint8_t ivlen = BIO_get_mem_data(hIv->Get(), &iv);
+	LOG_INFO("iv");
+	const byte *iv = reinterpret_cast<const byte*>(hIv->c_str());
+	uint8_t ivlen = hIv->length();
 
 	if (ivlen != EVP_MAX_IV_LENGTH) {
 		THROW_ERROR("Incorrect IV length");
@@ -52,14 +53,16 @@ Handle<ScopedBIO> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg
 	}
 
 	ScopedEVP_CIPHER_CTX ctx(EVP_CIPHER_CTX_new());
-    
+
 	if (ctx.isEmpty()) {
 		THROW_OPENSSL("EVP_CIPHER_CTX_new");
 	}
 
-	byte* output = (byte*)OPENSSL_malloc(output_max_len);
+	Handle<std::string> hOutput(new std::string());
+	hOutput->resize(output_max_len);
+	unsigned char *output = (unsigned char*)hOutput->c_str();
+
 	int output_len = 0;
-	ScopedBIO hOut(BIO_new_mem_buf(output, output_max_len));
 
 	if (1 != EVP_CipherInit_ex(ctx.Get(), cipher, nullptr, key, iv, encrypt)) {
 		THROW_OPENSSL("EVP_CipherInit_ex");
@@ -78,33 +81,30 @@ Handle<ScopedBIO> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg
 		static_cast<unsigned int>(final_output_chunk_len);
 
 	LOG_INFO("Resize output");
-	//TODO: optimize resize
-	byte *res = (byte*)OPENSSL_malloc(final_output_len);
-	memcpy(res, output, final_output_len);
-	Handle<ScopedBIO> hResult(new ScopedBIO(BIO_new_mem_buf(res, final_output_len)));
+	hOutput->resize(final_output_len);
 
-	return hResult;
+	return hOutput;
 }
 
-Handle<ScopedBIO> ScopedAES::encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv) {
+Handle<std::string> ScopedAES::encrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv) {
 	LOG_FUNC();
 
 	return AES_CBC_encrypt(hKey, hMsg, hIv, true);
 }
 
-Handle<ScopedBIO> ScopedAES::decrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg, Handle<ScopedBIO> hIv) {
+Handle<std::string> ScopedAES::decrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv) {
 	LOG_FUNC();
 
 	return AES_CBC_encrypt(hKey, hMsg, hIv, false);
 }
 
-Handle<ScopedBIO> ScopedAES::wrap() {
+Handle<std::string> ScopedAES::wrap() {
 	LOG_FUNC();
 
 	THROW_ERROR("Not implemented");
 }
 
-Handle<ScopedBIO> ScopedAES::unwrap() {
+Handle<std::string> ScopedAES::unwrap() {
 	LOG_FUNC();
 
 	THROW_ERROR("Not implemented");

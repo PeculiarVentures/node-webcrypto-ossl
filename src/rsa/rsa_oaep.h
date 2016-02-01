@@ -3,11 +3,11 @@
 
 #include "../core/common.h"
 
-Handle<ScopedBIO> RSA_OAEP_enc_dec(
+Handle<std::string> RSA_OAEP_enc_dec(
 	Handle<ScopedEVP_PKEY> hKey,
 	const EVP_MD *md,
-	Handle<ScopedBIO> hData,
-	Handle<ScopedBIO> hLabel,
+	Handle<std::string> hData,
+	Handle<std::string> hLabel,
 	bool decrypt
 	);
 

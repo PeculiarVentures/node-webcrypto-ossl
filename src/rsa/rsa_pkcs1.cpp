@@ -1,6 +1,6 @@
 #include "rsa_pkcs1.h"
 
-Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData) {
+Handle<std::string> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<std::string> hData) {
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
@@ -12,8 +12,8 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte* data = nullptr;
-	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
+	byte* data = (byte*)hData->c_str();
+	size_t datalen = hData->length();
 
 	if (1 != EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");
@@ -22,8 +22,9 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 
-	byte *output = (byte*)OPENSSL_malloc(siglen);
-	Handle<ScopedBIO> hOutput(new ScopedBIO(BIO_new_mem_buf(output, siglen)));
+	Handle<std::string> hOutput(new std::string());
+	hOutput->resize(siglen);
+	byte *output = (byte*)hOutput->c_str();
 
 	if (!EVP_DigestSignFinal(ctx.Get(), output, &siglen))
 		THROW_OPENSSL("EVP_DigestSignFinal");
@@ -31,7 +32,7 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 	return hOutput;
 }
 
-bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
+bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<std::string> hData, Handle<std::string> hSignature) {
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
@@ -42,11 +43,11 @@ bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<Scop
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte* signature = nullptr;
-	size_t signaturelen = BIO_get_mem_data(hSignature->Get(), &signature);
+	byte* signature = (byte*)hSignature->c_str();
+	size_t signaturelen = hSignature->length();
 
-	byte* data = nullptr;
-	size_t datalen = BIO_get_mem_data(hData->Get(), &data);
+	byte* data = (byte*)hData->c_str();
+	size_t datalen= hData->length();
 
 	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");

@@ -20,7 +20,7 @@ static size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
 	return res;
 }
 
-static Handle<ScopedBIO> ConvertWebCryptoSignatureToDerSignature(
+static Handle<std::string> ConvertWebCryptoSignatureToDerSignature(
 	EVP_PKEY* key,
 	const byte *signature,
 	const size_t &signaturelen,
@@ -56,44 +56,47 @@ static Handle<ScopedBIO> ConvertWebCryptoSignatureToDerSignature(
 	byte* der = nullptr;
 	uint32_t derlen;
 	derlen = i2d_ECDSA_SIG(ecdsa_sig.Get(), &der);
-	if (der <= 0) {
+	if (derlen <= 0) {
 		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: i2d_ECDSA_SIG");
 	}
-	Handle<ScopedBIO> hSignature(new ScopedBIO(BIO_new_mem_buf(der, derlen)));
+	Handle<std::string> hSignature(new std::string((char *)der, derlen));
+
+	OPENSSL_free(der);
+
 	return hSignature;
 }
 
 // Formats a DER-encoded signature (ECDSA-Sig-Value as specified in RFC 3279) to
 // the signature format expected by WebCrypto (raw concatenated "r" and "s").
-static Handle<ScopedBIO> ConvertDerSignatureToWebCryptoSignature(
+static Handle<std::string> ConvertDerSignatureToWebCryptoSignature(
 	EVP_PKEY* key,
 	const byte* signature,
-	size_t &signaturelen) 
+	size_t &signaturelen)
 {
 	LOG_FUNC();
 
 	ScopedECDSA_SIG ecdsa_sig(d2i_ECDSA_SIG(nullptr, &signature, static_cast<long>(signaturelen)));
 	if (ecdsa_sig.isEmpty())
 		THROW_OPENSSL("d2i_ECDSA_SIG");
-	
+
 	// Determine the maximum length of r and s.
 	size_t order_size_bytes = GetEcGroupOrderSize(key);
 
-	int signaturelen_ = order_size_bytes * 2;
-	byte *signature_ = (byte*)OPENSSL_malloc(signaturelen_);
-	Handle<ScopedBIO> hSignature(new ScopedBIO(BIO_new_mem_buf(signature_, signaturelen_)));
+	Handle<std::string> hSignature(new std::string());
+	hSignature->resize(order_size_bytes * 2);
+	byte *pSignature = (byte*)hSignature->c_str();
 
-	if (!BN_bn2bin(ecdsa_sig.Get()->r, signature_)) {
+	if (!BN_bn2bin(ecdsa_sig.Get()->r, pSignature)) {
 		THROW_OPENSSL("BN_bin2bn");
 	}
-	if (!BN_bn2bin(ecdsa_sig.Get()->s, signature_ + order_size_bytes)) { // padding pointer
+	if (!BN_bn2bin(ecdsa_sig.Get()->s, pSignature + order_size_bytes)) { // padding pointer
 		THROW_OPENSSL("BN_bin2bn");
 	}
 
 	return hSignature;
 }
 
-Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData) {
+Handle<std::string> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<std::string> hData) {
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
@@ -105,8 +108,8 @@ Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Han
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte* data = nullptr;
-	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
+	byte* data = (byte*)hData->c_str();
+	size_t datalen = hData->length();
 
 	if (!EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");
@@ -115,25 +118,26 @@ Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Han
 		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 
-	byte *sig = (byte*)OPENSSL_malloc(siglen);
-	Handle<ScopedBIO> hOutput(new ScopedBIO(BIO_new_mem_buf(sig, siglen)));
+	Handle<std::string> hSignature(new std::string());
+	hSignature->resize(siglen);
+	byte *sig = (byte*)hSignature->c_str();
 
 	if (!EVP_DigestSignFinal(ctx.Get(), sig, &siglen))
 		THROW_OPENSSL("EVP_DigestSignFinal");
 
-	Handle<ScopedBIO> hSignature = ConvertDerSignatureToWebCryptoSignature(hKey->Get(), sig, siglen);
+	Handle<std::string> hWcSignature = ConvertDerSignatureToWebCryptoSignature(hKey->Get(), sig, siglen);
 
-	return hSignature;
+	return hWcSignature;
 }
 
-bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
+bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<std::string> hData, Handle<std::string> hSignature) {
 	LOG_FUNC();
 
-	byte* wcSignature = nullptr;
-	unsigned int wcSignatureLen = BIO_get_mem_data(hSignature->Get(), &wcSignature);
+	byte* pWcSignature = (byte*)hSignature->c_str();
+	size_t wcSignatureLen = hSignature->length();
 
 	bool incorrect;
-	Handle<ScopedBIO> hFormatedSignature = ConvertWebCryptoSignatureToDerSignature(hKey->Get(), wcSignature, wcSignatureLen, &incorrect);
+	Handle<std::string> hFormatedSignature = ConvertWebCryptoSignatureToDerSignature(hKey->Get(), pWcSignature, wcSignatureLen, &incorrect);
 
 	if (incorrect) {
 		LOG_INFO("Incorrect signature value");
@@ -148,11 +152,11 @@ bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedB
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte* signature = nullptr;
-	size_t signaturelen = BIO_get_mem_data(hFormatedSignature->Get(), &signature);
+	byte* signature = (byte*)hFormatedSignature->c_str();
+	size_t signaturelen = hFormatedSignature->length();
 
-	byte* data = nullptr;
-	size_t datalen = BIO_get_mem_data(hData->Get(), &data);
+	byte* data= (byte*)hData->c_str();
+	size_t datalen= hData->length();
 
 	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");

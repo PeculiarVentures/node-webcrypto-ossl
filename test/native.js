@@ -115,7 +115,7 @@ describe("native", function () {
                 assert(dec != null, true, "Error on encrypt");
                 key.RsaOaepEncDec(md, dec, label, true, function (err, msg) {
                     assert(msg != null, true, "Error on decrypt");
-                    assert(Buffer.compare(msg, message) === 0, true, "Wron resul value");
+                    assert(Buffer.compare(msg, message) === 0, true, "Wrong result value");
                     done();
                 })
             })
