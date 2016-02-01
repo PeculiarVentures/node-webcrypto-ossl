@@ -10,7 +10,7 @@
 class ScopedAES {
 public:
 	ScopedAES() {}
-	explicit ScopedAES(Handle<std::string> aes): value(aes) {}
+	ScopedAES(Handle<std::string> aes): value(aes) {}
 	~ScopedAES() {}
 
 	Handle<std::string> value;

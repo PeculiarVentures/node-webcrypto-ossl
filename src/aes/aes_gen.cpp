@@ -7,8 +7,10 @@ Handle<ScopedAES> ScopedAES::generate(int &keySize){
 
 	Handle<std::string> hValue(new std::string());
 	hValue->resize(keySize);
-	unsigned char *value = (unsigned char*)hValue->c_str();
+	byte *value = (byte*)hValue->c_str();
 	RAND_bytes(value, keySize);
 	
-	return Handle<ScopedAES>(new ScopedAES(hValue));
+    Handle<ScopedAES> hAes(new ScopedAES());
+    hAes->value = hValue;
+	return hAes;
 }

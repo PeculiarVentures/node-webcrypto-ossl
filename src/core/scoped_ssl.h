@@ -100,6 +100,7 @@ ScopedSSL_create(BIO, BIO_free);
 ScopedSSL_create(EVP_PKEY_CTX, EVP_PKEY_CTX_free);
 ScopedSSL_create(BN_CTX, BN_CTX_free);
 ScopedSSL_create(ECDSA_SIG, ECDSA_SIG_free);
+ScopedSSL_create(EC_GROUP, EC_GROUP_free);
 ScopedSSL_create(EVP_CIPHER_CTX, EVP_CIPHER_CTX_free);
 ScopedSSL_create(EVP_MD_CTX, EVP_MD_CTX_destroy);
 

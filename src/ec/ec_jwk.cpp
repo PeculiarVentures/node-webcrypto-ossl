@@ -70,12 +70,12 @@ Handle<ScopedEVP_PKEY> JwkEc::To(int &key_type) {
 	ScopedEC_KEY ec_key(EC_KEY_new());
 
 	LOG_INFO("set public key");
-	EC_GROUP *group = EC_GROUP_new_by_curve_name(this->crv);
-	if (!group) {
+	ScopedEC_GROUP group(EC_GROUP_new_by_curve_name(this->crv));
+	if (group.isEmpty()) {
 		THROW_OPENSSL("EC_GROUP_new_by_curve_name");
 	}
 
-	EC_KEY_set_group(ec_key.Get(), group);
+	EC_KEY_set_group(ec_key.Get(), group.Get());
 
 	if (EC_KEY_set_public_key_affine_coordinates(ec_key.Get(), this->x.Get(), this->y.Get()) != 1) {
 		THROW_OPENSSL("EC_KEY_set_public_key_affine_coordinates");
