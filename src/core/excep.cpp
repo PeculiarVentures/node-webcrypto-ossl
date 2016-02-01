@@ -5,7 +5,7 @@
 std::string OPENSSL_get_errors() {
 	LOG_FUNC();
 
-	ScopedBIO bio = BIO_new(BIO_s_mem());
+	ScopedBIO bio(BIO_new(BIO_s_mem()));
 	char *str;
 	ERR_print_errors(bio.Get());
 

@@ -3,7 +3,7 @@
 Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 	LOG_FUNC();
 
-	ScopedEVP_PKEY pkey = EVP_PKEY_new();
+	ScopedEVP_PKEY pkey(EVP_PKEY_new());
 	RSA *rsa = nullptr;
 	unsigned long e = RSA_3;
 	ScopedBIGNUM bne;

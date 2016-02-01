@@ -3,7 +3,7 @@
 Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData) {
 	LOG_FUNC();
 
-	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
 	EVP_PKEY_CTX* pctx = nullptr;  
 
 	size_t siglen = 0;
@@ -12,7 +12,7 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	unsigned char* data = nullptr;
+	byte* data = nullptr;
 	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
 
 	if (1 != EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
@@ -34,7 +34,7 @@ Handle<ScopedBIO> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, 
 bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
 	LOG_FUNC();
 
-	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
+	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
 	EVP_PKEY_CTX* pctx = nullptr;
 
 	if (ctx.isEmpty() ||

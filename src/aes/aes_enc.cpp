@@ -51,16 +51,15 @@ Handle<ScopedBIO> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg
 		break;
 	}
 
-	ScopedEVP_CIPHER_CTX ctx;
-
-	ctx = EVP_CIPHER_CTX_new();
+	ScopedEVP_CIPHER_CTX ctx(EVP_CIPHER_CTX_new());
+    
 	if (ctx.isEmpty()) {
 		THROW_OPENSSL("EVP_CIPHER_CTX_new");
 	}
 
 	byte* output = (byte*)OPENSSL_malloc(output_max_len);
 	int output_len = 0;
-	ScopedBIO hOut = BIO_new_mem_buf(output, output_max_len);
+	ScopedBIO hOut(BIO_new_mem_buf(output, output_max_len));
 
 	if (1 != EVP_CipherInit_ex(ctx.Get(), cipher, nullptr, key, iv, encrypt)) {
 		THROW_OPENSSL("EVP_CipherInit_ex");

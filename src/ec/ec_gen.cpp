@@ -5,7 +5,7 @@ Handle<ScopedEVP_PKEY> EC_generate(int &nidEc) {
 
 	Handle<ScopedEVP_PKEY> pkey;
 
-	ScopedEC_KEY eckey = EC_KEY_new_by_curve_name(nidEc);
+	ScopedEC_KEY eckey(EC_KEY_new_by_curve_name(nidEc));
 
 	if (eckey.isEmpty()) {
 		THROW_OPENSSL("EC_KEY_new_by_curve_name");

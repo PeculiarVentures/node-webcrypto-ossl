@@ -156,7 +156,7 @@ export declare class AesKey {
     static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
 }
 
-let native = require("../build/Debug/nodessl.node");
+let native = require("../build/Release/nodessl.node");
 
 module.exports.Key = native.Key;
 module.exports.AesKey = native.AesKey;

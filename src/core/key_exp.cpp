@@ -5,7 +5,7 @@
 static Handle<ScopedBIO> KEY_export(EVP_PKEY *pkey, int(*i2d_function_bio)(BIO *bp, EVP_PKEY *key)) {
 	LOG_FUNC();
 
-	ScopedBIO out = BIO_new(BIO_s_mem());
+	ScopedBIO out(BIO_new(BIO_s_mem()));
 
 	if (i2d_function_bio(out.Get(), pkey) <= 0) {
 		THROW_OPENSSL("Can not write key to BIO");

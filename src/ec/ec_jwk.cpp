@@ -22,7 +22,7 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	EC_KEY *ec = nullptr;
 	const EC_POINT *point = nullptr;
 
-	ScopedBN_CTX ctx = nullptr;
+	ScopedBN_CTX ctx(nullptr);
 	const EC_GROUP *group = nullptr;
 
 	LOG_INFO("Convert EC to JWK");
@@ -67,7 +67,7 @@ Handle<ScopedEVP_PKEY> JwkEc::To(int &key_type) {
 	}
 
 	LOG_INFO("import EC from JWK");
-	ScopedEC_KEY ec_key = EC_KEY_new();
+	ScopedEC_KEY ec_key(EC_KEY_new());
 
 	LOG_INFO("set public key");
 	EC_GROUP *group = EC_GROUP_new_by_curve_name(this->crv);

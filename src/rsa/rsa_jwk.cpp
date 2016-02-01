@@ -68,7 +68,7 @@ Handle<ScopedEVP_PKEY> JwkRsa::To(int &key_type) {
 	}
 
 	LOG_INFO("set key");
-	ScopedEVP_PKEY pkey = EVP_PKEY_new();
+	ScopedEVP_PKEY pkey(EVP_PKEY_new());
 	EVP_PKEY_assign_RSA(pkey.Get(), rsa_key);
 
 	return Handle<ScopedEVP_PKEY>(new ScopedEVP_PKEY(pkey));
