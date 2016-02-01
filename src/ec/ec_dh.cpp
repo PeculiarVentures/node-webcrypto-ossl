@@ -8,7 +8,7 @@ Handle<ScopedBIO> ECDH_derive_key(Handle<ScopedEVP_PKEY> pkey, Handle<ScopedEVP_
 	std::string res;
 
 	LOG_INFO("Create the context for the shared secret derivation");
-	ctx = EVP_PKEY_CTX_new(pkey->Get(), NULL);
+	ctx = EVP_PKEY_CTX_new(pkey->Get(), nullptr);
 	if (ctx.isEmpty())
 		THROW_OPENSSL("EVP_PKEY_CTX_new");
 
@@ -23,14 +23,12 @@ Handle<ScopedBIO> ECDH_derive_key(Handle<ScopedEVP_PKEY> pkey, Handle<ScopedEVP_
 	}
 
 	LOG_INFO("Determine buffer length for shared secret");
-	if (1 != EVP_PKEY_derive(ctx.Get(), NULL, &secret_len)) {
+	if (1 != EVP_PKEY_derive(ctx.Get(), nullptr, &secret_len)) {
 		THROW_OPENSSL("EVP_PKEY_derive");
 	}
 
 	LOG_INFO("Create the buffer");
-	if (NULL == (secret = static_cast<unsigned char*>(OPENSSL_malloc(secret_len)))) {
-		THROW_OPENSSL("EVP_PKEY_derive_init");
-	}
+	secret = static_cast<unsigned char*>(OPENSSL_malloc(secret_len));
 
 	LOG_INFO("Derive the shared secret");
 	if (1 != (EVP_PKEY_derive(ctx.Get(), secret, &secret_len))) {

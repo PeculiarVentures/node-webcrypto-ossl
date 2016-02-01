@@ -9,8 +9,8 @@ Handle<JwkRsa> JwkRsa::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	}
 
 	LOG_INFO("Check pkey");
-	if (pkey == NULL) {
-		THROW_ERROR("Key value is NULL");
+	if (pkey == nullptr) {
+		THROW_ERROR("Key value is nullptr");
 	}
 	if (pkey->Get()->type!= EVP_PKEY_RSA) {
 		THROW_ERROR("Key is not RSA type");

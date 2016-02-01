@@ -21,7 +21,7 @@ static Handle<ScopedEVP_PKEY> KEY_import(BIO *in, EVP_PKEY *(*d2i_function_bio)(
 
 	BIO_seek(in, 0);
 
-	pkey = d2i_function_bio(in, NULL);
+	pkey = d2i_function_bio(in, nullptr);
 	if (pkey.isEmpty()) {
 		THROW_OPENSSL("Can not read key from BIO");
 	}

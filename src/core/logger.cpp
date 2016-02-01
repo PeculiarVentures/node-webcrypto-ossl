@@ -1,6 +1,6 @@
-#include <string>
-
 #include "logger.h"
+
+#include <string>
 
 FunctionLog::FunctionLog(const char *name) {
 	name_ = std::string(name);

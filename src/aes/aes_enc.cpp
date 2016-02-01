@@ -62,7 +62,7 @@ Handle<ScopedBIO> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<ScopedBIO> hMsg
 	int output_len = 0;
 	ScopedBIO hOut = BIO_new_mem_buf(output, output_max_len);
 
-	if (1 != EVP_CipherInit_ex(ctx.Get(), cipher, NULL, key, iv, encrypt)) {
+	if (1 != EVP_CipherInit_ex(ctx.Get(), cipher, nullptr, key, iv, encrypt)) {
 		THROW_OPENSSL("EVP_CipherInit_ex");
 	}
 	if (1 != EVP_CipherUpdate(ctx.Get(), output, &output_len, data, datalen)) {

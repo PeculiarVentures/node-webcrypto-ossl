@@ -9,8 +9,8 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	}
 
 	LOG_INFO("Check pkey");
-	if (pkey == NULL) {
-		THROW_ERROR("Key value is NULL");
+	if (pkey == nullptr) {
+		THROW_ERROR("Key value is nullptr");
 	}
 	if (pkey->Get()->type != EVP_PKEY_EC) {
 		THROW_ERROR("Key is not EC type");
@@ -19,11 +19,11 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	LOG_INFO("Create JWK Object");
 	Handle<JwkEc> jwk(new JwkEc());
 
-	EC_KEY *ec = NULL;
-	const EC_POINT *point = NULL;
+	EC_KEY *ec = nullptr;
+	const EC_POINT *point = nullptr;
 
-	ScopedBN_CTX ctx = NULL;
-	const EC_GROUP *group = NULL;
+	ScopedBN_CTX ctx = nullptr;
+	const EC_GROUP *group = nullptr;
 
 	LOG_INFO("Convert EC to JWK");
 	ec = pkey->Get()->pkey.ec;

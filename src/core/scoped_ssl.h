@@ -29,10 +29,10 @@ class ScopedSSL {
 public:
 	typedef ScopedSSL<T, CB> MyType;
 
-	ScopedSSL() : ptr(NULL), free(CB) {}
+	ScopedSSL() : ptr(nullptr), free(CB) {}
 	ScopedSSL(T* handle) : ptr(handle), free(CB) {}
-	ScopedSSL(MyType &handle) : ptr(handle.Get()), free(CB) {
-		handle.ptr = NULL;
+	explicit ScopedSSL(MyType &handle) : ptr(handle.Get()), free(CB) {
+		handle.ptr = nullptr;
 	}
 	~ScopedSSL() {
 		if (ptr) {
@@ -66,21 +66,21 @@ public:
 
 		if (ptr) {
 			free(ptr);
-			ptr = NULL;
+			ptr = nullptr;
 		}
 	}
 
 	void unref() {
-		this->ptr = NULL;
+		this->ptr = nullptr;
 	}
 
 	bool isEmpty() {
-		return ptr == NULL;
+		return ptr == nullptr;
 	}
 
 	T* detach() {
 		T* new_ptr = ptr;
-		ptr = NULL;
+		ptr = nullptr;
 		return new_ptr;
 	}
 protected:

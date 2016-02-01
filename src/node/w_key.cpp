@@ -45,7 +45,7 @@ NAN_METHOD(WKey::New) {
 		//const int argc = 1;
 		//v8::Local<v8::Value> argv[argc] = { info[0] };
 		v8::Local<v8::Function> cons = Nan::New(constructor());
-		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, NULL).ToLocalChecked());
+		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, nullptr).ToLocalChecked());
 	}
 };
 
@@ -342,7 +342,7 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	Handle<ScopedBIO> hData = v8Buffer_to_ScopedBIO(info[1]);
 
 	LOG_INFO("label");
-	Handle<ScopedBIO> hLabel(new ScopedBIO(NULL));
+	Handle<ScopedBIO> hLabel(new ScopedBIO(nullptr));
 	if (!info[2]->IsNull()) {
 		hLabel = v8Buffer_to_ScopedBIO(info[2]);
 	}

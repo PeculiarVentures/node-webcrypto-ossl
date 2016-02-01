@@ -12,7 +12,7 @@ Handle<ScopedBIO> RSA_OAEP_enc_dec(
 
 	EVP_PKEY* pKey = hKey->Get();
 
-	ScopedEVP_PKEY_CTX ctx(EVP_PKEY_CTX_new(pKey, NULL));
+	ScopedEVP_PKEY_CTX ctx(EVP_PKEY_CTX_new(pKey, nullptr));
 	if (ctx.isEmpty()) {
 		THROW_OPENSSL("EVP_PKEY_CTX_new");
 	}
@@ -66,7 +66,7 @@ Handle<ScopedBIO> RSA_OAEP_enc_dec(
 	// EVP_PKEY_encrypt | EVP_PKEY_decrypt
 	// Determine the maximum length of the output.
 	size_t outlen = 0;
-	if (func_enc_dec(ctx.Get(), NULL, &outlen, data, datalen) <= 0) {
+	if (func_enc_dec(ctx.Get(), nullptr, &outlen, data, datalen) <= 0) {
 		THROW_OPENSSL("func_enc_dec");
 	}
 

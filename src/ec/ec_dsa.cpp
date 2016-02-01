@@ -4,7 +4,7 @@ static size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
 	LOG_FUNC();
 
 	if (!pkey)
-		THROW_ERROR("GetEcGroupOrderSize: Key is NULL");
+		THROW_ERROR("GetEcGroupOrderSize: Key is nullptr");
 
 	EC_KEY *ec = pkey->pkey.ec;
 	if (!ec)
@@ -12,7 +12,7 @@ static size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
 
 	const EC_GROUP* group = EC_KEY_get0_group(ec);
 	ScopedBIGNUM order = BN_new();
-	if (!EC_GROUP_get_order(group, order.Get(), NULL)) {
+	if (!EC_GROUP_get_order(group, order.Get(), nullptr)) {
 		THROW_OPENSSL("GetEcGroupOrderSize: EC_GROUP_get_order");
 	}
 	size_t res = BN_num_bytes(order.Get());
@@ -37,7 +37,7 @@ static Handle<ScopedBIO> ConvertWebCryptoSignatureToDerSignature(
 	// exception.
 	if (signaturelen != 2 * order_size_bytes) {
 		*incorrect_length = true;
-		return NULL;
+		return nullptr;
 	}
 	*incorrect_length = false;
 	LOG_INFO("Construct an ECDSA_SIG from |signature|");
@@ -53,7 +53,7 @@ static Handle<ScopedBIO> ConvertWebCryptoSignatureToDerSignature(
 	}
 
 	LOG_INFO("DER-encode the signature");
-	byte* der = NULL;
+	byte* der = nullptr;
 	uint32_t derlen;
 	derlen = i2d_ECDSA_SIG(ecdsa_sig.Get(), &der);
 	if (der <= 0) {
@@ -72,7 +72,7 @@ static Handle<ScopedBIO> ConvertDerSignatureToWebCryptoSignature(
 {
 	LOG_FUNC();
 
-	ScopedECDSA_SIG ecdsa_sig = d2i_ECDSA_SIG(NULL, &signature, static_cast<long>(signaturelen));
+	ScopedECDSA_SIG ecdsa_sig = d2i_ECDSA_SIG(nullptr, &signature, static_cast<long>(signaturelen));
 	if (ecdsa_sig.isEmpty())
 		THROW_OPENSSL("d2i_ECDSA_SIG");
 	
@@ -97,21 +97,21 @@ Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Han
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
-	EVP_PKEY_CTX* pctx = NULL;
+	EVP_PKEY_CTX* pctx = nullptr;
 
 	size_t siglen = 0;
 	if (ctx.isEmpty() ||
-		!EVP_DigestSignInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		!EVP_DigestSignInit(ctx.Get(), &pctx, md, nullptr, hKey->Get())) {
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	unsigned char* data = NULL;
+	unsigned char* data = nullptr;
 	unsigned int datalen = BIO_get_mem_data(hData->Get(), &data);
 
 	if (!EVP_DigestSignUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");
 	}
-	if (!EVP_DigestSignFinal(ctx.Get(), NULL, &siglen)) {
+	if (!EVP_DigestSignFinal(ctx.Get(), nullptr, &siglen)) {
 		THROW_OPENSSL("EVP_DigestSignFinal");
 	}
 
@@ -129,7 +129,7 @@ Handle<ScopedBIO> EC_DSA_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Han
 bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedBIO> hData, Handle<ScopedBIO> hSignature) {
 	LOG_FUNC();
 
-	unsigned char* wcSignature = NULL;
+	unsigned char* wcSignature = nullptr;
 	unsigned int wcSignatureLen = BIO_get_mem_data(hSignature->Get(), &wcSignature);
 
 	bool incorrect;
@@ -141,17 +141,17 @@ bool EC_DSA_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<ScopedB
 	}
 
 	ScopedEVP_MD_CTX ctx = EVP_MD_CTX_create();
-	EVP_PKEY_CTX* pctx = NULL;
+	EVP_PKEY_CTX* pctx = nullptr;
 
 	if (ctx.isEmpty() ||
-		!EVP_DigestVerifyInit(ctx.Get(), &pctx, md, NULL, hKey->Get())) {
+		!EVP_DigestVerifyInit(ctx.Get(), &pctx, md, nullptr, hKey->Get())) {
 		THROW_OPENSSL("EVP_DigestSignInit");
 	}
 
-	byte* signature = NULL;
+	byte* signature = nullptr;
 	size_t signaturelen = BIO_get_mem_data(hFormatedSignature->Get(), &signature);
 
-	byte* data = NULL;
+	byte* data = nullptr;
 	size_t datalen = BIO_get_mem_data(hData->Get(), &data);
 
 	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {

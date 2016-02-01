@@ -10,7 +10,7 @@
 class ScopedAES {
 public:
 	ScopedAES() {}
-	ScopedAES(Handle<ScopedBIO> aes): value(aes) {}
+	explicit ScopedAES(Handle<ScopedBIO> aes): value(aes) {}
 	~ScopedAES() {}
 
 	Handle<ScopedBIO> value;

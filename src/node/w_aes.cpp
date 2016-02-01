@@ -34,7 +34,7 @@ NAN_METHOD(WAes::New) {
 		//const int argc = 1;
 		//v8::Local<v8::Value> argv[argc] = { info[0] };
 		v8::Local<v8::Function> cons = Nan::New(constructor());
-		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, NULL).ToLocalChecked());
+		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, nullptr).ToLocalChecked());
 	}
 };
 

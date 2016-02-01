@@ -4,7 +4,7 @@ Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 	LOG_FUNC();
 
 	ScopedEVP_PKEY pkey = EVP_PKEY_new();
-	RSA *rsa = NULL;
+	RSA *rsa = nullptr;
 	unsigned long e = RSA_3;
 	ScopedBIGNUM bne;
 
@@ -27,7 +27,7 @@ Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 
 	rsa = RSA_new();
 
-	if (RSA_generate_key_ex(rsa, modulus, bne.Get(), NULL) != 1) {
+	if (RSA_generate_key_ex(rsa, modulus, bne.Get(), nullptr) != 1) {
 		RSA_free(rsa);
 		THROW_OPENSSL("RSA_generate_key_ex");
 	}

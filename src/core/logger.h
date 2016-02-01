@@ -7,7 +7,7 @@
 
 class FunctionLog {
 public:
-	FunctionLog(const char *name);
+	explicit FunctionLog(const char *name);
 	~FunctionLog();
 
 protected:
