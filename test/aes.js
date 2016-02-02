@@ -1,14 +1,11 @@
 var assert = require('assert');
+var webcrypto = require('./config');
 
 describe("Aes", function () {
-    var webcrypto;
-    var keys;
 
     var TEST_MESSAGE = new Buffer("12345678901234561234567890123456");
 
     before(function (done) {
-        webcrypto = global.webcrypto;
-        keys = global.keys;
         done();
     })
 

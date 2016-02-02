@@ -4,7 +4,7 @@ import * as native from "./native";
 export class CryptoKey implements iwc.ICryptoKey {
     type: string;
     extractable: boolean;
-    algorithm: any;
+    algorithm: iwc.IAlgorithmIdentifier;
     usages: string[] = [];
 
     private native_;
