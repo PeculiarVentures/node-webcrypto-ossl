@@ -5,7 +5,6 @@ let base64url = require("base64url");
 
 export interface IJwkKey {
     kty: string;
-    alg: string;
     ext?: boolean;
     key_ops: string[];
 }
@@ -20,13 +19,7 @@ export interface IAlgorithmBase {
     unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
     deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
     exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
-    importKey(
-        format: string,
-        keyData: Buffer | IJwkKey,
-        algorithm: iwc.IAlgorithmIdentifier,
-        extractable: boolean,
-        keyUsages: string[],
-        cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    importKey(format: string, keyData: Buffer | IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
 }
 
 export class AlgorithmBase {
@@ -119,6 +112,10 @@ export class AlgorithmBase {
         }
     }
 
+    /**
+     * check type of exported data
+     * @param {string} type type of exported data (raw, jwk, spki, pkcs8)
+     */
     static checkKeyType(type: string) {
         const ERROR_TYPE = "KeyType";
         let _type = type.toLowerCase();

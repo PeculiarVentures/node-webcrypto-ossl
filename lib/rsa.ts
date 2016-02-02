@@ -13,6 +13,7 @@ let ALG_NAME_RSA_OAEP = "RSA-OAEP";
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
 
 export interface IJwkRsaPublicKey extends alg.IJwkKey {
+    alg: string;
     e: Buffer;
     n: Buffer;
 }

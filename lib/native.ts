@@ -1,3 +1,5 @@
+let native = require("../build/Debug/nodessl.node");
+
 export enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
@@ -56,7 +58,7 @@ export declare class Key {
      * @param keyType type of exported key (PRIVATE or PUBLIC)
      * @param callback callback function (err: Error, jwk: Object)
      */
-    exportJwk(keyType: KeyType, callback: (err: Error, jwk: Object) => void): void;
+    exportJwk(keyType: KeyType, callback: (err: Error, jwk: any) => void): void;
 
     /**
      * export Key to SPKI
@@ -155,8 +157,6 @@ export declare class AesKey {
     export(callback: (err: Error, raw: Buffer) => void): void;
     static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
 }
-
-let native = require("../build/Release/nodessl.node");
 
 module.exports.Key = native.Key;
 module.exports.AesKey = native.AesKey;

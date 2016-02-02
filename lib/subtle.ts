@@ -5,7 +5,7 @@ import {CryptoKey} from "./key";
 import * as alg from "./alg";
 import * as rsa from "./rsa";
 import * as aes from "./aes";
-// import * as ec from "./ec";
+import * as ec from "./ec";
 
 import * as iwc from "./iwebcrypto";
 
@@ -69,12 +69,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                     AlgClass = aes.AesCBC;
                     break;
-                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdsa;
-                //     break;
-                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdh;
-                //     break;
+                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdsa;
+                    break;
+                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdh;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
@@ -102,9 +102,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaPSS;
                     break;
-                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdsa;
-                //     break;
+                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdsa;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
@@ -134,9 +134,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaPSS;
                     break;
-                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdsa;
-                //     break;
+                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdsa;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
@@ -278,9 +278,9 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
 
             let AlgClass: alg.IAlgorithmBase = null;
             switch (_alg1.name.toLowerCase()) {
-                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdh;
-                //     break;
+                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdh;
+                    break;
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
@@ -310,6 +310,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                     break;
                 case aes.AesGCM.ALGORITHM_NAME:
                     KeyClass = aes.AesGCM;
+                    break;
+                case ec.Ecdsa.ALGORITHM_NAME:
+                    KeyClass = ec.Ecdsa;
+                    break;
+                case ec.Ecdh.ALGORITHM_NAME:
+                    KeyClass = ec.Ecdh;
                     break;
                 default:
                     throw new Error(`ExportKey: Unsupported algorithm ${key.algorithm.name}`);
@@ -347,12 +353,12 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;
                     break;
-                // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdsa;
-                //     break;
-                // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                //     AlgClass = ec.Ecdh;
-                //     break;
+                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdsa;
+                    break;
+                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = ec.Ecdh;
+                    break;
                 case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
                     AlgClass = aes.AesCBC;
                     break;

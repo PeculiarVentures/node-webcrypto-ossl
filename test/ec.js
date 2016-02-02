@@ -1,6 +1,8 @@
 var assert = require('assert');
 var crypto = require('crypto');
 
+var webcrypto = require('./config');
+
 var ecdsa_pkey_json_256 = '{"crv":"P-256","d":"yc_pdEqHhjMAk8w3Yq0yVmnlKYV1jBBo6ThVc5iJSqU","ext":true,"key_ops":["sign"],"kty":"EC","x":"e8iiCqQRobJkDVodjY8h6xxz812IU5wQD8OKthVjkxk","y":"3HHkboj5WFUjf-3P-UtxzIDnj71cfppEE0X-lDtIYXM"}';
 var ecdsa_pubkey_json_256 = '{"crv":"P-256","ext":true,"key_ops":["verify"],"kty":"EC","x":"e8iiCqQRobJkDVodjY8h6xxz812IU5wQD8OKthVjkxk","y":"3HHkboj5WFUjf-3P-UtxzIDnj71cfppEE0X-lDtIYXM"}';
 var ecdsa_signature_sha256 = "2hWEkyEDu1L8oM5Ty2hrz5fce1k3x7zbkBpTawW6sMZb4hhTmlT3GjMqWDs3i1zyE1b/miQMEoVhtc5+U7NTvA==";
@@ -51,12 +53,8 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
 }
 
 describe("ECDSA sign/verify", function () {
-    var webcrypto;
-    var keys;
-
+    
     before(function (done) {
-        webcrypto = global.webcrypto;
-        keys = global.keys;
         done();
     })
 

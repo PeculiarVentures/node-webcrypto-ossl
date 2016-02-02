@@ -16,6 +16,7 @@ export var ALG_NAME_AES_KW = "AES-KW";
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
 
 export interface IJwkAesKey extends alg.IJwkKey {
+    alg: string;
     k: Buffer;
 }
 
@@ -133,7 +134,7 @@ export class Aes extends alg.AlgorithmBase {
         }
     }
 
-    static checkKeyGenParams(alg: iwc.IAlgorithmIdentifier)
+    static checkKeyGenParams(alg: iwc.IAlgorithmIdentifier);
     static checkKeyGenParams(alg: IAesKeyGenParams);
     static checkKeyGenParams(alg: any) {
         if (!alg.length)
@@ -187,6 +188,7 @@ export class AesKey extends CryptoKey {
 
     algorithm: IAesKeyGenParams;
 
+    constructor(key: native.AesKey, alg: iwc.IAlgorithmIdentifier, type: string);
     constructor(key: native.AesKey, alg: IAesKeyGenParams, type: string) {
         super(key, alg, type);
         // this.length = alg.length;
