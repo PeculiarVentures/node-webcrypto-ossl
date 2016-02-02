@@ -35,10 +35,9 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	LOG_INFO("Get curve name");
 	jwk->crv = EC_GROUP_get_curve_name(group);
 
-	ScopedBIGNUM x, y, d;
+	ScopedBIGNUM x, y;
 	x = BN_CTX_get(ctx.Get());
 	y = BN_CTX_get(ctx.Get());
-	d = BN_CTX_get(ctx.Get());
 
 	LOG_INFO("Get public key");
 	if (1 != EC_POINT_get_affine_coordinates_GF2m(group, point, x.Get(), y.Get(), ctx.Get())) {
@@ -48,8 +47,8 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	jwk->y = BN_dup(y.Get());
 
 	if (key_type == NODESSL_KT_PRIVATE) {
-		d = (BIGNUM*)EC_KEY_get0_private_key(const_cast<const EC_KEY*>(ec));
-		jwk->d = BN_dup(d.Get());
+		const BIGNUM *d = EC_KEY_get0_private_key(const_cast<const EC_KEY*>(ec));
+		jwk->d = BN_dup(d);
 		if (jwk->d.isEmpty()) {
 			THROW_OPENSSL("EC_KEY_get0_private_key");
 		}
@@ -77,15 +76,22 @@ Handle<ScopedEVP_PKEY> JwkEc::To(int &key_type) {
 
 	EC_KEY_set_group(ec_key.Get(), group.Get());
 
-	if (EC_KEY_set_public_key_affine_coordinates(ec_key.Get(), this->x.Get(), this->y.Get()) != 1) {
+	ScopedBIGNUM x(BN_dup(this->x.Get()));
+	ScopedBIGNUM y(BN_dup(this->y.Get()));
+
+	if (EC_KEY_set_public_key_affine_coordinates(ec_key.Get(), x.Get(), y.Get()) != 1) {
 		THROW_OPENSSL("EC_KEY_set_public_key_affine_coordinates");
 	}
+	x.unref();
+	y.unref();
 	if (key_type == NODESSL_KT_PRIVATE) {
 		LOG_INFO("set private key");
 
-		if (EC_KEY_set_private_key(ec_key.Get(), this->d.Get()) != 1) {
+		ScopedBIGNUM d(BN_dup(this->d.Get()));
+		if (EC_KEY_set_private_key(ec_key.Get(), d.Get()) != 1) {
 			THROW_OPENSSL("EC_KEY_set_private_key");
 		}
+		d.unref();
 	}
 
 	LOG_INFO("set internal key");
