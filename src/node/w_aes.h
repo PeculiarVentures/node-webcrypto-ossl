@@ -5,9 +5,7 @@
 #include "../aes/common.h"
 #include "async_aes.h"
 
-using namespace node;
-
-class WAes: public ObjectWrap {
+class WAes: public node::ObjectWrap {
 public:
 	static v8::Local<v8::Object> NewInstance() {
 		v8::Local<v8::Function> cons = Nan::New(constructor());

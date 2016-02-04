@@ -51,21 +51,21 @@ static Handle<std::string> AES_GCM_encrypt(
 		THROW_OPENSSL("EVP_CIPHER_CTX_new");
 
 	/* Initialise the encryption operation. */
-	if (1 != EVP_EncryptInit_ex(ctx.Get(), cipher, NULL, NULL, NULL))
+	if (1 != EVP_EncryptInit_ex(ctx.Get(), cipher, nullptr, nullptr, nullptr))
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), NULL))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), nullptr))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */
-	if (1 != EVP_EncryptInit_ex(ctx.Get(), NULL, NULL, key, iv))
+	if (1 != EVP_EncryptInit_ex(ctx.Get(), nullptr, nullptr, key, iv))
 		THROW_OPENSSL("Initialise key and IV");
 
 	/* Provide any AAD data. This can be called zero or more times as
 	* required
 	*/
-	if (1 != EVP_EncryptUpdate(ctx.Get(), NULL, &output_len, aad, hAad->length()))
+	if (1 != EVP_EncryptUpdate(ctx.Get(), nullptr, &output_len, aad, hAad->length()))
 		THROW_OPENSSL("Provide any AAD data");
 
 	/* Provide the message to be encrypted, and obtain the encrypted output.
@@ -127,21 +127,21 @@ static Handle<std::string> AES_GCM_decrypt(
 		THROW_OPENSSL("EVP_CIPHER_CTX_new");
 
 	/* Initialise the encryption operation. */
-	if (1 != EVP_DecryptInit_ex(ctx.Get(), cipher, NULL, NULL, NULL))
+	if (1 != EVP_DecryptInit_ex(ctx.Get(), cipher, nullptr, nullptr, nullptr))
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), NULL))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), nullptr))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */
-	if (1 != EVP_DecryptInit_ex(ctx.Get(), NULL, NULL, key, iv))
+	if (1 != EVP_DecryptInit_ex(ctx.Get(), nullptr, nullptr, key, iv))
 		THROW_OPENSSL("Initialise key and IV");
 
 	/* Provide any AAD data. This can be called zero or more times as
 	* required
 	*/
-	if (1 != EVP_DecryptUpdate(ctx.Get(), NULL, &output_len, aad, hAad->length()))
+	if (1 != EVP_DecryptUpdate(ctx.Get(), nullptr, &output_len, aad, hAad->length()))
 		THROW_OPENSSL("Provide any AAD data");
 
 

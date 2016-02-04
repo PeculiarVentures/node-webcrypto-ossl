@@ -5,13 +5,11 @@
 #include "../rsa/common.h"
 #include "../ec/common.h"
 
-using namespace node;
-
 #define v8Object_get_BN(v8Obj, v8Param, RsaKey, RsaKeyParam) \
 	{unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()); \
 	RsaKey->RsaKeyParam = BN_bin2bn(v8Param, node::Buffer::Length(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()), nullptr);}
 
-class WKey : public ObjectWrap {
+class WKey : public node::ObjectWrap {
 public:
 	static v8::Local<v8::Object> NewInstance() {
 		v8::Local<v8::Function> cons = Nan::New(constructor());
