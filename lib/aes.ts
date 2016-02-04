@@ -229,7 +229,6 @@ export class AesGCM extends Aes {
             if (!Buffer.isBuffer(iv))
                 iv = new Buffer(<any>algorithm.iv);
 
-            console.log(iv, data, algorithm.additionalData, algorithm.tagLength / 8);
             nkey.encryptGcm(iv, data, algorithm.additionalData, algorithm.tagLength / 8, cb);
         }
         catch (e) {

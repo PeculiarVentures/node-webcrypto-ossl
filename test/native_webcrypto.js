@@ -57,7 +57,7 @@ function test_sign(key, md, wc_sig, done) {
 }
 
 
-describe("native with webcrypto", function () {
+describe("WebCrypto native", function () {
 
     it("RSA sign sha256", function (done) {
         native.Key.importPkcs8(RSA_KEY_PKCS8, function (err, key) {

@@ -1,7 +1,7 @@
 var assert = require('assert');
 var webcrypto = require('./config');
 
-describe("Aes", function () {
+describe("WebCrypto Aes", function () {
 
     var TEST_MESSAGE = new Buffer("12345678901234561234567890123456");
 
@@ -159,7 +159,7 @@ describe("Aes", function () {
                 for (var i = 0; i < buf.length; i++) {
                     s += String.fromCharCode(buf[i]);
                 }
-                assert.equal(s, TEST_MESSAGE.toString(), "AES-CBC encrypt/decrypt is not valid")
+                assert.equal(s, TEST_MESSAGE.toString(), "AES-GCM encrypt/decrypt is not valid")
             })
             .then(done, done);
     })

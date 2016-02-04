@@ -3,7 +3,7 @@ import * as iwc from "./iwebcrypto";
 import * as key from "./key";
 import {CryptoKey} from "./key";
 import * as native from "./native";
-// import * as aes from "./aes";
+import * as aes from "./aes";
 let base64url = require("base64url");
 
 let ALG_NAME_RSA_PKCS1 = "RSASSA-PKCS1-v1_5";
@@ -428,13 +428,15 @@ export class RsaOAEP extends Rsa {
         }
     }
 
-    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void {
+    static wrapKey(key: iwc.ICryptoKey, wrappingKey: iwc.ICryptoKey, algorithm: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
+    static wrapKey(key: aes.AesKey, wrappingKey: RsaKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void;
+    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void {
         try {
-            this.checkAlgorithmIdentifier(alg);
-            this.checkAlgorithmHashedParams(alg);
+            this.checkAlgorithmIdentifier(algorithm);
+            this.checkAlgorithmHashedParams(algorithm);
             this.checkSecretKey(key);
             this.checkPublicKey(wrappingKey);
-            let _alg = this.wc2ssl(alg);
+            let _alg = this.wc2ssl(algorithm);
             let nkey = <native.Key>wrappingKey.native;
             let nAesKey = <native.AesKey>key.native;
 
@@ -452,40 +454,56 @@ export class RsaOAEP extends Rsa {
         }
     }
 
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: iwc.ICryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
         try {
             this.checkAlgorithmIdentifier(unwrapAlgorithm);
             this.checkAlgorithmHashedParams(unwrapAlgorithm);
             this.checkPrivateKey(unwrappingKey);
 
             let _alg = this.wc2ssl(unwrapAlgorithm);
-            let nkey = <native.Key>unwrappingKey.native;
 
             // convert unwrappedAlgorithm to PKCS11 Algorithm
             let AlgClass = null;
-            cb(new Error("Not implemented"), null);
-            // switch (unwrappedAlgorithm.name) {
-            // case aes.ALG_NAME_AES_CTR:
-            // case aes.ALG_NAME_AES_CMAC:
-            // case aes.ALG_NAME_AES_CFB:
-            // case aes.ALG_NAME_AES_KW:
-            // case aes.ALG_NAME_AES_CBC:
-            // aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-            // AlgClass = aes.AesCBC;
-            // break;
-            /*
-            case aes.ALG_NAME_AES_GCM:
-                aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-                AlgClass = aes.AesGCM;
-                break;
-            */
-            // default:
-            // throw new Error("Unsupported algorithm in use");
+            switch (unwrappedAlgorithm.name) {
+                // case aes.ALG_NAME_AES_CTR:
+                // case aes.ALG_NAME_AES_CMAC:
+                // case aes.ALG_NAME_AES_CFB:
+                // case aes.ALG_NAME_AES_KW:
+                case aes.ALG_NAME_AES_CBC:
+                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                    AlgClass = aes.AesCBC;
+                    break;
+                case aes.ALG_NAME_AES_GCM:
+                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                    AlgClass = aes.AesGCM;
+                    break;
+                default:
+                    throw new Error("Unsupported algorithm in use");
 
-            // }
+            }
+            let label: any = unwrapAlgorithm.label;
+            if (!label)
+                label = new Buffer(0);
+            if (!Buffer.isBuffer(label))
+                label = new Buffer(label);
+            (<native.Key>unwrappingKey.native).RsaOaepEncDec(_alg, wrappedKey, label, true, function(err, rawKey) {
+                if (err) {
+                    cb(err, null);
+                }
+                else {
+                    native.AesKey.import(rawKey, function(err, nkey) {
+                        if (err) {
+                            cb(err, null);
+                        }
+                        else {
+                            cb(null, new aes.AesKey(nkey, unwrapAlgorithm, "secret"));
+                        }
+                    })
+                }
+            });
 
-            // let unwrappedKey: Buffer = unwrappingKey.key.decryptRsaOAEP(wrappedKey, _alg);
-            // return new AlgClass(unwrappedKey, unwrappedAlgorithm);
         }
         catch (e) {
             cb(e, null);

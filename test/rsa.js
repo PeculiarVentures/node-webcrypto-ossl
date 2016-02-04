@@ -1,7 +1,7 @@
 var assert = require('assert');
 var webcrypto = require('./config');
 
-describe("RSA", function () {
+describe("WebCrypto RSA", function () {
     
     var TEST_MESSAGE = new Buffer("This is test message for crypto functions");
 

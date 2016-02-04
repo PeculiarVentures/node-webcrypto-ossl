@@ -52,7 +52,7 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
     promise = promise.then(done, done);
 }
 
-describe("ECDSA sign/verify", function () {
+describe("WebCrypto ECDSA sign/verify", function () {
     
     before(function (done) {
         done();
