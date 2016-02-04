@@ -136,8 +136,8 @@ describe("native", function () {
             done();
         })
     })
-    
-    function test_sign_ec(curve, md, done){
+
+    function test_sign_ec(curve, md, done) {
         native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
             assert(key != null, true, "Error on key generation");
             test_sign(key, md, done);
@@ -147,16 +147,16 @@ describe("native", function () {
     it("sign EC secp256r1 sha256", function (done) {
         test_sign_ec("secp256r1", "sha256", done);
     })
-    
+
     it("sign EC secp384r1 sha256", function (done) {
         test_sign_ec("secp384r1", "sha256", done);
     })
-    
+
     it("sign EC secp521r1 sha256", function (done) {
         test_sign_ec("secp521r1", "sha256", done);
     })
-    
-    function test_derive_key_ec(curve, keySize, done){
+
+    function test_derive_key_ec(curve, keySize, done) {
         native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
             assert(key != null, true, "Error on key generation");
             key.EcdhDeriveKey(key, keySize, function (err, b) {
@@ -170,11 +170,11 @@ describe("native", function () {
     it("deriveKey EC secp256r1 -> AES 256", function (done) {
         test_derive_key_ec("secp256r1", 32, done);
     })
-    
+
     it("deriveKey EC secp384r1 -> AES 256", function (done) {
         test_derive_key_ec("secp384r1", 32, done);
     })
-    
+
     it("deriveKey EC secp521r1 -> AES 256", function (done) {
         test_derive_key_ec("secp521r1", 32, done);
     })
@@ -300,7 +300,36 @@ describe("native", function () {
             });
         });
     })
+    
+    function test_encrypt_gcm(keySize, aad, tag, done){
+        var msg = new Buffer("Hello world");
+        native.AesKey.generate(keySize, function (err, key) {
+            assert(!err, true, `generate: ${err}`);
+            key.encryptGcm(new Buffer("1234567890123456"), msg, aad, tag, function (err, data) {
+                assert(!err, true, `encrypt: ${err}`);
+                key.decryptGcm(new Buffer("1234567890123456"), data, aad, tag, function (err, m) {
+                    assert(!err, true, `decrypt: ${err}`);
+                    assert.equal(Buffer.compare(msg, m) == 0, true, "Decrypt: Decrypted data is not equal");
+                    done();
+                });
+            });
+        });
+    }
+    
+    it("AES GCM encrypt 192 AAD, tag(16)", function (done) {
+        test_encrypt_gcm(24, new Buffer("1234567890123456"), 16, done);
+    })
+    
+    it("AES GCM encrypt 192 no AAD, tag(4)", function (done) {
+        test_encrypt_gcm(24, new Buffer(""), 4, done);
+    })
 
-
+    it("AES GCM encrypt 256 AAD, tag(16)", function (done) {
+        test_encrypt_gcm(32, new Buffer("1234567890123456"), 16, done);
+    })
+    
+    it("AES GCM encrypt 256 no AAD, tag(13)", function (done) {
+        test_encrypt_gcm(32, new Buffer(""), 13, done);
+    })
 
 })

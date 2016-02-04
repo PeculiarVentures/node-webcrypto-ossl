@@ -10,6 +10,8 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	// methods
 	SetPrototypeMethod(tpl, "encrypt", Encrypt);
 	SetPrototypeMethod(tpl, "decrypt", Decrypt);
+	SetPrototypeMethod(tpl, "encryptGcm", EncryptGcm);
+	SetPrototypeMethod(tpl, "decryptGcm", DecryptGcm);
 	SetPrototypeMethod(tpl, "export", Export);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -142,4 +144,60 @@ NAN_METHOD(WAes::Import) {
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 	Nan::AsyncQueueWorker(new AsyncAesImport(callback, hRaw));
+}
+
+/*
+* iv: Buffer,
+* input: Buffer
+* aad: Buffer
+* tagSize: int
+*/
+NAN_METHOD(WAes::EncryptGcm) {
+	LOG_FUNC();
+
+	LOG_INFO("iv");
+	Handle<std::string> hIv = v8Buffer_to_String(info[0]);
+
+	LOG_INFO("input");
+	Handle<std::string> hInput = v8Buffer_to_String(info[1]);
+
+	LOG_INFO("aad");
+	Handle<std::string> hAad= v8Buffer_to_String(info[2]);
+
+	LOG_INFO("tag");
+	int tag= info[3]->ToNumber()->Uint32Value();
+
+	LOG_INFO("this");
+	WAes *wAes = WAes::Unwrap<WAes>(info.This());
+
+	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());	
+	Nan::AsyncQueueWorker(new AsyncAesEncryptGCM(callback, wAes->data, hInput, hIv, hAad, tag, true));
+}
+
+/*
+* iv: Buffer,
+* input: Buffer
+* aad: Buffer
+* tagSize: int
+*/
+NAN_METHOD(WAes::DecryptGcm) {
+	LOG_FUNC();
+
+	LOG_INFO("iv");
+	Handle<std::string> hIv = v8Buffer_to_String(info[0]);
+
+	LOG_INFO("input");
+	Handle<std::string> hInput = v8Buffer_to_String(info[1]);
+
+	LOG_INFO("aad");
+	Handle<std::string> hAad = v8Buffer_to_String(info[2]);
+
+	LOG_INFO("tag");
+	int tag = info[3]->ToNumber()->Uint32Value();
+
+	LOG_INFO("this");
+	WAes *wAes = WAes::Unwrap<WAes>(info.This());
+
+	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
+	Nan::AsyncQueueWorker(new AsyncAesEncryptGCM(callback, wAes->data, hInput, hIv, hAad, tag, false));
 }

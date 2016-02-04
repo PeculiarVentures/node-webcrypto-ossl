@@ -61,7 +61,7 @@ protected:
 	Handle<std::string> hOutput;
 };
 
-class AsyncAesImport: public Nan::AsyncWorker {
+class AsyncAesImport : public Nan::AsyncWorker {
 public:
 	AsyncAesImport(
 		Nan::Callback *callback,
@@ -76,6 +76,33 @@ protected:
 	Handle<std::string> hInput;
 	// Result
 	Handle<ScopedAES> hKey;
+};
+
+class AsyncAesEncryptGCM : public Nan::AsyncWorker {
+public:
+	AsyncAesEncryptGCM(
+		Nan::Callback *callback,
+		Handle<ScopedAES> hKey,
+		Handle<std::string> hInput,
+		Handle<std::string> hIv,
+		Handle<std::string> hAad,
+		int tagSize,
+		bool encrypt
+		) : AsyncWorker(callback), hKey(hKey), hInput(hInput), hIv(hIv), hAad(hAad), tagSize(tagSize), encrypt(encrypt) {}
+	~AsyncAesEncryptGCM() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	Handle<ScopedAES> hKey;
+	Handle<std::string> hInput;
+	Handle<std::string> hIv;
+	Handle<std::string> hAad;
+	int tagSize;
+	bool encrypt;
+	// Result
+	Handle<std::string> hOutput;
 };
 
 #endif // OSSL_NODE_ASYNC_AES_H_INCLUDE

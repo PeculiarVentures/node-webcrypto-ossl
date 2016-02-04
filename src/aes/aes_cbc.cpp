@@ -1,12 +1,12 @@
 #include "aes_def.h"
 
-static Handle<std::string> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv, bool encrypt) {
+static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std::string> hMsg, Handle<std::string> hIv, bool encrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("AES key");
 
-	const byte *key = reinterpret_cast<const byte*>(hKey->value->c_str());
-	uint8_t keylen = hKey->value->length();
+	const byte *key = reinterpret_cast<const byte*>(hKey->c_str());
+	uint8_t keylen = hKey->length();
 
 	if (!keylen) {
 		THROW_ERROR("Error on AES key getting");
@@ -86,16 +86,16 @@ static Handle<std::string> AES_CBC_encrypt(Handle<ScopedAES> hKey, Handle<std::s
 	return hOutput;
 }
 
-Handle<std::string> ScopedAES::encrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv) {
+Handle<std::string> ScopedAES::encryptCbc(Handle<std::string> hMsg, Handle<std::string> hIv) {
 	LOG_FUNC();
 
-	return AES_CBC_encrypt(hKey, hMsg, hIv, true);
+	return AES_CBC_encrypt(this->value, hMsg, hIv, true);
 }
 
-Handle<std::string> ScopedAES::decrypt(Handle<ScopedAES> hKey, Handle<std::string> hMsg, Handle<std::string> hIv) {
+Handle<std::string> ScopedAES::decryptCbc(Handle<std::string> hMsg, Handle<std::string> hIv) {
 	LOG_FUNC();
 
-	return AES_CBC_encrypt(hKey, hMsg, hIv, false);
+	return AES_CBC_encrypt(this->value, hMsg, hIv, false);
 }
 
 Handle<std::string> ScopedAES::wrap() {
