@@ -34,15 +34,15 @@ static Handle<std::string> AES_GCM_encrypt(
 	byte* output;
 	int output_len, final_output_len;
 	Handle<std::string> hOutput(new std::string());
-	output = (byte*)hOutput->c_str();
 
 	// Get encrypted block size
 	int gcm_block_size = EVP_CIPHER_block_size(cipher);
-	int max_output_len = gcm_block_size + hMsg->length();
+	int max_output_len = gcm_block_size + hMsg->length() + 256;
 	if (max_output_len < hMsg->length())
 		THROW_ERROR("Input data too large");
 
 	hOutput->resize(max_output_len);
+	output = (byte*)hOutput->c_str();
 
 	ScopedEVP_CIPHER_CTX ctx(EVP_CIPHER_CTX_new());
 
@@ -55,7 +55,7 @@ static Handle<std::string> AES_GCM_encrypt(
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), NULL))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */
@@ -109,7 +109,6 @@ static Handle<std::string> AES_GCM_decrypt(
 	byte* output;
 	int output_len, final_output_len;
 	Handle<std::string> hOutput(new std::string());
-	output = (byte*)hOutput->c_str();
 
 	int msg_len = hMsg->length() - tagSize;
 	std::string sTag = hMsg->substr(hMsg->length() - tagSize);
@@ -119,6 +118,7 @@ static Handle<std::string> AES_GCM_decrypt(
 	// Get decrypted block size
 	int max_output_len = hMsg->length();
 	hOutput->resize(max_output_len);
+	output = (byte*)hOutput->c_str();
 
 	ScopedEVP_CIPHER_CTX ctx(EVP_CIPHER_CTX_new());
 
@@ -131,7 +131,7 @@ static Handle<std::string> AES_GCM_decrypt(
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), NULL))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */

@@ -161,8 +161,8 @@ export class Aes extends alg.AlgorithmBase {
         this.checkAlgorithmIdentifier(alg);
         if (!alg.iv)
             throw new TypeError("AlgorithmParams: iv: Missing required property");
-        if (!alg.tagLength)
-            alg.tagLength = 128;
+        if (alg.iv.length !== 16)
+            throw new TypeError("AlgorithmParams: iv: Must be size of 16");
     }
 
     static wc2ssl(alg: IAesAlgorithmParams) {
@@ -176,12 +176,14 @@ export interface IAesKeyGenParams extends iwc.IAlgorithmIdentifier {
 
 export interface IAesAlgorithmParams extends iwc.IAlgorithmIdentifier {
     iv: Buffer;
-    additionalData?: Buffer;
-    tagLength?: number;
 }
 
-export interface IAesCBCAlgorithmParams extends iwc.IAlgorithmIdentifier {
-    iv: Buffer;
+export interface IAesCBCAlgorithmParams extends IAesAlgorithmParams {
+}
+
+export interface IAesGCMAlgorithmParams extends IAesCBCAlgorithmParams {
+    additionalData: Buffer;
+    tagLength: number;
 }
 
 export class AesKey extends CryptoKey {
@@ -206,7 +208,6 @@ export class AesGCM extends Aes {
             case 128:
             case 192:
             case 256:
-                ret = `aes-${alg.length}-gcm`;
                 break;
             default:
                 throw new Error(`Unknown AES key length in use '${alg.length}'`);
@@ -214,36 +215,68 @@ export class AesGCM extends Aes {
         return ret;
     }
 
-    static encrypt(alg: IAesAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static encrypt(algorithm: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
             this.checkKeyGenParams(key.algorithm);
-            let _alg = this.wc2ssl(key.algorithm);
-            this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
+            this.checkAlgorithmParams(algorithm);
 
             let nkey = <native.AesKey>key.native;
-            throw new Error("Not implemented");
+            let iv = algorithm.iv;
+            if (!Buffer.isBuffer(iv))
+                iv = new Buffer(<any>algorithm.iv);
+
+            console.log(iv, data, algorithm.additionalData, algorithm.tagLength / 8);
+            nkey.encryptGcm(iv, data, algorithm.additionalData, algorithm.tagLength / 8, cb);
         }
         catch (e) {
             cb(e, null);
         }
     }
 
-    static decrypt(alg: IAesAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static decrypt(algorithm: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static decrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static decrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
             this.checkKeyGenParams(key.algorithm);
-            let _alg = this.wc2ssl(key.algorithm);
-            this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
+            this.checkAlgorithmParams(algorithm);
 
             let nkey = <native.AesKey>key.native;
-            throw new Error("Not implemented");
+            let iv = algorithm.iv;
+            if (!Buffer.isBuffer(iv))
+                iv = new Buffer(<any>algorithm.iv);
+
+            nkey.decryptGcm(iv, data, algorithm.additionalData, algorithm.tagLength / 8, cb);
         }
         catch (e) {
             cb(e, null);
         }
+    }
+
+    static checkAlgorithmParams(alg: IAesGCMAlgorithmParams) {
+        if (!alg.tagLength)
+            alg.tagLength = 128;
+        switch (alg.tagLength) {
+            case 128:
+            case 120:
+            case 112:
+            case 104:
+            case 96:
+            case 64:
+            case 32:
+                break;
+            default:
+                throw new Error("AesGcm:AlgorithmParams: Wrong tag value. Can be 32, 64, 96, 104, 112, 120 or 128 (default)");
+        }
+        if (!alg.additionalData)
+            alg.additionalData = new Buffer(0);
+        if (!Buffer.isBuffer(alg.additionalData))
+            alg.additionalData = new Buffer(<any>alg.additionalData);
     }
 
 }
@@ -290,6 +323,6 @@ export class AesCBC extends Aes {
     static checkAlgorithmParams(alg: IAesCBCAlgorithmParams) {
         this.checkAlgorithmIdentifier(alg);
         if (!alg.iv)
-            throw new TypeError("AlgorithmParams: iv: Missing required property");
+            throw new TypeError("AesCcm:AlgorithmParams: iv: Missing required property");
     }
 }
