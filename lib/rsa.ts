@@ -1,7 +1,8 @@
 import * as alg from "./alg";
 import * as iwc from "./iwebcrypto";
+import * as key from "./key";
 import {CryptoKey} from "./key";
-import * as native from "./native_key";
+import * as native from "./native";
 import * as aes from "./aes";
 let base64url = require("base64url");
 
@@ -11,61 +12,164 @@ let ALG_NAME_RSA_OAEP = "RSA-OAEP";
 
 let HASH_ALGS = ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"];
 
+export interface IJwkRsaPublicKey extends alg.IJwkKey {
+    alg: string;
+    e: Buffer;
+    n: Buffer;
+}
+
+export interface IJwkRsaPrivateKey extends IJwkRsaPublicKey {
+    d: Buffer;
+    p: Buffer;
+    q: Buffer;
+    dp: Buffer;
+    dq: Buffer;
+    qi: Buffer;
+}
+
 export class Rsa extends alg.AlgorithmBase {
-    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: Function) {
-        let size = alg.modulusLength;
-        let exp = new Buffer(alg.publicExponent);
-        this.checkExponent(exp);
-        // convert exp
-        let nExp: number = 0;
-        if (exp.toString("hex") === "010001")
-            nExp = 1;
-        let _key = native.KeyPair.generateRsa(size, nExp, function(k) {
-            if (!k || !k.handle) {
-                cb("Rsa: Can not generate new key");
-            }
-            else {
-                cb(null, {
-                    privateKey: new RsaKey(_key, alg, "private"),
-                    publicKey: new RsaKey(_key, alg, "public")
-                });
-            }
-        });
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void {
+        try {
+            let size = alg.modulusLength;
+            let exp = new Buffer(alg.publicExponent);
+            this.checkExponent(exp);
+            // convert exp
+            let nExp: number = 0;
+            if (exp.toString("hex") === "010001")
+                nExp = 1;
+            native.Key.generateRsa(size, nExp, function(err, key) {
+                try {
+                    if (err) {
+                        throw new Error(`Rsa: Can not generate new key\n${err.message}`);
+                    }
+                    else {
+                        cb(null, {
+                            privateKey: new RsaKey(key, alg, "private"),
+                            publicKey: new RsaKey(key, alg, "public")
+                        });
+                    }
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
     static importKey(
         format: string,
-        keyData: any,
+        keyData: Buffer | alg.IJwkKey,
         algorithm: iwc.IAlgorithmIdentifier,
         extractable: boolean,
-        keyUsages: string[]
-    ): RsaKey {
-        this.checkAlgorithmIdentifier(algorithm);
-        this.checkAlgorithmHashedParams(algorithm);
-        let pkey;
-        if (format.toLowerCase() === "jwk") {
-            // prepare data
-            let key: any = {};
-            key.n = new Buffer(base64url.decode(keyData.n, "binary"), "binary");
-            key.e = new Buffer(base64url.decode(keyData.e, "binary"), "binary");
-            let keypair = new native.KeyPair();
-            let key_type = "public";
-            if (keyData.d) {
-                key_type = "private";
-                key.d = new Buffer(base64url.decode(keyData.d, "binary"), "binary");
-                key.p = new Buffer(base64url.decode(keyData.p, "binary"), "binary");
-                key.q = new Buffer(base64url.decode(keyData.q, "binary"), "binary");
-                key.dp = new Buffer(base64url.decode(keyData.dp, "binary"), "binary");
-                key.dq = new Buffer(base64url.decode(keyData.dq, "binary"), "binary");
-                key.qi = new Buffer(base64url.decode(keyData.qi, "binary"), "binary");
+        keyUsages: string[],
+        cb: (err: Error, d: iwc.ICryptoKey) => void
+    ): void {
+        try {
+            switch (format.toLocaleLowerCase()) {
+                case "jwk":
+                    let jwk: IJwkRsaPrivateKey = <IJwkRsaPrivateKey>keyData;
+                    this.checkAlgorithmIdentifier(algorithm);
+                    this.checkAlgorithmHashedParams(algorithm);
+                    // prepare data
+                    jwk.n = new Buffer(base64url.decode(jwk.n, "binary"), "binary");
+                    jwk.e = new Buffer(base64url.decode(jwk.e, "binary"), "binary");
+                    let key_type = native.KeyType.PUBLIC;
+                    if (jwk.d) {
+                        key_type = native.KeyType.PRIVATE;
+                        jwk.d = new Buffer(base64url.decode(jwk.d, "binary"), "binary");
+                        jwk.p = new Buffer(base64url.decode(jwk.p, "binary"), "binary");
+                        jwk.q = new Buffer(base64url.decode(jwk.q, "binary"), "binary");
+                        jwk.dp = new Buffer(base64url.decode(jwk.dp, "binary"), "binary");
+                        jwk.dq = new Buffer(base64url.decode(jwk.dq, "binary"), "binary");
+                        jwk.qi = new Buffer(base64url.decode(jwk.qi, "binary"), "binary");
+                    }
+                    native.Key.importJwk(jwk, key_type, function(err, key) {
+                        try {
+                            if (err)
+                                throw new Error(`ImportKey: Can not import key from JWK\n${err.message}`);
+                            let rsa = new RsaKey(key, <IRsaKeyGenParams>algorithm, key_type ? "private" : "public");
+                            rsa.modulusLength = jwk.n.length * 8;
+                            rsa.publicExponent = new Uint8Array(jwk.e);
+                            cb(null, rsa);
+                        }
+                        catch (e) {
+                            cb(e, null);
+                        }
+                    });
+                    break;
+                case "spki":
+                case "pkcs8":
+                    if (!Buffer.isBuffer(keyData))
+                        throw new Error("ImportKey: keyData is not a Buffer");
+                    native.Key.importSpki(<Buffer>keyData, function(err, key) {
+                        try {
+                            if (err)
+                                throw new Error(`ImportKey: Can not import key for ${format}\n${err.message}`);
+                            let rsa = new RsaKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private");
+                            rsa.modulusLength = jwk.n.length * 8;
+                            rsa.publicExponent = new Uint8Array(jwk.e);
+                            cb(null, rsa);
+                        }
+                        catch (e) {
+                            cb(err, null);
+                        }
+                    });
+                    break;
+                default:
+                    throw new Error(`ImportKey: Wrong format value '${format}'`);
             }
-            keypair.importJwk("RSA", key_type, key);
-            pkey = new RsaKey(keypair, <IRsaKeyGenParams>algorithm, key_type);
-            pkey.modulusLength = key.n.length * 8;
-            pkey.publicExponent = new Uint8Array(key.e).buffer;
-        } else
-            pkey = super.importKey(format, keyData, algorithm, extractable, keyUsages);
-        return <RsaKey>pkey;
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+        try {
+            let nkey = <native.Key>key.native;
+            let type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
+            switch (format.toLocaleLowerCase()) {
+                case "jwk":
+                    nkey.exportJwk(type, function(err, data) {
+                        try {
+                            let jwk = <IJwkRsaPrivateKey>data;
+
+                            // convert base64 -> base64url for all props
+                            jwk.e = base64url(jwk.e);
+                            jwk.n = base64url(jwk.n);
+                            if (key.type === "private") {
+                                jwk.d = base64url(jwk.d);
+                                jwk.p = base64url(jwk.p);
+                                jwk.q = base64url(jwk.q);
+                                jwk.dp = base64url(jwk.dp);
+                                jwk.dq = base64url(jwk.dq);
+                                jwk.qi = base64url(jwk.qi);
+                            }
+                            cb(null, jwk);
+                        }
+                        catch (e) {
+                            cb(e, null);
+                        }
+                    });
+                    break;
+                case "spki":
+                    this.checkPublicKey(key);
+                    nkey.exportSpki(cb);
+                    break;
+                case "pkcs8":
+                    this.checkPrivateKey(key);
+                    nkey.exportPkcs8(cb);
+                    break;
+                default:
+                    throw new Error(`ExportKey: Unknown export frmat '${format}'`);
+            }
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
     static checkExponent(exp: Buffer) {
@@ -122,133 +226,287 @@ export class RsaKey extends CryptoKey {
 export class RsaPKCS1 extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_PKCS1;
 
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkRsaGenParams(alg);
-        this.checkAlgorithmHashedParams(alg);
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkRsaGenParams(alg);
+            this.checkAlgorithmHashedParams(alg);
 
-        super.generateKey.apply(this, arguments);
-        // let keyPair: iwc.ICryptoKeyPair = super.generateKey.apply(this, arguments);
-        // keyPair.privateKey.usages = ["sign"];
-        // keyPair.publicKey.usages = ["verify"];
-        // return keyPair;
+            super.generateKey(alg, extractable, keyUsages, function(err: Error, key: iwc.ICryptoKey) {
+                try {
+                    if (err) {
+                        cb(err, null);
+                    }
+                    else {
+                        if (key.type === "public") {
+                            key.usages = ["verify"];
+                        }
+                        else {
+                            key.usages = ["sign"];
+                        }
+                        cb(null, key);
+                    }
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
-    static sign(alg: iwc.IAlgorithmIdentifier, key: CryptoKey, data: Buffer) {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkPrivateKey(key);
-        let _alg = this.wc2ssl(key.algorithm);
-
-        let sig = native.sign(key.key, data, _alg);
-
-        return sig;
+    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+        try {
+            super.exportKey(format, key, function(err, data) {
+                try {
+                    if (format === "jwk") {
+                        let jwk = <IJwkRsaPrivateKey>data;
+                        // set alg
+                        let reg = /(\d+)$/;
+                        jwk.alg = "RS" + reg.exec(key.algorithm.hash.name)[1];
+                        jwk.ext = true;
+                        if (key.type === "public") {
+                            jwk.key_ops = ["verify"];
+                        }
+                        else {
+                            jwk.key_ops = ["sign"];
+                        }
+                        cb(null, jwk);
+                    }
+                    else
+                        cb(null, data);
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
-    static verify(alg: iwc.IAlgorithmIdentifier, key: CryptoKey, signature: Buffer, data: Buffer): boolean {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkPublicKey(key);
-        let _alg = this.wc2ssl(key.algorithm);
+    static sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkPrivateKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
 
-        let res = native.verify(key.key, data, signature, _alg);
+            nkey.sign(_alg, data, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
 
-        return res;
+    static verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkPublicKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
+
+            nkey.verify(_alg, data, signature, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
 }
 
 export class RsaPSS extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_PSS;
-
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
-        throw new Error("not realized in this implementation");
-    }
 }
 
 export class RsaOAEP extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_OAEP;
 
-    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: Function) {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkRsaGenParams(alg);
-        this.checkAlgorithmHashedParams(alg);
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkRsaGenParams(alg);
+            this.checkAlgorithmHashedParams(alg);
 
-        super.generateKey.apply(this, arguments);
-        // keyPair.privateKey.usages = ["decrypt", "unwrapKey"];
-        // keyPair.publicKey.usages = ["encrypt", "wrapKey"];
-        // return keyPair;
-    }
-
-    static encrypt(alg: IRsaOaepEncryptParams, key: CryptoKey, data: Buffer): Buffer {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkPublicKey(key);
-        let _alg = this.wc2ssl(key.algorithm);
-
-        let label;
-        if (alg.label) {
-            label = new Buffer(alg.label);
+            super.generateKey(alg, extractable, keyUsages, function(err: Error, key: iwc.ICryptoKey) {
+                try {
+                    if (err) {
+                        cb(err, null);
+                    }
+                    else {
+                        if (key.type === "public") {
+                            key.usages = ["encrypt", "wrapKey"];
+                        }
+                        else {
+                            key.usages = ["decrypt", "unwrapKey"];
+                        }
+                        cb(null, key);
+                    }
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
         }
-
-        let msg = key.key.encryptRsaOAEP(data, _alg, label);
-
-        return msg;
-    }
-
-    static decrypt(alg: IRsaOaepEncryptParams, key: CryptoKey, data: Buffer): Buffer {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkPrivateKey(key);
-        let _alg = this.wc2ssl(key.algorithm);
-
-        let label;
-        if (alg.label) {
-            label = new Buffer(alg.label);
+        catch (e) {
+            cb(e, null);
         }
-
-        let msg = key.key.decryptRsaOAEP(data, _alg, label);
-
-        return msg;
     }
 
-    static wrapKey(key: CryptoKey, wrappingKey: CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer {
-        this.checkAlgorithmIdentifier(alg);
-        this.checkAlgorithmHashedParams(alg);
-        this.checkSecretKey(key);
-        this.checkPublicKey(wrappingKey);
-        let _alg = this.wc2ssl(alg);
-
-        let wrappedKey: Buffer = wrappingKey.key.encryptRsaOAEP(key.key.handle, _alg);
-        return wrappedKey;
+    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+        try {
+            super.exportKey(format, key, function(err, data) {
+                try {
+                    if (format === "jwk") {
+                        let jwk = <IJwkRsaPrivateKey>data;
+                        // set alg
+                        let md_size = /(\d+)$/.exec(key.algorithm.hash.name)[1];
+                        jwk.alg = "RSA-OAEP";
+                        if (md_size !== "1") {
+                            jwk.alg += "-" + md_size;
+                        }
+                        jwk.ext = true;
+                        if (key.type === "public") {
+                            jwk.key_ops = ["encrypt", "wrapKey"];
+                        }
+                        else {
+                            jwk.key_ops = ["decrypt", "unwrapKey"];
+                        }
+                        cb(null, jwk);
+                    }
+                    else
+                        cb(null, data);
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
     }
 
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
-        this.checkAlgorithmIdentifier(unwrapAlgorithm);
-        this.checkAlgorithmHashedParams(unwrapAlgorithm);
-        this.checkPrivateKey(unwrappingKey);
+    static encrypt(alg: IRsaOaepEncryptParams, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkPublicKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
 
-        let _alg = this.wc2ssl(unwrapAlgorithm);
+            let label = null;
+            if (alg.label) {
+                label = new Buffer(alg.label);
+            }
 
-        // convert unwrappedAlgorithm to PKCS11 Algorithm
-        let AlgClass = null;
-        switch (unwrappedAlgorithm.name) {
-            // case aes.ALG_NAME_AES_CTR:
-            // case aes.ALG_NAME_AES_CMAC:
-            // case aes.ALG_NAME_AES_CFB:
-            // case aes.ALG_NAME_AES_KW:
-            case aes.ALG_NAME_AES_CBC:
-                aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-                AlgClass = aes.AesCBC;
-                break;
-            /*
-            case aes.ALG_NAME_AES_GCM:
-                aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
-                AlgClass = aes.AesGCM;
-                break;
-            */
-            default:
-                throw new Error("Unsupported algorithm in use");
+            nkey.RsaOaepEncDec(_alg, data, label, false, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static decrypt(alg: IRsaOaepEncryptParams, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkPrivateKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
+
+            let label = null;
+            if (alg.label) {
+                label = new Buffer(alg.label);
+            }
+
+            nkey.RsaOaepEncDec(_alg, data, label, true, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static wrapKey(key: iwc.ICryptoKey, wrappingKey: iwc.ICryptoKey, algorithm: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
+    static wrapKey(key: aes.AesKey, wrappingKey: RsaKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void;
+    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(algorithm);
+            this.checkAlgorithmHashedParams(algorithm);
+            this.checkSecretKey(key);
+            this.checkPublicKey(wrappingKey);
+            let _alg = this.wc2ssl(algorithm);
+            let nkey = <native.Key>wrappingKey.native;
+            let nAesKey = <native.AesKey>key.native;
+
+            nAesKey.export(function(err, data) {
+                if (err) {
+                    cb(err, null);
+                }
+                else {
+                    nkey.RsaOaepEncDec(_alg, data, null, false, cb);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: iwc.ICryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(unwrapAlgorithm);
+            this.checkAlgorithmHashedParams(unwrapAlgorithm);
+            this.checkPrivateKey(unwrappingKey);
+
+            let _alg = this.wc2ssl(unwrapAlgorithm);
+
+            // convert unwrappedAlgorithm to PKCS11 Algorithm
+            let AlgClass = null;
+            switch (unwrappedAlgorithm.name) {
+                // case aes.ALG_NAME_AES_CTR:
+                // case aes.ALG_NAME_AES_CMAC:
+                // case aes.ALG_NAME_AES_CFB:
+                // case aes.ALG_NAME_AES_KW:
+                case aes.ALG_NAME_AES_CBC:
+                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                    AlgClass = aes.AesCBC;
+                    break;
+                case aes.ALG_NAME_AES_GCM:
+                    aes.Aes.checkKeyGenParams(<any>unwrappedAlgorithm);
+                    AlgClass = aes.AesGCM;
+                    break;
+                default:
+                    throw new Error("Unsupported algorithm in use");
+
+            }
+            let label: any = unwrapAlgorithm.label;
+            if (!label)
+                label = new Buffer(0);
+            if (!Buffer.isBuffer(label))
+                label = new Buffer(label);
+            (<native.Key>unwrappingKey.native).RsaOaepEncDec(_alg, wrappedKey, label, true, function(err, rawKey) {
+                if (err) {
+                    cb(err, null);
+                }
+                else {
+                    native.AesKey.import(rawKey, function(err, nkey) {
+                        if (err) {
+                            cb(err, null);
+                        }
+                        else {
+                            cb(null, new aes.AesKey(nkey, unwrapAlgorithm, "secret"));
+                        }
+                    })
+                }
+            });
 
         }
-
-        let unwrappedKey: Buffer = unwrappingKey.key.decryptRsaOAEP(wrappedKey, _alg);
-        return new AlgClass(unwrappedKey, unwrappedAlgorithm);
+        catch (e) {
+            cb(e, null);
+        }
     }
 }

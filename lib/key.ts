@@ -1,18 +1,22 @@
 import * as iwc from "./iwebcrypto";
+import * as native from "./native";
 
 export class CryptoKey implements iwc.ICryptoKey {
     type: string;
     extractable: boolean;
-    algorithm: any;
+    algorithm: iwc.IAlgorithmIdentifier;
     usages: string[] = [];
 
-    private _key;
-    get key(): any {
-        return this._key;
+    private native_;
+    get native(): any{
+        return this.native_;
     }
 
-    constructor(key, alg: iwc.IAlgorithmIdentifier, type: string) {
-        this._key = key;
+    constructor(key: native.AesKey, alg: iwc.IAlgorithmIdentifier, type: string);
+    constructor(key: native.Key, alg: iwc.IAlgorithmIdentifier, type: string);
+    constructor(key: native.AesKey | native.Key, alg: iwc.IAlgorithmIdentifier, type: string) {
+        this.native_ = key;
+
         this.extractable = true;
         this.algorithm = alg;
         // set key type

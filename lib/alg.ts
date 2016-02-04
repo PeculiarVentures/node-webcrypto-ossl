@@ -1,158 +1,121 @@
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
-import * as native from "./native_key";
+import * as native from "./native";
 let base64url = require("base64url");
 
+export interface IJwkKey {
+    kty: string;
+    ext?: boolean;
+    key_ops: string[];
+}
+
 export interface IAlgorithmBase {
-    generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb?): any;
-    sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer);
-    verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer): boolean;
-    encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer): Buffer;
-    decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer): Buffer;
-    wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer;
-    unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey;
-    deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): key.CryptoKey;
-    exportKey(format: string, key: CryptoKey): Buffer | Object;
-    importKey(
-        format: string,
-        keyData: Buffer,
-        algorithm: iwc.IAlgorithmIdentifier,
-        extractable: boolean,
-        keyUsages: string[]): CryptoKey;
+    generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void;
+    sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
+    unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
+    importKey(format: string, keyData: Buffer | IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
 }
 
 export class AlgorithmBase {
     static ALGORITHM_NAME: string = "";
 
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: Function);
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey | iwc.ICryptoKeyPair {
-        throw new Error("Method is not supported");
-    }
-
-    static sign(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer) {
-        throw new Error("Method is not supported");
-    }
-
-    static verify(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, signature: Buffer, data: Buffer): boolean {
-        throw new Error("Method is not supported");
-    }
-
-    static encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer): Buffer {
-        throw new Error("Method is not supported");
-    }
-
-    static decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer): Buffer {
-        throw new Error("Method is not supported");
-    }
-
-    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier): Buffer {
-        throw new Error("Method is not supported");
-    }
-
-    static deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): key.CryptoKey {
-        throw new Error("Method is not supported");
-    }
-
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): iwc.ICryptoKey {
-        throw new Error("Method is not supported");
-    }
-
-    static exportKey(format: string, key: key.CryptoKey): Buffer | Object {
-        this.checkKeyType(format);
-        let _format = format.toLowerCase();
-        let res: Buffer;
-        switch (_format) {
-            case "raw":
-                if (key.type !== "secret")
-                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'secret'");
-                return key.key.handle;
-                break;
-            case "spki":
-                if (key.type !== "public")
-                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'public'");
-                res = key.key.writeSpki("der");
-                break;
-            case "pkcs8":
-                if (key.type !== "private")
-                    throw new TypeError("Crypto::exportKey: Wrong key type must be 'secret'");
-                res = key.key.writePkcs8("der");
-                break;
-            case "jwk":
-                switch (key.type) {
-                    case "public":
-                    case "private":
-                        let kpjwk = key.key.exportJwk(key.type);
-                        switch (key.algorithm.name) {
-                            case "RSA-OAEP":
-                                let hash = /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
-                                kpjwk.alg = "RSA-OAEP" + ((hash !== "1") ? "-" + hash : "");
-                                break;
-                            case "RSASSA-PKCS1-v1_5":
-                                kpjwk.alg = "RS" + /SHA-(\d+)/.exec(key.algorithm.hash.name)[1];
-                                break;
-                            case "ECDSA":
-                            case "ECDH":
-                                kpjwk.crv = key.algorithm.namedCurve;
-                                break;
-                            default:
-                                throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);
-                        }
-                        kpjwk.key_ops = key.usages;
-                        kpjwk.ext = true;
-                        return kpjwk;
-                        break;
-                    case "secret":
-                        let secjwk: any = {
-                            kty: "oct",
-                            ext: true,
-                            key_ops: key.usages
-                        };
-                        switch (key.algorithm.name) {
-                            case "AES-CBC":
-                            case "AES-GCM":
-                                secjwk.alg = "A" + key.algorithm.length + /AES-(.+)/.exec(key.algorithm.name)[1];
-                                secjwk.k = base64url(key.key.handle, "binary");
-                                break;
-                            default:
-                                throw new Error(`exportKey::jwk: Unknown algorithm name in use ${key.algorithm.name}`);
-                        }
-                        return secjwk;
-                        break;
-                    default:
-                        throw new Error(`Unknown key type ${key.type}`);
-                }
-                break;
-            default:
-                throw new Error(`Unknown key export format ${_format}`);
+    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
         }
-        return res;
+    }
+
+    static sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
     }
 
     static importKey(
         format: string,
-        keyData: Buffer,
+        keyData: Buffer | IJwkKey,
         algorithm: iwc.IAlgorithmIdentifier,
         extractable: boolean,
-        keyUsages: string[]
-    ): CryptoKey {
-        this.checkKeyType(format);
-        let _format = format.toLowerCase();
-        let _key;
-        switch (_format) {
-            case "spki":
-                _key = native.KeyPair.readSpki(keyData, "der");
-                return new key.CryptoKey(_key, algorithm, "public");
-            case "pkcs8":
-                _key = native.KeyPair.readPkcs8(keyData, "der");
-                return new key.CryptoKey(_key, algorithm, "private");
-            case "raw":
-                _key = new native.SecretKey(keyData);
-                return new key.CryptoKey(_key, algorithm, "secret");
-            default:
-                throw new Error(`Unsupported format in use '${format}'`);
+        keyUsages: string[],
+        cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        }
+        catch (e) {
+            cb(e, null);
         }
     }
 
+    /**
+     * check type of exported data
+     * @param {string} type type of exported data (raw, jwk, spki, pkcs8)
+     */
     static checkKeyType(type: string) {
         const ERROR_TYPE = "KeyType";
         let _type = type.toLowerCase();
