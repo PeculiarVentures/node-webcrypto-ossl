@@ -32,6 +32,7 @@ var EC_DERIVED_KEY = new Buffer("cmk/LtRfc8JTBTM25SH7KXKkpSRkzYCodFYLsXeukNM=", 
 var AES_KEY_RAW = new Buffer("StQFwEYbLh6cUxmmdwzjgLnlkBWIt6Rs+E19chbqasE=", "base64");
 
 var AES_CBC_ENC = new Buffer("bcKv20ENhdt4G/IM79lGDA==", "base64");
+var AES_GCM_ENC_AAD_128 = new Buffer("fd44/oVJbl3YFAikUmCqIso5gVkQ2QJ9ASsp", "base64");
 
 function json_jwk(json) {
     var jwk = JSON.parse(json);
@@ -111,6 +112,17 @@ describe("Interoperability with Chrome", function () {
             assert(!err, true, `"Import: ${err}`);
             key.decrypt("CBC", AES_IV, AES_CBC_ENC, function (err, data) {
                 assert(!err, true, `"Decrypt: ${err}`);
+                assert.equal(Buffer.compare(TEST_DATA, data) == 0, true, "Decrypt: wrong decrypted value");
+                done();
+            })
+        });
+    })
+    
+    it("AES GCM encrypt AAD 128", function (done) {
+        native.AesKey.import(AES_KEY_RAW, function (err, key) {
+            assert(!err, true, `Import: ${err}`);
+            key.decryptGcm(AES_IV, AES_GCM_ENC_AAD_128, AES_IV, 128/8, function (err, data) {
+                assert(!err, true, `Decrypt: ${err}`);
                 assert.equal(Buffer.compare(TEST_DATA, data) == 0, true, "Decrypt: wrong decrypted value");
                 done();
             })
