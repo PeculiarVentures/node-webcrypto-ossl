@@ -10,7 +10,7 @@ git clone https://github.com/PeculiarVentures/node-webcrypto-ossl
 cd node-webcrypto-ossl
 ```
 
-#### Install Dependencies
+#### Get Dependencies
 ```
 npm install node-gyp -g
 npm install typescript -g
