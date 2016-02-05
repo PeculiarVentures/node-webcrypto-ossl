@@ -24,7 +24,7 @@ tsc
 node-gyp configure build
 ```
 
-* If you experience any errors make sure you have downloaded TypeScript dependencies
+> If you experience any errors make sure you have downloaded TypeScript dependencies
 
 
 ## Tests
