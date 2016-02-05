@@ -3,14 +3,14 @@ A WebCrypto Polyfill for Node in typescript built on OpenSSL
 
 ## Installation
 
-### Clone Repo
+#### Clone Repo
 
 ```
 git clone https://github.com/PeculiarVentures/node-webcrypto-ossl
 cd node-webcrypto-ossl
 ```
 
-### Dependencies
+#### Dependencies
 - node-gyp (node native module compiler)
 - typescript (TypeScript compiler)
 - tsd (TypeScript Defenition compiler)
@@ -23,7 +23,7 @@ npm install tsd -g
 npm install mocha -g
 ```
 
-### Install & Compile 
+#### Install & Compile 
 
 ```
 npm install
@@ -35,7 +35,7 @@ node-gyp configure build
 * If you experience any errors make sure you have downloaded TypeScript dependencies
 
 
-## Test
+## Tests
 
 ```
 mocha
