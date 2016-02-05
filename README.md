@@ -8,15 +8,7 @@ A WebCrypto Polyfill for Node in TypeScript built on OpenSSL
 ```
 git clone https://github.com/PeculiarVentures/node-webcrypto-ossl
 cd node-webcrypto-ossl
-```
 
-#### Dependencies
-- node-gyp (node native module compiler)
-- typescript (TypeScript compiler)
-- tsd (TypeScript Defenition compiler)
-- mocha (test)
-
-```
 npm install node-gyp -g
 npm install typescript -g
 npm install tsd -g
@@ -49,6 +41,12 @@ At this time this solution should be considered suitable for research and experi
 
 Please report bugs either as pull requests or as issues in the issue tracker. node-webcrypto-ossl has a full disclosure vulnerability policy. Please do NOT attempt to report any security vulnerability in this code privately to anybody.
 
+## Dependencies
+- node-gyp (node native module compiler)
+- typescript (TypeScript compiler)
+- tsd (TypeScript Defenition compiler)
+- mocha (test)
+ 
 ## Related
  - [MSR WebCrypto Polyfill](http://research.microsoft.com/en-us/downloads/29f9385d-da4c-479a-b2ea-2a7bb335d727/)
  - [OpenSSL](https://github.com/openssl/openssl)
