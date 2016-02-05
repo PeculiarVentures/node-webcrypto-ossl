@@ -1,5 +1,5 @@
 # node-webcrypto-ossl
-A WebCrypto Polyfill for Node in typescript built on OpenSSL
+A WebCrypto Polyfill for Node in TypeScript built on OpenSSL
 
 ## Installation
 
