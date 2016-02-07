@@ -2,6 +2,8 @@
 
 import {CryptoKey} from "./key";
 
+import * as native from "./native";
+
 import * as alg from "./alg";
 import * as rsa from "./rsa";
 import * as aes from "./aes";
@@ -11,7 +13,7 @@ import * as iwc from "./iwebcrypto";
 
 function prepare_algorithm(alg: iwc.AlgorithmType): iwc.IAlgorithmIdentifier {
     let _alg: iwc.IAlgorithmIdentifier = { name: "" };
-    if (alg instanceof String) {
+    if (typeof alg === "string") {
         _alg = { name: alg };
     }
     else {
@@ -50,7 +52,26 @@ export class SubtleCrypto implements iwc.ISubtleCrypto {
     digest(algorithm: iwc.IAlgorithmIdentifier, data: iwc.TBuffer): Promise {
         let that = this;
         return new Promise(function(resolve, reject) {
-            reject("Not implemented");
+            let _alg = prepare_algorithm(algorithm);
+            let _data = prepare_data(data);
+
+            let algName = _alg.name.toLowerCase();
+            switch (algName) {
+                case "sha-1":
+                case "sha-224":
+                case "sha-256":
+                case "sha-384":
+                case "sha-512":
+                    native.Core.digest(algName.replace("-", ""), _data, function(err, digest) {
+                        if (err)
+                            reject(err);
+                        else
+                            resolve(new Uint8Array(digest).buffer);
+                    });
+                    break;
+                default:
+                    resolve(new Error("AlgorithmIdentifier: Unknown algorithm name"));
+            }
         });
     }
 
