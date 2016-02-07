@@ -160,5 +160,10 @@ export declare class AesKey {
     static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
 }
 
+export declare class Core {
+    static digest(digestName: string, messgae: Buffer, cb: (err: Error, digest: Buffer) => void): void;
+}
+
 module.exports.Key = native.Key;
+module.exports.Core = native.Core;
 module.exports.AesKey = native.AesKey;

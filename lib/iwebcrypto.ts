@@ -15,6 +15,7 @@ export interface IWebCrypto {
 export type TBuffer = ArrayBuffer | Buffer;
 
 export interface ISubtleCrypto {
+    digest(algorithm: IAlgorithmIdentifier, data: TBuffer): Promise;
     generateKey(algorithm: AlgorithmType, extractable: boolean, keyUsages: string[]): Promise;
     sign(algorithm: AlgorithmType, key: ICryptoKey, data: TBuffer): Promise;
     verify(algorithm: AlgorithmType, key: CryptoKey, signature: TBuffer, data: TBuffer): Promise;

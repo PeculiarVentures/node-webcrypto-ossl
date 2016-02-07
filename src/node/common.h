@@ -12,7 +12,9 @@ v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer);
 
 #include "./async_rsa.h"
 #include "./async_ec.h"
+#include "./async_core.h"
 #include "./w_key.h"
 #include "./w_aes.h"
+#include "./w_core.h"
 
 #endif // OSSL_NODE_COMMON_H_INCLUDE

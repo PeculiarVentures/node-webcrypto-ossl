@@ -47,6 +47,13 @@ function b2ab(b: Buffer): ArrayBuffer {
 
 export class SubtleCrypto implements iwc.ISubtleCrypto {
 
+    digest(algorithm: iwc.IAlgorithmIdentifier, data: iwc.TBuffer): Promise {
+        let that = this;
+        return new Promise(function(resolve, reject) {
+            reject("Not implemented");
+        });
+    }
+
     generateKey(algorithm: iwc.AlgorithmType, extractable: boolean, keyUsages: string[]): Promise {
         let that = this;
         return new Promise(function(resolve, reject) {

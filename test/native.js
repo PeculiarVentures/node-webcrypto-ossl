@@ -2,6 +2,8 @@ var assert = require('assert');
 var native = require("../buildjs/native");
 
 describe("native", function () {
+    
+    var TEST_MESSAGE = new Buffer("Hello world");
 
     function test_export(key, spki, done) {
         var export_fn, import_fn, error_text;
@@ -330,6 +332,33 @@ describe("native", function () {
     
     it("AES GCM encrypt 256 no AAD, tag(13)", function (done) {
         test_encrypt_gcm(32, new Buffer(""), 13, done);
+    })
+    
+    function test_digest(md, mdlen, done){
+        native.Core.digest(md, TEST_MESSAGE, function(err, digest){
+            assert.equal(!err, true, err);
+            assert.equal(digest.length, mdlen, "Wrong digest length");
+            done()
+        });
+    }
+    
+    it("digest sha1", function (done) {
+        test_digest("sha1", 20, done);
+    })
+    
+    it("digest sha256", function (done) {
+        test_digest("sha256", 32, done);
+    })
+    
+    it("digest sha512", function (done) {
+        test_digest("sha512", 64, done);
+    })
+    
+    it("digest wrong name", function (done) {
+        native.Core.digest("wrong name", TEST_MESSAGE, function(err, digest){
+            assert.equal(err != null, true, "Error is NULL");
+            done()
+        });
     })
 
 })
