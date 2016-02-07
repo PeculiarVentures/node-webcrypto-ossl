@@ -1,5 +1,13 @@
 #include "ec_dsa.h"
 
+/* OpenSSL does not currently have BN_bn2bin_padded for 
+ * now we will use this copy of that function. 
+ * When we switch to BoringSSL or when OpenSSL has this function 
+ * we will remove this
+ * Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com) 
+ * All rights reserved.  
+ */
+
 /* constant_time_select_ulong returns |x| if |v| is 1 and |y| if |v| is 0. Its
 * behavior is undefined if |v| takes any other value. */
 static BN_ULONG constant_time_select_ulong(int v, BN_ULONG x, BN_ULONG y) {
@@ -60,6 +68,8 @@ static int BN_bn2bin_padded(uint8_t *out, size_t len, const BIGNUM *in) {
 	}
 	return 1;
 }
+
+/*  End Block of BoringSSL Code  */
 
 static size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
 	LOG_FUNC();
