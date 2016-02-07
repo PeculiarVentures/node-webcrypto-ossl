@@ -8,5 +8,6 @@
 #include "excep.h"
 #include "key_exp.h"
 #include "digest.h"
+#include "bn.h"
 
 #endif // OSSL_CORE_COMMON_H_INCLUDE
