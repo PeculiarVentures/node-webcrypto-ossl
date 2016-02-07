@@ -161,7 +161,13 @@ export declare class AesKey {
 }
 
 export declare class Core {
-    static digest(digestName: string, messgae: Buffer, cb: (err: Error, digest: Buffer) => void): void;
+    /**
+     * Returns a digest generated from the hash function and text given as parameters
+     * @param {string} digst function name
+     * @param {Buffer} message for hash generation
+     * @param {Function} callback function (err: Error, digest: Buffer)
+     */
+    static digest(digestName: string, messgae: Buffer, callback: (err: Error, digest: Buffer) => void): void;
 }
 
 module.exports.Key = native.Key;
