@@ -498,7 +498,7 @@ export class RsaOAEP extends Rsa {
                             cb(err, null);
                         }
                         else {
-                            cb(null, new aes.AesKey(nkey, unwrapAlgorithm, "secret"));
+                            cb(null, new aes.AesKey(nkey, unwrappedAlgorithm, "secret"));
                         }
                     })
                 }
