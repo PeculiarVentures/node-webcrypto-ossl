@@ -1,5 +1,5 @@
 {
-  "name": "node-ssl",
+  "name": "node-webcrypto-ossl",
   "version": "1.0.0",
   "description": "",
   "main": "buildjs/webcrypto.js",
@@ -7,8 +7,18 @@
     "test": "mocha",
     "install": "tsd install && tsc && node-gyp rebuild"
   },
-  "author": "msu",
+  "author": "PeculiarVentures",
   "license": "MIT",
+  "keywords": [
+      "crypto",
+      "openssl",
+      "webcrypto",
+      "rsa",
+      "aes",
+      "ec",
+      "jwk",
+      "polyfill"
+  ],
   "dependencies": {
     "base64url": "^1.0.5",
     "mocha": "^2.3.4",
