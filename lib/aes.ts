@@ -45,7 +45,9 @@ export class Aes extends alg.AlgorithmBase {
 
             native.AesKey.generate(alg.length / 8, function(err, key) {
                 if (!err) {
-                    cb(null, new AesKey(key, alg, "secret"));
+                    let aes = new CryptoKey(key, alg, "secret");
+                    aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
+                    cb(null, aes);
                 }
                 else {
                     cb(err, null);
@@ -85,7 +87,8 @@ export class Aes extends alg.AlgorithmBase {
 
             let aes = native.AesKey.import(raw, function(err, key) {
                 if (!err) {
-                    let aes = new AesKey(key, alg, "secret");
+                    let aes = new CryptoKey(key, alg, "secret");
+                    aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
                     cb(null, aes);
                 }
                 else
@@ -99,7 +102,6 @@ export class Aes extends alg.AlgorithmBase {
 
     static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
-            let aes = <AesKey>key;
             let nkey = <native.AesKey>key.native;
             switch (format) {
                 case "jwk":
@@ -111,7 +113,7 @@ export class Aes extends alg.AlgorithmBase {
                         ext: true
                     };
                     // set alg
-                    jwk.alg = "A" + aes.algorithm.length + /-(\w+)$/.exec(aes.algorithm.name)[1];
+                    jwk.alg = "A" + (<IAesKeyGenParams>key.algorithm).length + /-(\w+)$/.exec((<IAesKeyGenParams>key.algorithm).name)[1];
                     nkey.export(function(err, data) {
                         if (!err) {
                             jwk.k = base64url(data);
@@ -186,19 +188,6 @@ export interface IAesGCMAlgorithmParams extends IAesCBCAlgorithmParams {
     tagLength: number;
 }
 
-export class AesKey extends CryptoKey {
-
-    algorithm: IAesKeyGenParams;
-
-    constructor(key: native.AesKey, alg: iwc.IAlgorithmIdentifier, type: string);
-    constructor(key: native.AesKey, alg: IAesKeyGenParams, type: string) {
-        super(key, alg, type);
-        // this.length = alg.length;
-        // TODO: get params from key if alg params is empty
-        this.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
-    }
-}
-
 export class AesGCM extends Aes {
     static ALGORITHM_NAME: string = ALG_NAME_AES_GCM;
 
@@ -216,8 +205,8 @@ export class AesGCM extends Aes {
     }
 
     static encrypt(algorithm: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static encrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static encrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
             this.checkKeyGenParams(key.algorithm);
@@ -237,7 +226,7 @@ export class AesGCM extends Aes {
     }
 
     static decrypt(algorithm: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static decrypt(algorithm: IAesGCMAlgorithmParams, key: AesKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static decrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
     static decrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
@@ -292,7 +281,6 @@ export class AesCBC extends Aes {
             this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
             let iv = this.wc2ssl(alg);
-            let aes = <AesKey>key;
             let nkey = <native.AesKey>key.native;
             let _alg = "CBC";
 
@@ -308,8 +296,7 @@ export class AesCBC extends Aes {
             this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
             let iv = this.wc2ssl(alg);
-            let aes = <AesKey>key;
-            let nkey = <native.AesKey>key.native;
+            let nkey = key.native;
             let _alg = "CBC";
 
             nkey.decrypt(_alg, iv, data, cb);

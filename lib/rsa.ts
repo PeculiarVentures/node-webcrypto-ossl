@@ -44,8 +44,8 @@ export class Rsa extends alg.AlgorithmBase {
                     }
                     else {
                         cb(null, {
-                            privateKey: new RsaKey(key, alg, "private"),
-                            publicKey: new RsaKey(key, alg, "public")
+                            privateKey: new CryptoKey(key, alg, "private"),
+                            publicKey: new CryptoKey(key, alg, "public")
                         });
                     }
                 }
@@ -90,9 +90,9 @@ export class Rsa extends alg.AlgorithmBase {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key from JWK\n${err.message}`);
-                            let rsa = new RsaKey(key, <IRsaKeyGenParams>algorithm, key_type ? "private" : "public");
-                            rsa.modulusLength = jwk.n.length * 8;
-                            rsa.publicExponent = new Uint8Array(jwk.e);
+                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, key_type ? "private" : "public");
+                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = jwk.n.length * 8;
+                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(jwk.e);
                             cb(null, rsa);
                         }
                         catch (e) {
@@ -108,9 +108,9 @@ export class Rsa extends alg.AlgorithmBase {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key for ${format}\n${err.message}`);
-                            let rsa = new RsaKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private");
-                            rsa.modulusLength = jwk.n.length * 8;
-                            rsa.publicExponent = new Uint8Array(jwk.e);
+                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private");
+                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = jwk.n.length * 8;
+                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(jwk.e);
                             cb(null, rsa);
                         }
                         catch (e) {
@@ -209,18 +209,6 @@ export interface IRsaKeyGenParams extends iwc.IAlgorithmIdentifier {
 
 export interface IRsaOaepEncryptParams extends iwc.IAlgorithmIdentifier {
     label?: Uint8Array;
-}
-
-export class RsaKey extends CryptoKey {
-    modulusLength: number;
-    publicExponent: Uint8Array;
-
-    constructor(key, alg: IRsaKeyGenParams, type: string) {
-        super(key, alg, type);
-        this.modulusLength = alg.modulusLength;
-        this.publicExponent = alg.publicExponent;
-        // TODO: get params from key if alg params is empty
-    }
 }
 
 export class RsaPKCS1 extends Rsa {
@@ -429,7 +417,7 @@ export class RsaOAEP extends Rsa {
     }
 
     static wrapKey(key: iwc.ICryptoKey, wrappingKey: iwc.ICryptoKey, algorithm: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
-    static wrapKey(key: aes.AesKey, wrappingKey: RsaKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void;
+    static wrapKey(key: key.CryptoKey, wrappingKey: CryptoKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void;
     static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, algorithm: IRsaOaepEncryptParams, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(algorithm);
@@ -455,8 +443,8 @@ export class RsaOAEP extends Rsa {
     }
 
     static unwrapKey(wrappedKey: Buffer, unwrappingKey: iwc.ICryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: RsaKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: IRsaOaepEncryptParams, unwrappedAlgorithm: aes.IAesKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
         try {
             this.checkAlgorithmIdentifier(unwrapAlgorithm);
             this.checkAlgorithmHashedParams(unwrapAlgorithm);
@@ -498,7 +486,7 @@ export class RsaOAEP extends Rsa {
                             cb(err, null);
                         }
                         else {
-                            cb(null, new aes.AesKey(nkey, unwrappedAlgorithm, "secret"));
+                            cb(null, new key.CryptoKey(nkey, unwrappedAlgorithm, "secret"));
                         }
                     })
                 }

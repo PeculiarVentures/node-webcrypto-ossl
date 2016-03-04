@@ -3,6 +3,7 @@ import * as aes from "./aes";
 import * as alg from "./alg";
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
+import {CryptoKey} from "./key";
 import * as native from "./native";
 import * as crypto from "crypto";
 
@@ -57,8 +58,8 @@ export class Ec extends alg.AlgorithmBase {
 
             native.Key.generateEc(namedCurve, function(err, key) {
                 cb(null, {
-                    "privateKey": new EcKey(key, alg, "private"),
-                    "publicKey": new EcKey(key, alg, "public")
+                    "privateKey": new CryptoKey(key, alg, "private"),
+                    "publicKey": new CryptoKey(key, alg, "public")
                 });
             });
         }
@@ -68,8 +69,8 @@ export class Ec extends alg.AlgorithmBase {
     }
 
     static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: EcKey) => void): void;
-    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: EcKey) => void): void {
+    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void {
         try {
             this.checkKeyType(format);
             this.checkAlgorithmIdentifier(algorithm);
@@ -78,7 +79,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "pkcs8":
                     native.Key.importPkcs8(<Buffer>keyData, function(err, key) {
                         if (!err) {
-                            let ec = new EcKey(key, algorithm, "private");
+                            let ec = new CryptoKey(key, algorithm, "private");
                             cb(null, ec);
                         }
                         else
@@ -88,7 +89,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "spki":
                     native.Key.importSpki(<Buffer>keyData, function(err, key) {
                         if (!err) {
-                            let ec = new EcKey(key, algorithm, "public");
+                            let ec = new CryptoKey(key, algorithm, "public");
                             cb(null, ec);
                         }
                         else
@@ -115,7 +116,7 @@ export class Ec extends alg.AlgorithmBase {
                     }
                     native.Key.importJwk(jwk, key_type, function(err, key) {
                         if (!err) {
-                            let ec = new EcKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public");
+                            let ec = new CryptoKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public");
                             cb(null, ec);
                         }
                         else
@@ -132,8 +133,8 @@ export class Ec extends alg.AlgorithmBase {
     }
 
     static exportKey(format: string, key: iwc.ICryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
-    static exportKey(format: string, key: EcKey, cb: (err: Error, d: Object | Buffer) => void): void;
-    static exportKey(format: string, key: EcKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
+    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
             this.checkKeyType(format);
 
@@ -149,7 +150,7 @@ export class Ec extends alg.AlgorithmBase {
                     // create jwk  
                     let pubJwk: IJwkEcPublicKey = {
                         kty: "EC",
-                        crv: key.algorithm.namedCurve,
+                        crv: (<IEcKeyGenParams>key.algorithm).namedCurve,
                         key_ops: [],
                         x: null,
                         y: null,
@@ -221,25 +222,13 @@ export interface IEcKeyGenParams extends iwc.IAlgorithmIdentifier {
 
 export interface IEcAlgorithmParams extends iwc.IAlgorithmIdentifier {
     namedCurve: string;
-    public?: EcKey;
+    public?: CryptoKey;
 }
 
 export interface IEcdsaAlgorithmParams extends IEcAlgorithmParams {
     hash: {
         name: string;
     };
-}
-
-export class EcKey extends key.CryptoKey {
-
-    namedCurve: string;
-    algorithm: IEcKeyGenParams;
-
-    constructor(key: native.Key, alg: IEcKeyGenParams, type: string) {
-        super(key, alg, type);
-        this.namedCurve = alg.namedCurve;
-        // TODO: get params from key if alg params is empty
-    }
 }
 
 export class Ecdsa extends Ec {
@@ -267,8 +256,8 @@ export class Ecdsa extends Ec {
     }
 
     static sign(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static sign(alg: IEcdsaAlgorithmParams, key: EcKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static sign(alg: IEcdsaAlgorithmParams, key: EcKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static sign(alg: IEcdsaAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static sign(alg: IEcdsaAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(alg);
             this.checkAlgorithmHashedParams(alg);
@@ -284,8 +273,8 @@ export class Ecdsa extends Ec {
     }
 
     static verify(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
-    static verify(alg: IEcdsaAlgorithmParams, key: EcKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
-    static verify(alg: IEcdsaAlgorithmParams, key: EcKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+    static verify(alg: IEcdsaAlgorithmParams, key: CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    static verify(alg: IEcdsaAlgorithmParams, key: CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
         try {
             this.checkAlgorithmIdentifier(alg);
             this.checkAlgorithmHashedParams(alg);
@@ -299,7 +288,7 @@ export class Ecdsa extends Ec {
         }
     }
 
-    static exportKey(format: string, key: EcKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         super.exportKey(format, key, function(err, d) {
             if (!err) {
                 if (format === "jwk") {
@@ -366,7 +355,7 @@ export class Ecdh extends Ec {
                 if (!err) {
                     native.AesKey.import(raw, function(err, key) {
                         if (!err) {
-                            let aesKey = new aes.AesKey(key, derivedKeyType, "secret");
+                            let aesKey = new CryptoKey(key, derivedKeyType, "secret");
                             cb(null, aesKey);
                         }
                         else
@@ -382,7 +371,7 @@ export class Ecdh extends Ec {
         }
     }
 
-    static exportKey(format: string, key: EcKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         super.exportKey(format, key, function(err, d) {
             if (!err) {
                 if (format === "jwk") {
