@@ -53,7 +53,7 @@ mocha
 
 ## Threat Model
 
-The threat model is defined in terms of what each possible attacker can achieve. The list is intended to be exhaustive, i.e. if an entity can do something that is not listed here then that should count as a break of `Backwater`.
+The threat model is defined in terms of what each possible attacker can achieve. 
 
 ### Assumptions
 
