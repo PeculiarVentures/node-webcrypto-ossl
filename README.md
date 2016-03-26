@@ -13,7 +13,7 @@ We wanted to be able to write Javascript that used crypto on both the client and
 * [Threat Model](#threat-model)
   * [Assumptions](#assumptions)
   * [Threats From Weak Cryptography](#threats-from-weak-cryptography)
-  * [Threats From Improper use of Cryptography](#threats-from-improper-use-of-cryptography)
+  * [Threats From Improper Use Of Cryptography](#threats-from-improper-use-of-cryptography)
 * [Bug Reporting](#bug-reporting)
 * [Related](#related)
 
@@ -67,7 +67,7 @@ TODO: ADD THREATS FROM HANCOCK SERVICE COMPROMISE
 
 TODO: ADD THREATS FROM WEAK CRYPTOGRAPHY
 
-### Threats From Improper use of Cryptography
+### Threats From Improper Use Of Cryptography
 
 TODO: ADD THREATS FOR IMPROPER USE OF CRYPTOGRAPHY
 
