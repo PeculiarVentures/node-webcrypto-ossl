@@ -1,4 +1,4 @@
-# node-webcrypto-p11
+# node-webcrypto-ossl
 
 [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/PeculiarVentures/node-webcrypto-ossl/master/LICENSE)
 
