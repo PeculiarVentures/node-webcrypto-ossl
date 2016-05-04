@@ -27,8 +27,8 @@ public:
 	static NAN_METHOD(New);
 	
 	static NAN_GETTER(Type);
-	static NAN_GETTER(ModulusLength);
-	static NAN_GETTER(PublicExponent);
+	static NAN_METHOD(ModulusLength);
+	static NAN_METHOD(PublicExponent);
 	static NAN_METHOD(GenerateRsa);
 	static NAN_METHOD(GenerateEc);
 	static NAN_METHOD(ExportJwk);

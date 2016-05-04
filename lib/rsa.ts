@@ -113,8 +113,8 @@ export class Rsa extends alg.AlgorithmBase {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key for ${format}\n${err.message}`);
                             let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
-                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = key.modulusLength * 8;
-                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(key.publicExponent as any);
+                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = key.modulusLength() * 8;
+                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(key.publicExponent() as any);
                             cb(null, rsa);
                         }
                         catch (e) {

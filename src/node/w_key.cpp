@@ -15,11 +15,11 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "verify", Verify);
 	SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
 	SetPrototypeMethod(tpl, "EcdhDeriveKey", EcdhDeriveKey);
+	SetPrototypeMethod(tpl, "modulusLength", ModulusLength);
+	SetPrototypeMethod(tpl, "publicExponent", PublicExponent);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
-	Nan::SetAccessor(itpl, Nan::New("modulusLength").ToLocalChecked(), ModulusLength);
-	Nan::SetAccessor(itpl, Nan::New("publicExponent").ToLocalChecked(), PublicExponent);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
@@ -58,7 +58,7 @@ NAN_GETTER(WKey::Type) {
 	info.GetReturnValue().Set(Nan::New<v8::Number>(wkey->data->Get()->type));
 }
 
-NAN_GETTER(WKey::ModulusLength) {
+NAN_METHOD(WKey::ModulusLength) {
 	LOG_FUNC();
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
@@ -73,7 +73,7 @@ NAN_GETTER(WKey::ModulusLength) {
 	}
 }
 
-NAN_GETTER(WKey::PublicExponent) {
+NAN_METHOD(WKey::PublicExponent) {
 	LOG_FUNC();
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
