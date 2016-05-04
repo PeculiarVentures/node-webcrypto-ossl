@@ -18,6 +18,8 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
+	Nan::SetAccessor(itpl, Nan::New("modulusLength").ToLocalChecked(), ModulusLength);
+	Nan::SetAccessor(itpl, Nan::New("publicExponent").ToLocalChecked(), PublicExponent);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
@@ -54,6 +56,37 @@ NAN_GETTER(WKey::Type) {
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 	info.GetReturnValue().Set(Nan::New<v8::Number>(wkey->data->Get()->type));
+}
+
+NAN_GETTER(WKey::ModulusLength) {
+	LOG_FUNC();
+
+	WKey *wkey = WKey::Unwrap<WKey>(info.This());
+
+	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+		Nan::ThrowError("Key is not RSA");
+	else {
+		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
+
+		int modulus_length = RSA_size(rsa.Get());
+		info.GetReturnValue().Set(Nan::New<v8::Number>(modulus_length));
+	}
+}
+
+NAN_GETTER(WKey::PublicExponent) {
+	LOG_FUNC();
+
+	WKey *wkey = WKey::Unwrap<WKey>(info.This());
+
+	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+		Nan::ThrowError("Key is not RSA");
+	else {
+		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
+
+		BIGNUM *public_exponent = rsa.Get()->e;
+		v8::Handle<v8::Object> v8Buffer = bn2buf(public_exponent);
+		info.GetReturnValue().Set(v8Buffer);
+	}
 }
 
 NAN_METHOD(WKey::GenerateRsa) {

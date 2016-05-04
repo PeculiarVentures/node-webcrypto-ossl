@@ -45,7 +45,7 @@ export class Aes extends alg.AlgorithmBase {
 
             native.AesKey.generate(alg.length / 8, function(err, key) {
                 if (!err) {
-                    let aes = new CryptoKey(key, alg, "secret");
+                    let aes = new CryptoKey(key, alg, "secret", extractable, keyUsages);
                     aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
                     cb(null, aes);
                 }
@@ -87,7 +87,7 @@ export class Aes extends alg.AlgorithmBase {
 
             let aes = native.AesKey.import(raw, function(err, key) {
                 if (!err) {
-                    let aes = new CryptoKey(key, alg, "secret");
+                    let aes = new CryptoKey(key, alg, "secret", extractable, keyUsages);
                     aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
                     cb(null, aes);
                 }

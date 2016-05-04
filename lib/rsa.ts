@@ -44,8 +44,8 @@ export class Rsa extends alg.AlgorithmBase {
                     }
                     else {
                         cb(null, {
-                            privateKey: new CryptoKey(key, alg, "private"),
-                            publicKey: new CryptoKey(key, alg, "public")
+                            privateKey: new CryptoKey(key, alg, "private", extractable, keyUsages),
+                            publicKey: new CryptoKey(key, alg, "public", extractable, keyUsages)
                         });
                     }
                 }
@@ -68,7 +68,8 @@ export class Rsa extends alg.AlgorithmBase {
         cb: (err: Error, d: iwc.ICryptoKey) => void
     ): void {
         try {
-            switch (format.toLocaleLowerCase()) {
+            let _format = format.toLocaleLowerCase();
+            switch (_format) {
                 case "jwk":
                     let jwk: IJwkRsaPrivateKey = <IJwkRsaPrivateKey>keyData;
                     this.checkAlgorithmIdentifier(algorithm);
@@ -90,7 +91,7 @@ export class Rsa extends alg.AlgorithmBase {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key from JWK\n${err.message}`);
-                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, key_type ? "private" : "public");
+                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, key_type ? "private" : "public", extractable, keyUsages);
                             (<IRsaKeyGenParams>rsa.algorithm).modulusLength = jwk.n.length * 8;
                             (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(jwk.e);
                             cb(null, rsa);
@@ -100,17 +101,20 @@ export class Rsa extends alg.AlgorithmBase {
                         }
                     });
                     break;
-                case "spki":
                 case "pkcs8":
+                case "spki":
                     if (!Buffer.isBuffer(keyData))
                         throw new Error("ImportKey: keyData is not a Buffer");
-                    native.Key.importSpki(<Buffer>keyData, function (err, key) {
+                    let importFunction: (keyData: Buffer, cb: (err: Error, key: native.Key) => void) => void = native.Key.importPkcs8;
+                    if (_format === "spki")
+                        importFunction = native.Key.importSpki;
+                    importFunction(<Buffer>keyData, function (err, key) {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key for ${format}\n${err.message}`);
-                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private");
-                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = jwk.n.length * 8;
-                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(jwk.e);
+                            let rsa = new CryptoKey(key, <IRsaKeyGenParams>algorithm, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
+                            (<IRsaKeyGenParams>rsa.algorithm).modulusLength = key.modulusLength * 8;
+                            (<IRsaKeyGenParams>rsa.algorithm).publicExponent = new Uint8Array(key.publicExponent as any);
                             cb(null, rsa);
                         }
                         catch (e) {
@@ -490,7 +494,7 @@ export class RsaOAEP extends Rsa {
                             cb(err, null);
                         }
                         else {
-                            cb(null, new key.CryptoKey(nkey, unwrappedAlgorithm, "secret"));
+                            cb(null, new key.CryptoKey(nkey, unwrappedAlgorithm, "secret", extractable, keyUsages));
                         }
                     })
                 }

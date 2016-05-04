@@ -136,6 +136,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
             .then(function (k) {
                 assert.equal(k.type === "private", true, "Key is not Private");
                 assert.equal(k.algorithm.name === "ECDSA", true, "Key is not ECDSA");
+                console.log(k.usages);
             })
             .then(done, done);
     })

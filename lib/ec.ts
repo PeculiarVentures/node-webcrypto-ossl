@@ -58,8 +58,8 @@ export class Ec extends alg.AlgorithmBase {
 
             native.Key.generateEc(namedCurve, function(err, key) {
                 cb(null, {
-                    "privateKey": new CryptoKey(key, alg, "private"),
-                    "publicKey": new CryptoKey(key, alg, "public")
+                    "privateKey": new CryptoKey(key, alg, "private", extractable, keyUsages),
+                    "publicKey": new CryptoKey(key, alg, "public", extractable, keyUsages)
                 });
             });
         }
@@ -79,7 +79,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "pkcs8":
                     native.Key.importPkcs8(<Buffer>keyData, function(err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, "private");
+                            let ec = new CryptoKey(key, algorithm, "private", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -89,7 +89,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "spki":
                     native.Key.importSpki(<Buffer>keyData, function(err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, "public");
+                            let ec = new CryptoKey(key, algorithm, "public", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -116,7 +116,7 @@ export class Ec extends alg.AlgorithmBase {
                     }
                     native.Key.importJwk(jwk, key_type, function(err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public");
+                            let ec = new CryptoKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -355,7 +355,7 @@ export class Ecdh extends Ec {
                 if (!err) {
                     native.AesKey.import(raw, function(err, key) {
                         if (!err) {
-                            let aesKey = new CryptoKey(key, derivedKeyType, "secret");
+                            let aesKey = new CryptoKey(key, derivedKeyType, "secret", extractable, keyUsages);
                             cb(null, aesKey);
                         }
                         else

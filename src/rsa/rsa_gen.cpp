@@ -17,7 +17,7 @@ Handle<ScopedEVP_PKEY> RSA_generate(int modulus, int publicExponent) {
 		e = RSA_F4;
 		break;
 	default:
-		THROW_ERROR("Unsuported publicExponent value");
+		THROW_ERROR("Unsupported publicExponent value");
 	}
 
 	bne = BN_new();

@@ -52,6 +52,16 @@ export declare class Key {
      * type of key
      */
     type: number;
+    
+    /**
+     * RSA modulus length
+     */
+    modulusLength: number;
+    
+    /**
+     * RSA public exponent
+     */
+    publicExponent: Buffer;
 
     /**
      * Export Key to JWK data
