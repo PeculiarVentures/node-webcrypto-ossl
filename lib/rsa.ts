@@ -37,7 +37,7 @@ export class Rsa extends alg.AlgorithmBase {
             let nExp: number = 0;
             if (exp.toString("hex") === "010001")
                 nExp = 1;
-            native.Key.generateRsa(size, nExp, function(err, key) {
+            native.Key.generateRsa(size, nExp, function (err, key) {
                 try {
                     if (err) {
                         throw new Error(`Rsa: Can not generate new key\n${err.message}`);
@@ -86,7 +86,7 @@ export class Rsa extends alg.AlgorithmBase {
                         jwk.dq = new Buffer(base64url.decode(jwk.dq, "binary"), "binary");
                         jwk.qi = new Buffer(base64url.decode(jwk.qi, "binary"), "binary");
                     }
-                    native.Key.importJwk(jwk, key_type, function(err, key) {
+                    native.Key.importJwk(jwk, key_type, function (err, key) {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key from JWK\n${err.message}`);
@@ -104,7 +104,7 @@ export class Rsa extends alg.AlgorithmBase {
                 case "pkcs8":
                     if (!Buffer.isBuffer(keyData))
                         throw new Error("ImportKey: keyData is not a Buffer");
-                    native.Key.importSpki(<Buffer>keyData, function(err, key) {
+                    native.Key.importSpki(<Buffer>keyData, function (err, key) {
                         try {
                             if (err)
                                 throw new Error(`ImportKey: Can not import key for ${format}\n${err.message}`);
@@ -133,7 +133,7 @@ export class Rsa extends alg.AlgorithmBase {
             let type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
-                    nkey.exportJwk(type, function(err, data) {
+                    nkey.exportJwk(type, function (err, data) {
                         try {
                             let jwk = <IJwkRsaPrivateKey>data;
 
@@ -220,7 +220,7 @@ export class RsaPKCS1 extends Rsa {
             this.checkRsaGenParams(alg);
             this.checkAlgorithmHashedParams(alg);
 
-            super.generateKey(alg, extractable, keyUsages, function(err: Error, key: iwc.ICryptoKey) {
+            super.generateKey(alg, extractable, keyUsages, function (err: Error, key: iwc.ICryptoKey) {
                 try {
                     if (err) {
                         cb(err, null);
@@ -247,7 +247,9 @@ export class RsaPKCS1 extends Rsa {
 
     static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
-            super.exportKey(format, key, function(err, data) {
+            super.exportKey(format, key, function (err, data) {
+                if (err)
+                    return cb(err, null);
                 try {
                     if (format === "jwk") {
                         let jwk = <IJwkRsaPrivateKey>data;
@@ -319,7 +321,7 @@ export class RsaOAEP extends Rsa {
             this.checkRsaGenParams(alg);
             this.checkAlgorithmHashedParams(alg);
 
-            super.generateKey(alg, extractable, keyUsages, function(err: Error, key: iwc.ICryptoKey) {
+            super.generateKey(alg, extractable, keyUsages, function (err: Error, key: iwc.ICryptoKey) {
                 try {
                     if (err) {
                         cb(err, null);
@@ -346,7 +348,9 @@ export class RsaOAEP extends Rsa {
 
     static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
-            super.exportKey(format, key, function(err, data) {
+            super.exportKey(format, key, function (err, data) {
+                if (err)
+                    return cb(err, null);
                 try {
                     if (format === "jwk") {
                         let jwk = <IJwkRsaPrivateKey>data;
@@ -428,7 +432,7 @@ export class RsaOAEP extends Rsa {
             let nkey = <native.Key>wrappingKey.native;
             let nAesKey = <native.AesKey>key.native;
 
-            nAesKey.export(function(err, data) {
+            nAesKey.export(function (err, data) {
                 if (err) {
                     cb(err, null);
                 }
@@ -476,12 +480,12 @@ export class RsaOAEP extends Rsa {
                 label = new Buffer(0);
             if (!Buffer.isBuffer(label))
                 label = new Buffer(label);
-            (<native.Key>unwrappingKey.native).RsaOaepEncDec(_alg, wrappedKey, label, true, function(err, rawKey) {
+            (<native.Key>unwrappingKey.native).RsaOaepEncDec(_alg, wrappedKey, label, true, function (err, rawKey) {
                 if (err) {
                     cb(err, null);
                 }
                 else {
-                    native.AesKey.import(rawKey, function(err, nkey) {
+                    native.AesKey.import(rawKey, function (err, nkey) {
                         if (err) {
                             cb(err, null);
                         }
