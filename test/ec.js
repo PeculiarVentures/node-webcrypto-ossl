@@ -129,14 +129,18 @@ describe("WebCrypto ECDSA sign/verify", function () {
                         name: "ECDSA",
                         namedCurve: "P-256", 	//can be "P-256", "P-384", or "P-521"
                     },
-                    false, 						//whether the key is extractable (i.e. can be used in exportKey)
-                    ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+                    true, 						//whether the key is extractable (i.e. can be used in exportKey)
+                    ["sign"] 			//can be any combination of "sign" and "verify"
                     )
             })
             .then(function (k) {
                 assert.equal(k.type === "private", true, "Key is not Private");
                 assert.equal(k.algorithm.name === "ECDSA", true, "Key is not ECDSA");
-                console.log(k.usages);
+                assert.equal(k.algorithm.namedCurve, "P-256", "Key has wrong named curve");
+                assert.equal(k.type, "private", "Key is not private");
+                assert.equal(k.extractable, true, "Key has wrong extractable property");
+                assert.equal(k.usages.length, 1, "Key has wrong key usages property");
+                assert.equal(k.usages[0], "sign", "Key has wrong key usages property");
             })
             .then(done, done);
     })
@@ -175,6 +179,11 @@ describe("WebCrypto ECDSA sign/verify", function () {
             .then(function (k) {
                 assert.equal(k.type === "public", true, "Key is not Public");
                 assert.equal(k.algorithm.name === "ECDSA", true, "Key is not ECDSA");
+                assert.equal(k.algorithm.namedCurve, "P-256", "Key has wrong named curve");
+                assert.equal(k.type, "public", "Key is not public");
+                assert.equal(k.extractable, false, "Key has wrong extractable property");
+                assert.equal(k.usages.length, 1, "Key has wrong key usages property");
+                assert.equal(k.usages[0], "verify", "Key has wrong key usages property");
             })
             .then(done, done);
     })
