@@ -390,4 +390,93 @@ describe("WebCrypto ECDSA sign/verify", function () {
             })
             .then(done, done);
     })
+    
+    function test_sign(namedCurve, hash, done){
+        var keys = null;
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDSA",
+                namedCurve: namedCurve, 	//can be "P-256", "P-384", or "P-521"
+            },
+            false, 						//whether the key is extractable (i.e. can be used in exportKey)
+            ["sign", "verify"] 			//can be any combination of "sign" and "verify"
+            )
+            .then(function (k) {
+                assert.equal(k.privateKey !== null, true, "Has no private key");
+                assert.equal(k.publicKey !== null, true, "Has no public key");
+                keys = k;
+                return webcrypto.subtle.sign(
+                    {
+                        name: "ECDSA",
+                        hash: { name: hash }, //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
+                    },
+                    keys.privateKey,
+                    TEST_MESSAGE)
+            })
+            .then(function (sig) {
+                assert.equal(sig !== null, true, "Has no signature value");
+                assert.notEqual(sig.length, 0, "Has empty signature value");
+                return webcrypto.subtle.verify(
+                    {
+                        name: "ECDSA",
+                        hash: { name: hash }, //can be "SHA-1", "SHA-256", "SHA-384", or "SHA-512"
+                    },
+                    keys.publicKey,
+                    sig,
+                    TEST_MESSAGE
+                    )
+            })
+            .then(function (v) {
+                assert.equal(v, true, "Ecdsa signature is not valid");
+            })
+            .then(done, done);
+    }
+    
+    it("Ecdsa sign/verify P-256 SHA-1", function (done) {
+        test_sign("P-256", "SHA-1", done);
+    })
+
+    it("Ecdsa sign/verify P-256 SHA-256", function (done) {
+        test_sign("P-256", "SHA-256", done);
+    })
+    
+    it("Ecdsa sign/verify P-256 SHA-384", function (done) {
+        test_sign("P-256", "SHA-384", done);
+    })
+    
+    it("Ecdsa sign/verify P-256 SHA-512", function (done) {
+        test_sign("P-256", "SHA-512", done);
+    })
+    
+    it("Ecdsa sign/verify P-384 SHA-1", function (done) {
+        test_sign("P-384", "SHA-1", done);
+    })
+
+    it("Ecdsa sign/verify P-384 SHA-256", function (done) {
+        test_sign("P-384", "SHA-256", done);
+    })
+    
+    it("Ecdsa sign/verify P-384 SHA-384", function (done) {
+        test_sign("P-384", "SHA-384", done);
+    })
+    
+    it("Ecdsa sign/verify P-384 SHA-512", function (done) {
+        test_sign("P-384", "SHA-512", done);
+    })
+    
+    it("Ecdsa sign/verify P-521 SHA-1", function (done) {
+        test_sign("P-521", "SHA-1", done);
+    })
+
+    it("Ecdsa sign/verify P-521 SHA-256", function (done) {
+        test_sign("P-521", "SHA-256", done);
+    })
+    
+    it("Ecdsa sign/verify P-521 SHA-384", function (done) {
+        test_sign("P-521", "SHA-384", done);
+    })
+    
+    it("Ecdsa sign/verify P-521 SHA-512", function (done) {
+        test_sign("P-521", "SHA-512", done);
+    })
 })
