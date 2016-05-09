@@ -1,0 +1,8 @@
+/.vscode
+/node_modules
+/build
+/lib
+/typings
+.gitignore
+tsconfig.json
+tsd.json
