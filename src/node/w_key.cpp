@@ -84,7 +84,7 @@ NAN_METHOD(WKey::PublicExponent) {
 		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
 
 		BIGNUM *public_exponent = rsa.Get()->e;
-		v8::Handle<v8::Object> v8Buffer = bn2buf(public_exponent);
+		v8::Local<v8::Object> v8Buffer = bn2buf(public_exponent);
 		info.GetReturnValue().Set(v8Buffer);
 	}
 }
