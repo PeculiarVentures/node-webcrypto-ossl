@@ -75,7 +75,7 @@ TODO: ADD THREATS FOR IMPROPER USE OF CRYPTOGRAPHY
 
 
 ## Bug Reporting
-Please report bugs either as pull requests or as issues in the issue tracker. Backwater has a full disclosure vulnerability policy. Please do NOT attempt to report any security vulnerability in this code privately to anybody.
+Please report bugs either as pull requests or as issues in the issue tracker. node-webcrypto-ossl has a full disclosure vulnerability policy. Please do NOT attempt to report any security vulnerability in this code privately to anybody.
 
 
 ## Related
