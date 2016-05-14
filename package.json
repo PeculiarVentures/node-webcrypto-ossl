@@ -1,7 +1,11 @@
 {
   "name": "node-webcrypto-ossl",
-  "version": "1.0.2",
-  "description": "",
+  "version": "1.0.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeculiarVentures/node-webcrypto-ossl.git"
+  },
+  "description": "A WebCrypto Polyfill for Node in TypeScript built on OpenSSL",
   "main": "buildjs/webcrypto.js",
   "scripts": {
     "test": "mocha",
@@ -10,17 +14,18 @@
   "author": "PeculiarVentures",
   "license": "MIT",
   "keywords": [
-      "crypto",
-      "openssl",
-      "webcrypto",
-      "rsa",
-      "aes",
-      "ec",
-      "jwk",
-      "polyfill"
+    "crypto",
+    "openssl",
+    "webcrypto",
+    "rsa",
+    "aes",
+    "ec",
+    "jwk",
+    "polyfill"
   ],
   "dependencies": {
     "base64url": "^1.0.5",
+    "mkdirp": "^0.5.1",
     "mocha": "^2.3.4",
     "nan": "2.1.0"
   }

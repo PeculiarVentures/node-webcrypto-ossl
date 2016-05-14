@@ -9,7 +9,7 @@ export type AlgorithmType = string | IAlgorithmIdentifier;
 
 export interface IWebCrypto {
     subtle: ISubtleCrypto;
-    getRandomValues(array: Buffer): Buffer;
+    getRandomValues(array: ArrayBufferView): Buffer;
 }
 
 export type TBuffer = ArrayBuffer | Buffer;

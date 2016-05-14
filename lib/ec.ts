@@ -24,7 +24,7 @@ export interface IJwkEcPrivateKey extends IJwkEcPublicKey {
     d: Buffer;
 }
 
-function nc2ssl(nc) {
+function nc2ssl(nc: any) {
     let _namedCurve = "";
     switch (nc.toUpperCase()) {
         case "P-192":
@@ -42,7 +42,7 @@ function nc2ssl(nc) {
         default:
             throw new Error("Unsupported namedCurve in use");
     }
-    return native.EcNamedCurves[_namedCurve];
+    return (native.EcNamedCurves as any)[_namedCurve];
 }
 
 export class Ec extends alg.AlgorithmBase {
@@ -234,7 +234,7 @@ export interface IEcdsaAlgorithmParams extends IEcAlgorithmParams {
 export class Ecdsa extends Ec {
     static ALGORITHM_NAME: string = ALG_NAME_ECDSA;
 
-    static wc2ssl(alg) {
+    static wc2ssl(alg: any) {
         this.checkAlgorithmHashedParams(alg);
         // let _alg = "ecdsa-with-" + alg.hash.name.toUpperCase().replace("-", "");
         let _alg = alg.hash.name.toUpperCase().replace("-", "");

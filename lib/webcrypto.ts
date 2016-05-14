@@ -1,12 +1,18 @@
 import * as iwc from "./iwebcrypto";
 import * as subtle from "./subtle";
 import * as crypto from "crypto";
+import {KeyStorage} from "./key_storage";
+
+export interface WebCryptoOptions {
+    directory: string;
+}
 
 /**
- * PKCS11 with WebCrypto Interface
+ * OpenSSL with WebCrypto Interface
  */
 export default class WebCrypto implements iwc.IWebCrypto {
 
+    keyStorage: KeyStorage = null;
 
     public subtle: iwc.ISubtleCrypto = null;
 
@@ -14,14 +20,16 @@ export default class WebCrypto implements iwc.IWebCrypto {
      * Generates cryptographically random values
      * @param array Initialize array
      */
-    getRandomValues(array): any {
+    getRandomValues(array: ArrayBufferView): any {
         return crypto.randomBytes(array.byteLength);
     }
 
     /**
      * Constructor
      */
-    constructor() {
+    constructor(options?: WebCryptoOptions) {
         this.subtle = new subtle.SubtleCrypto();
+        if (options && options.directory)
+            this.keyStorage = new KeyStorage(options.directory);
     }
 }
