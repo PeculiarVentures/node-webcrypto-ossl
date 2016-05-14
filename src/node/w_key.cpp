@@ -132,19 +132,69 @@ NAN_METHOD(WKey::ExportJwk) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
-		return;
+		if (!info[1]->IsUndefined()) {
+			info[1].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+			return;
+		}
+		else {
+			Nan::ThrowError(Nan::New("Unsupported Key in use").ToLocalChecked());
+			return;
+		}
 	}
 
-	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+	Nan::Callback *callback = !info[1]->IsUndefined() ? new Nan::Callback(info[1].As<v8::Function>()) : NULL;
 
 	switch (wkey->data->Get()->type) {
 	case EVP_PKEY_RSA: {
-		Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
+		if (callback)
+			Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
+		else {
+			Handle<JwkRsa> jwk = JwkRsa::From(wkey->data, key_type);
+
+			v8::Local<v8::Object> v8Jwk = Nan::New<v8::Object>();
+
+			LOG_INFO("Convert RSA to JWK");
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked(), Nan::New(jwk->kty).ToLocalChecked());
+			LOG_INFO("Get RSA public key");
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_N).ToLocalChecked(), bn2buf(jwk->n.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_E).ToLocalChecked(), bn2buf(jwk->e.Get()));
+			if (key_type == NODESSL_KT_PRIVATE) {
+				LOG_INFO("Get RSA private key");
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_D).ToLocalChecked(), bn2buf(jwk->d.Get()));
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_P).ToLocalChecked(), bn2buf(jwk->p.Get()));
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_Q).ToLocalChecked(), bn2buf(jwk->q.Get()));
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DP).ToLocalChecked(), bn2buf(jwk->dp.Get()));
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_DQ).ToLocalChecked(), bn2buf(jwk->dq.Get()));
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_QI).ToLocalChecked(), bn2buf(jwk->qi.Get()));
+			}
+
+			info.GetReturnValue().Set(v8Jwk);
+			return;
+		}
 		break;
 	}
 	case EVP_PKEY_EC:
-		Nan::AsyncQueueWorker(new AsyncEcExportJwk(callback, key_type, wkey->data));
+		if (callback)
+			Nan::AsyncQueueWorker(new AsyncEcExportJwk(callback, key_type, wkey->data));
+		else {
+			Handle<JwkEc> jwk = JwkEc::From(wkey->data, key_type);
+
+			v8::Local<v8::Object> v8Jwk = Nan::New<v8::Object>();
+
+			LOG_INFO("Convert EC to JWK");
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked(), Nan::New(jwk->kty).ToLocalChecked());
+			LOG_INFO("Get EC public key");
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_CRV).ToLocalChecked(), Nan::New<v8::Number>(jwk->crv));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_X).ToLocalChecked(), bn2buf(jwk->x.Get()));
+			Nan::Set(v8Jwk, Nan::New(JWK_ATTR_Y).ToLocalChecked(), bn2buf(jwk->y.Get()));
+			if (key_type == NODESSL_KT_PRIVATE) {
+				LOG_INFO("Get RSA private key");
+				Nan::Set(v8Jwk, Nan::New(JWK_ATTR_D).ToLocalChecked(), bn2buf(jwk->d.Get()));
+			}
+
+			info.GetReturnValue().Set(v8Jwk);
+			return;
+		}
 		break;
 	}
 }
@@ -204,16 +254,22 @@ NAN_METHOD(WKey::ImportJwk) {
 	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
 	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
 
-	if (!(strcmp(*v8Kty, JWK_KTY_RSA)==0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)){
+	if (!(strcmp(*v8Kty, JWK_KTY_RSA) == 0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)) {
 		v8::Local<v8::Value> argv[] = {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
-		return;
+		if (!info[2]->IsUndefined()) {
+			info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+			return;
+		}
+		else {
+			Nan::ThrowError(Nan::New("Unsupported Key in use").ToLocalChecked());
+			return;
+		}
 	}
 
-	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+	Nan::Callback *callback = !info[2]->IsUndefined() ? new Nan::Callback(info[2].As<v8::Function>()) : NULL;
 
 	if (strcmp(*v8Kty, JWK_KTY_RSA) == 0) {
 		Handle<JwkRsa> jwk(new JwkRsa());
@@ -232,7 +288,16 @@ NAN_METHOD(WKey::ImportJwk) {
 			v8Object_get_BN(v8Jwk, qi, jwk, qi);
 		}
 
-		Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type));
+		if (callback)
+			Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type));
+		else {
+			Handle<ScopedEVP_PKEY> pkey = jwk->To(key_type);
+			v8::Local<v8::Object> v8Key = WKey::NewInstance();
+			WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+			wkey->data = pkey;
+
+			return info.GetReturnValue().Set(v8Key);
+		}
 	}
 	else {
 		Handle<JwkEc> jwk(new JwkEc());
@@ -247,8 +312,16 @@ NAN_METHOD(WKey::ImportJwk) {
 			v8Object_get_BN(v8Jwk, d, jwk, d);
 		}
 
-		Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type));
-		return;
+		if (callback)
+			Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type));
+		else {
+			Handle<ScopedEVP_PKEY> pkey = jwk->To(key_type);
+			v8::Local<v8::Object> v8Key = WKey::NewInstance();
+			WKey *wkey = WKey::Unwrap<WKey>(v8Key);
+			wkey->data = pkey;
+
+			return info.GetReturnValue().Set(v8Key);
+		}
 	}
 
 }

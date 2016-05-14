@@ -360,5 +360,45 @@ describe("native", function () {
             done()
         });
     })
+    
+    it("native RSA Key export/import jwk sync", function(done){
+        native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
+            assert.equal(err == null, true, "error on key generation");
+            // export key PRIVATE
+            var jwk = key.exportJwk(native.KeyType.PRIVATE);
+            assert.equal(!!jwk, true, "Can not export jwk");
+            // import key PRIVATE
+            var new_key = native.Key.importJwk(jwk, native.KeyType.PRIVATE);
+            assert.equal(!!new_key, true, "Can not import jwk");
+            
+            // export key PUBLIC
+            var jwk = key.exportJwk(native.KeyType.PUBLIC);
+            assert.equal(!!jwk, true, "Can not export jwk");
+            // import key PUBLIC
+            var new_key = native.Key.importJwk(jwk, native.KeyType.PUBLIC);
+            assert.equal(!!new_key, true, "Can not import jwk");
+            done();
+        })
+    });
+    
+    it("native EC Key export/import jwk sync", function(done){
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
+            assert.equal(err == null, true, "error on key generation");
+            // export key PRIVATE
+            var jwk = key.exportJwk(native.KeyType.PRIVATE);
+            assert.equal(!!jwk, true, "Can not export jwk");
+            // import key PRIVATE
+            var new_key = native.Key.importJwk(jwk, native.KeyType.PRIVATE);
+            assert.equal(!!new_key, true, "Can not import jwk");
+            
+            // export key PUBLIC
+            var jwk = key.exportJwk(native.KeyType.PUBLIC);
+            assert.equal(!!jwk, true, "Can not export jwk");
+            // import key PUBLIC
+            var new_key = native.Key.importJwk(jwk, native.KeyType.PUBLIC);
+            assert.equal(!!new_key, true, "Can not import jwk");
+            done();
+        })
+    });
 
 })

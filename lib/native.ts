@@ -52,12 +52,12 @@ export declare class Key {
      * type of key
      */
     type: number;
-    
+
     /**
      * RSA modulus length
      */
     modulusLength(): number;
-    
+
     /**
      * RSA public exponent
      */
@@ -69,6 +69,11 @@ export declare class Key {
      * @param callback callback function (err: Error, jwk: Object)
      */
     exportJwk(keyType: KeyType, callback: (err: Error, jwk: any) => void): void;
+    /**
+     * Export Key to JWK data
+     * @param keyType type of exported key (PRIVATE or PUBLIC)
+     */
+    exportJwk(keyType: KeyType): any;
 
     /**
      * export Key to SPKI
@@ -139,6 +144,12 @@ export declare class Key {
      * @param callback callback function (err: Error, key: Key)
      */
     static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
+    /**
+     * create Key from JWK data
+     * @param jwk key in JWK format
+     * @param keyType type of imported key (PRIVATE or PUBLIC)
+     */
+    static importJwk(jwk: Object, keyType: KeyType): any;
 
     /**
      * create Key from SPKI
