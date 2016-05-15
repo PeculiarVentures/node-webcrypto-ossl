@@ -199,7 +199,7 @@ export class Rsa extends alg.AlgorithmBase {
             throw new Error("AlgorithmHashedParams: Unknow hash algorithm in use");
     }
 
-    static wc2ssl(alg) {
+    static wc2ssl(alg: any) {
         RsaPKCS1.checkAlgorithmHashedParams(alg);
         let _alg = alg.hash.name.toUpperCase().replace("-", "");
         return _alg;
@@ -393,7 +393,7 @@ export class RsaOAEP extends Rsa {
             let _alg = this.wc2ssl(key.algorithm);
             let nkey = <native.Key>key.native;
 
-            let label = null;
+            let label: Buffer = null;
             if (alg.label) {
                 label = new Buffer(alg.label);
             }
@@ -412,7 +412,7 @@ export class RsaOAEP extends Rsa {
             let _alg = this.wc2ssl(key.algorithm);
             let nkey = <native.Key>key.native;
 
-            let label = null;
+            let label: Buffer = null;
             if (alg.label) {
                 label = new Buffer(alg.label);
             }
@@ -461,7 +461,7 @@ export class RsaOAEP extends Rsa {
             let _alg = this.wc2ssl(unwrapAlgorithm);
 
             // convert unwrappedAlgorithm to PKCS11 Algorithm
-            let AlgClass = null;
+            let AlgClass: any = null;
             switch (unwrappedAlgorithm.name) {
                 // case aes.ALG_NAME_AES_CTR:
                 // case aes.ALG_NAME_AES_CMAC:

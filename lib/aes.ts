@@ -136,9 +136,9 @@ export class Aes extends alg.AlgorithmBase {
         }
     }
 
-    static checkKeyGenParams(alg: iwc.IAlgorithmIdentifier);
-    static checkKeyGenParams(alg: IAesKeyGenParams);
-    static checkKeyGenParams(alg: any) {
+    static checkKeyGenParams(alg: iwc.IAlgorithmIdentifier): void;
+    static checkKeyGenParams(alg: IAesKeyGenParams): void;
+    static checkKeyGenParams(alg: any): void {
         if (!alg.length)
             throw new TypeError("AesKeyGenParams: length: Missing required property");
         switch (alg.length) {

@@ -7,7 +7,7 @@ export class CryptoKey implements iwc.ICryptoKey {
     algorithm: iwc.IAlgorithmIdentifier;
     usages: string[] = [];
 
-    private native_;
+    private native_: any;
     get native(): any{
         return this.native_;
     }
