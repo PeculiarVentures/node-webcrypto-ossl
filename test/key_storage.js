@@ -1,6 +1,20 @@
-var assert = require('assert');
-var fs = require('fs');
-var webcrypto = require('./config');
+var assert = require("assert");
+var fs = require("fs");
+var webcrypto = require("./config");
+
+var deleteFolderRecursive = function (path) {
+    if (fs.existsSync(path)) {
+        fs.readdirSync(path).forEach(function (file, index) {
+            var curPath = path + "/" + file;
+            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
+};
 
 describe("Key storage", function () {
 
@@ -8,6 +22,10 @@ describe("Key storage", function () {
 
     before(function (done) {
         done();
+    })
+
+    after(function () {
+        deleteFolderRecursive("test_storage");  
     })
 
     it("Set/get key from storage", function (done) {
@@ -33,7 +51,7 @@ describe("Key storage", function () {
             })
             .then(done, done);
     });
-    
+
     it("Clear key storage", function () {
         webcrypto.keyStorage.clear();
         assert.equal(webcrypto.keyStorage.length, 0);
