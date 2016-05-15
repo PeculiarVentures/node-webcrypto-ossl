@@ -39,6 +39,7 @@ public:
 	static NAN_METHOD(ImportPkcs8);
 	static NAN_METHOD(RsaOaepEncDec);
 	static NAN_METHOD(EcdhDeriveKey);
+	static NAN_METHOD(EcdhDeriveBits);
 
 	static NAN_METHOD(Sign);
 	static NAN_METHOD(Verify);

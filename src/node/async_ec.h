@@ -121,4 +121,25 @@ private:
 	bool res;
 };
 
+class AsyncEcdhDeriveBits : public Nan::AsyncWorker {
+public:
+	AsyncEcdhDeriveBits(
+		Nan::Callback *callback,
+		Handle<ScopedEVP_PKEY> pkey,
+		Handle<ScopedEVP_PKEY> pubkey,
+		size_t length_bits
+	) : AsyncWorker(callback), pkey(pkey), pubkey(pubkey), length_bits(length_bits) {}
+	~AsyncEcdhDeriveBits() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	Handle<ScopedEVP_PKEY> pkey;
+	Handle<ScopedEVP_PKEY> pubkey;
+	size_t length_bits;
+	// Result
+	Handle<std::string> dbits;
+};
+
 #endif // OSSL_NODE_ASYNC_EC_H_INCLUDE

@@ -15,6 +15,7 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "verify", Verify);
 	SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
 	SetPrototypeMethod(tpl, "EcdhDeriveKey", EcdhDeriveKey);
+	SetPrototypeMethod(tpl, "EcdhDeriveBits", EcdhDeriveBits);
 	SetPrototypeMethod(tpl, "modulusLength", ModulusLength);
 	SetPrototypeMethod(tpl, "publicExponent", PublicExponent);
 
@@ -487,4 +488,28 @@ NAN_METHOD(WKey::EcdhDeriveKey) {
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncEcdhDeriveKey(callback, hPKey, hPubKey, derivedLen));
+}
+
+/*
+* publicKey: Key
+* lengthBits: number
+* cb: function
+*/
+NAN_METHOD(WKey::EcdhDeriveBits) {
+	LOG_FUNC();
+
+	LOG_INFO("publicKey");
+	WKey *wPubKey = WKey::Unwrap<WKey>(info[0]->ToObject());
+	Handle<ScopedEVP_PKEY> hPubKey = wPubKey->data;
+
+	LOG_INFO("lengthBits");
+	int lengthBits = Nan::To<int>(info[1]).FromJust();
+
+	LOG_INFO("this->Key");
+	WKey *wPKey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> hPKey = wPKey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncEcdhDeriveBits(callback, hPKey, hPubKey, lengthBits));
 }

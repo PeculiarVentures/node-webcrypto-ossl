@@ -123,6 +123,14 @@ export declare class Key {
     EcdhDeriveKey(pubkey: Key, derivedLen: number, callback: (err: Error, raw: Buffer) => void): void;
 
     /**
+     * derives bits with ECDH
+     * @param pubkey public key for key derivation
+     * @param lengthBits the number of bits you want to derive
+     * @param callback callback function (err: Error, raw: Buffer)
+     */
+    EcdhDeriveBits(pubkey: Key, lengthBits: number, callback: (err: Error, raw: Buffer) => void): void;
+
+    /**
      * Generate RSA key pair
      * @param modulus modulus size of RSA key pair
      * @param publicExponent public exponent of RSA key pair

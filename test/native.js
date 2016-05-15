@@ -2,7 +2,7 @@ var assert = require('assert');
 var native = require("../buildjs/native");
 
 describe("native", function () {
-    
+
     var TEST_MESSAGE = new Buffer("Hello world");
 
     function test_export(key, spki, done) {
@@ -302,8 +302,8 @@ describe("native", function () {
             });
         });
     })
-    
-    function test_encrypt_gcm(keySize, aad, tag, done){
+
+    function test_encrypt_gcm(keySize, aad, tag, done) {
         var msg = new Buffer("Hello world");
         native.AesKey.generate(keySize, function (err, key) {
             assert(!err, true, `generate: ${err}`);
@@ -317,11 +317,11 @@ describe("native", function () {
             });
         });
     }
-    
+
     it("AES GCM encrypt 192 AAD, tag(16)", function (done) {
         test_encrypt_gcm(24, new Buffer("1234567890123456"), 16, done);
     })
-    
+
     it("AES GCM encrypt 192 no AAD, tag(4)", function (done) {
         test_encrypt_gcm(24, new Buffer(""), 4, done);
     })
@@ -329,39 +329,39 @@ describe("native", function () {
     it("AES GCM encrypt 256 AAD, tag(16)", function (done) {
         test_encrypt_gcm(32, new Buffer("1234567890123456"), 16, done);
     })
-    
+
     it("AES GCM encrypt 256 no AAD, tag(13)", function (done) {
         test_encrypt_gcm(32, new Buffer(""), 13, done);
     })
-    
-    function test_digest(md, mdlen, done){
-        native.Core.digest(md, TEST_MESSAGE, function(err, digest){
+
+    function test_digest(md, mdlen, done) {
+        native.Core.digest(md, TEST_MESSAGE, function (err, digest) {
             assert.equal(!err, true, err);
             assert.equal(digest.length, mdlen, "Wrong digest length");
             done()
         });
     }
-    
+
     it("digest sha1", function (done) {
         test_digest("sha1", 20, done);
     })
-    
+
     it("digest sha256", function (done) {
         test_digest("sha256", 32, done);
     })
-    
+
     it("digest sha512", function (done) {
         test_digest("sha512", 64, done);
     })
-    
+
     it("digest wrong name", function (done) {
-        native.Core.digest("wrong name", TEST_MESSAGE, function(err, digest){
+        native.Core.digest("wrong name", TEST_MESSAGE, function (err, digest) {
             assert.equal(err != null, true, "Error is NULL");
             done()
         });
     })
-    
-    it("native RSA Key export/import jwk sync", function(done){
+
+    it("native RSA Key export/import jwk sync", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             assert.equal(err == null, true, "error on key generation");
             // export key PRIVATE
@@ -370,7 +370,7 @@ describe("native", function () {
             // import key PRIVATE
             var new_key = native.Key.importJwk(jwk, native.KeyType.PRIVATE);
             assert.equal(!!new_key, true, "Can not import jwk");
-            
+
             // export key PUBLIC
             var jwk = key.exportJwk(native.KeyType.PUBLIC);
             assert.equal(!!jwk, true, "Can not export jwk");
@@ -380,8 +380,8 @@ describe("native", function () {
             done();
         })
     });
-    
-    it("native EC Key export/import jwk sync", function(done){
+
+    it("native EC Key export/import jwk sync", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             assert.equal(err == null, true, "error on key generation");
             // export key PRIVATE
@@ -390,7 +390,7 @@ describe("native", function () {
             // import key PRIVATE
             var new_key = native.Key.importJwk(jwk, native.KeyType.PRIVATE);
             assert.equal(!!new_key, true, "Can not import jwk");
-            
+
             // export key PUBLIC
             var jwk = key.exportJwk(native.KeyType.PUBLIC);
             assert.equal(!!jwk, true, "Can not export jwk");
@@ -398,6 +398,49 @@ describe("native", function () {
             var new_key = native.Key.importJwk(jwk, native.KeyType.PUBLIC);
             assert.equal(!!new_key, true, "Can not import jwk");
             done();
+        })
+    });
+
+    it("EC deriveBits P-256 256", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            key.EcdhDeriveBits(key, 256, function (err, bits) {
+                if (!err)
+                    assert.equal(bits.length, 256 / 8);
+                done(err);
+            });
+        })
+    });
+
+    it("EC deriveBits P-256 128", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            key.EcdhDeriveBits(key, 128, function (err, bits) {
+                if (!err)
+                    assert.equal(bits.length, 128 / 8);
+                done(err);
+            });
+        })
+    });
+
+    it("EC deriveBits P-256 512, error", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            key.EcdhDeriveBits(key, 512, function (err, bits) {
+                assert.equal(!!err, true, "Should be error");
+                done();
+            });
+        })
+    });
+
+    it("EC deriveBits P-521 528, error", function (done) {
+        native.Key.generateEc(native.EcNamedCurves.secp521r1, function (err, key) {
+            assert(key != null, true, "Error on key generation");
+            key.EcdhDeriveBits(key, 528, function (err, bits) {
+                if (!err)
+                    assert.equal(bits.length, 528 / 8);
+                done(err);
+            });
         })
     });
 

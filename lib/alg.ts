@@ -18,6 +18,7 @@ export interface IAlgorithmBase {
     wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
     unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
     deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
     exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
     importKey(format: string, keyData: Buffer | IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
 }
@@ -89,6 +90,14 @@ export class AlgorithmBase {
         }
     }
 
+    static deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void {
+        try {
+            throw new Error("Method is not supported");
+        } catch (e) {
+            cb(e, null);
+        }
+    }
+
     static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
@@ -149,7 +158,7 @@ export class AlgorithmBase {
         }
     }
 
-    static checkAlgorithmIdentifier(alg) {
+    static checkAlgorithmIdentifier(alg: any) {
         if (typeof alg !== "object")
             throw TypeError("AlgorithmIdentifier: Algorithm must be an Object");
         if (!(alg.name && typeof (alg.name) === "string"))
@@ -159,7 +168,7 @@ export class AlgorithmBase {
         alg.name = this.ALGORITHM_NAME;
     }
 
-    static checkAlgorithmHashedParams(alg) {
+    static checkAlgorithmHashedParams(alg: any) {
         if (!alg.hash)
             throw new TypeError("AlgorithmHashedParams: Missing required property hash");
         if (typeof alg.hash !== "object")

@@ -143,3 +143,23 @@ void AsyncEcdsaVerify::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncEcdhDeriveBits::Execute() {
+	try {
+		this->dbits = ECDH_derive_bits(pkey, pubkey, length_bits, length_bits);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncEcdhDeriveBits::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		String_to_v8Buffer(this->dbits)
+	};
+
+	callback->Call(2, argv);
+}

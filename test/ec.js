@@ -22,7 +22,7 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
             },
             false, //whether the key is extractable (i.e. can be used in exportKey)
             ["deriveKey"] //can be any combination of "deriveKey"
-            )
+        )
             .then(function (k) {
                 assert.equal(k.privateKey !== null, true, "Has no private key");
                 assert.equal(k.publicKey !== null, true, "Has no public key");
@@ -41,7 +41,7 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
                     },
                     false, //whether the derived key is extractable (i.e. can be used in exportKey)
                     ["encrypt", "decrypt"] //limited to the options in that algorithm's importKey
-                    )
+                )
             })
             .then(function (key) {
                 assert.equal(key != null, true, "Has no derived Key value");
@@ -53,7 +53,7 @@ function testDeriveKey(webcrypto, namedCurve, algName, keySize, done) {
 }
 
 describe("WebCrypto ECDSA sign/verify", function () {
-    
+
     before(function (done) {
         done();
     })
@@ -70,7 +70,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false, 						//whether the key is extractable (i.e. can be used in exportKey)
             ["sign", "verify"] 			//can be any combination of "sign" and "verify"
-            )
+        )
             .then(function (k) {
                 assert.equal(k.privateKey !== null, true, "Has no private key");
                 assert.equal(k.publicKey !== null, true, "Has no public key");
@@ -94,7 +94,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     key.publicKey,
                     sig,
                     TEST_MESSAGE
-                    )
+                )
             })
             .then(function (v) {
                 assert.equal(v, true, "Ecdsa signature is not valid");
@@ -112,13 +112,13 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false, 						//whether the key is extractable (i.e. can be used in exportKey)
             ["sign", "verify"] 			//can be any combination of "sign" and "verify"
-            )
+        )
             .then(function (k) {
                 key = k;
                 return webcrypto.subtle.exportKey(
                     "pkcs8",
                     key.privateKey
-                    );
+                );
             })
             .then(function (pkcs8) {
                 assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");
@@ -131,7 +131,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     },
                     true, 						//whether the key is extractable (i.e. can be used in exportKey)
                     ["sign"] 			//can be any combination of "sign" and "verify"
-                    )
+                )
             })
             .then(function (k) {
                 assert.equal(k.type === "private", true, "Key is not Private");
@@ -155,13 +155,13 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false, 						//whether the key is extractable (i.e. can be used in exportKey)
             ["sign", "verify"] 			//can be any combination of "sign" and "verify"
-            )
+        )
             .then(function (k) {
                 key = k;
                 return webcrypto.subtle.exportKey(
                     "spki",
                     key.publicKey
-                    );
+                );
             })
             .then(function (spki) {
                 assert.equal(spki instanceof ArrayBuffer, true, "spki is not ArrayBuffer");
@@ -174,7 +174,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     },
                     false,
                     ["verify"]
-                    )
+                )
             })
             .then(function (k) {
                 assert.equal(k.type === "public", true, "Key is not Public");
@@ -198,7 +198,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false, 						//whether the key is extractable (i.e. can be used in exportKey)
             ["sign", "verify"] 			//can be any combination of "sign" and "verify"
-            )
+        )
             .then(function (k) {
                 assert.equal(k.privateKey !== null, true, "Has no private key");
                 assert.equal(k.publicKey !== null, true, "Has no public key");
@@ -206,7 +206,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                 return webcrypto.subtle.exportKey(
                     "jwk",
                     key.privateKey
-                    );
+                );
             })
             .then(function (jwk) {
                 assert.equal(jwk.x !== null, true, "Wrong EC key param");
@@ -223,7 +223,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     },
                     false,
                     ["sign"]
-                    );
+                );
             })
             .then(function (k) {
                 assert.equal(k.type === "private", true, "Key is not Private");
@@ -253,7 +253,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     key.publicKey, //from generateKey or importKey above
                     sig, //ArrayBuffer of the signature
                     TEST_MESSAGE  //ArrayBuffer of the data
-                    )
+                )
             })
             .then(function (v) {
                 assert.equal(v, true, "Signature is not valid")
@@ -287,13 +287,13 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false,
             ["decrypt", "encrypt"]
-            )
+        )
             .then(function (k) {
                 key = k;
                 return webcrypto.subtle.exportKey(
                     "pkcs8",
                     key.privateKey
-                    );
+                );
             })
             .then(function (pkcs8) {
                 assert.equal(pkcs8 instanceof ArrayBuffer, true, "pkcs8 is not ArrayBuffer");
@@ -306,7 +306,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     },
                     false,
                     ["decrypt"]
-                    )
+                )
             })
             .then(function (k) {
                 assert.equal(k.type === "private", true, "Key is not Private");
@@ -325,13 +325,13 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false,
             ["decrypt", "encrypt"]
-            )
+        )
             .then(function (k) {
                 key = k;
                 return webcrypto.subtle.exportKey(
                     "spki",
                     key.publicKey
-                    );
+                );
             })
             .then(function (spki) {
                 assert.equal(spki instanceof ArrayBuffer, true, "spki is not ArrayBuffer");
@@ -344,7 +344,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     },
                     false,
                     ["encrypt"]
-                    )
+                )
             })
             .then(function (k) {
                 assert.equal(k.type === "public", true, "Key is not Public");
@@ -365,13 +365,13 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             true, //whether the key is extractable (i.e. can be used in exportKey)
             ["verify"] //"verify" for public key import, "sign" for private key imports
-            )
+        )
             .then(function (k) {
                 key = k;
                 return webcrypto.subtle.exportKey(
                     "jwk",
                     key
-                    );
+                );
             })
             .then(function () {
                 sig = new Buffer(ecdsa_signature_384_sha256, "base64");
@@ -383,15 +383,15 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     key, //from generateKey or importKey above
                     sig,
                     TEST_MESSAGE  //ArrayBuffer of the data
-                    )
+                )
             })
             .then(function (v) {
                 assert.equal(v, true, "Signature is not valid")
             })
             .then(done, done);
     })
-    
-    function test_sign(namedCurve, hash, done){
+
+    function test_sign(namedCurve, hash, done) {
         var keys = null;
         webcrypto.subtle.generateKey(
             {
@@ -400,7 +400,7 @@ describe("WebCrypto ECDSA sign/verify", function () {
             },
             false, 						//whether the key is extractable (i.e. can be used in exportKey)
             ["sign", "verify"] 			//can be any combination of "sign" and "verify"
-            )
+        )
             .then(function (k) {
                 assert.equal(k.privateKey !== null, true, "Has no private key");
                 assert.equal(k.publicKey !== null, true, "Has no public key");
@@ -424,14 +424,14 @@ describe("WebCrypto ECDSA sign/verify", function () {
                     keys.publicKey,
                     sig,
                     TEST_MESSAGE
-                    )
+                )
             })
             .then(function (v) {
                 assert.equal(v, true, "Ecdsa signature is not valid");
             })
             .then(done, done);
     }
-    
+
     it("Ecdsa sign/verify P-256 SHA-1", function (done) {
         test_sign("P-256", "SHA-1", done);
     })
@@ -439,15 +439,15 @@ describe("WebCrypto ECDSA sign/verify", function () {
     it("Ecdsa sign/verify P-256 SHA-256", function (done) {
         test_sign("P-256", "SHA-256", done);
     })
-    
+
     it("Ecdsa sign/verify P-256 SHA-384", function (done) {
         test_sign("P-256", "SHA-384", done);
     })
-    
+
     it("Ecdsa sign/verify P-256 SHA-512", function (done) {
         test_sign("P-256", "SHA-512", done);
     })
-    
+
     it("Ecdsa sign/verify P-384 SHA-1", function (done) {
         test_sign("P-384", "SHA-1", done);
     })
@@ -455,15 +455,15 @@ describe("WebCrypto ECDSA sign/verify", function () {
     it("Ecdsa sign/verify P-384 SHA-256", function (done) {
         test_sign("P-384", "SHA-256", done);
     })
-    
+
     it("Ecdsa sign/verify P-384 SHA-384", function (done) {
         test_sign("P-384", "SHA-384", done);
     })
-    
+
     it("Ecdsa sign/verify P-384 SHA-512", function (done) {
         test_sign("P-384", "SHA-512", done);
     })
-    
+
     it("Ecdsa sign/verify P-521 SHA-1", function (done) {
         test_sign("P-521", "SHA-1", done);
     })
@@ -471,12 +471,38 @@ describe("WebCrypto ECDSA sign/verify", function () {
     it("Ecdsa sign/verify P-521 SHA-256", function (done) {
         test_sign("P-521", "SHA-256", done);
     })
-    
+
     it("Ecdsa sign/verify P-521 SHA-384", function (done) {
         test_sign("P-521", "SHA-384", done);
     })
-    
+
     it("Ecdsa sign/verify P-521 SHA-512", function (done) {
         test_sign("P-521", "SHA-512", done);
+    })
+
+    it("Ecdh deriveBits P-256 256", function (done) {
+        webcrypto.subtle.generateKey(
+            {
+                name: "ECDH",
+                namedCurve: "P-256", 	//can be "P-256", "P-384", or "P-521"
+            },
+            false, 						//whether the key is extractable (i.e. can be used in exportKey)
+            ["deriveKey"]
+        )
+            .then(function (keyPair) {
+                return webcrypto.subtle.deriveBits({
+                    name: "ECDH",
+                    namedCurve: "P-256", //can be "P-256", "P-384", or "P-521"
+                    public: keyPair.publicKey, //an ECDH public key from generateKey or importKey
+                },
+                    keyPair.privateKey,
+                    256);
+            })
+            .then(function(dbits){
+                assert.equal(!!dbits, true, "Empty dbits");
+                assert.equal(new Uint8Array(dbits).length, 256 / 8, "Wrong bits number");
+                return Promise.resolve();
+            })
+            .then(done, done);
     })
 })
