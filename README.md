@@ -53,6 +53,48 @@ npm install
 mocha
 ```
 
+## KeyStorage
+
+To use KeyStorage you shoud init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
+```javascript
+var WebCrypto = require("node-webcrypto-ossl");
+
+var webcrypto = new WebCrypto({
+  direcotry: "key_storage"
+})
+```
+
+KeyStorage implements interface of [W3 Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage)
+
+```javascript
+var keyStorage = webcrypto.keyStorage;
+
+// generating RSA key
+webcrypto.subtle.generateKey({
+    name: "RSASSA-PKCS1-v1_5",
+    modulusLength: 1024,
+    publicExponent: new Uint8Array([1, 0, 1]),
+    hash: {
+      name: "SHA-1"
+    }
+  },
+    false,
+    ["sign", "verify"]
+  )
+  .then(function(keyPairs){
+    /** 
+     * saving private RSA key to KeyStorage
+     * creates file ./key_storage/prvRSA-1024.json
+     */
+    keyStorage.setItem("prvRSA-1024", keyPairs.privateKey);
+  })
+```
+
+To get key from KeyStorage
+```javascript
+var rsaKey = webcrypto.getItem("prvRSA-1024");
+```
+
 ## Threat Model
 
 The threat model is defined in terms of what each possible attacker can achieve. 
