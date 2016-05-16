@@ -146,7 +146,7 @@ void AsyncEcdsaVerify::HandleOKCallback() {
 
 void AsyncEcdhDeriveBits::Execute() {
 	try {
-		this->dbits = ECDH_derive_bits(pkey, pubkey, length_bits, length_bits);
+		this->dbits = ECDH_derive_bits(pubkey, pkey, length_bits, length_bits);
 	}
 	catch (std::exception& e) {
 		this->SetErrorMessage(e.what());

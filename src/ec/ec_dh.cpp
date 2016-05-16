@@ -85,11 +85,11 @@ Handle<std::string> ECDH_derive_bits(
 
 	// pkey must be PRIVATE EC
 	ScopedEC_KEY ecPrivate(EVP_PKEY_get1_EC_KEY(pkey->Get()));
-	if (ecPrivate.isEmpty())
-		THROW_OPENSSL("EVP_PKEY_get1_EC_KEY. Can not get EC private key");
+	if (ecPrivate.isEmpty() || !EC_KEY_get0_private_key(ecPrivate.Get()))
+		THROW_ERROR("EVP_PKEY_get1_EC_KEY. Can not get EC private key");
 	// pubkey must be PUBLIC EC
 	ScopedEC_KEY ecPublic(EVP_PKEY_get1_EC_KEY(pubkey->Get()));
-	if (ecPrivate.isEmpty())
+	if (ecPublic.isEmpty())
 		THROW_OPENSSL("EVP_PKEY_get1_EC_KEY. Can not get EC public key");
 
 	// curves of corves must match.
