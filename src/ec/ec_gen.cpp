@@ -14,6 +14,12 @@ Handle<ScopedEVP_PKEY> EC_generate(int &nidEc) {
 		THROW_OPENSSL("EC_KEY_generate_key");
 	}
 
+	/**
+	 * Current flag is needed to get a CHROME like pkcs8, spki output
+	 */
+	EC_GROUP *group = (EC_GROUP *)EC_KEY_get0_group(eckey.Get());
+	EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE);
+
 	pkey = Handle<ScopedEVP_PKEY>(new ScopedEVP_PKEY(EVP_PKEY_new()));
 
 	if (EVP_PKEY_assign_EC_KEY(pkey->Get(), eckey.Get()) != 1) {
