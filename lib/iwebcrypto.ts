@@ -7,7 +7,7 @@ export type AlgorithmType = string | IAlgorithmIdentifier;
 
 export interface IWebCrypto {
     subtle: ISubtleCrypto;
-    getRandomValues(array: ArrayBufferView): Buffer;
+    getRandomValues<A extends Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array>(typedArray: A): A;
 }
 
 export type TBuffer = ArrayBuffer | Buffer;

@@ -20,8 +20,20 @@ export default class WebCrypto implements iwc.IWebCrypto {
      * Generates cryptographically random values
      * @param array Initialize array
      */
-    getRandomValues(array: ArrayBufferView): any {
-        return crypto.randomBytes(array.byteLength);
+    // Based on: https://github.com/KenanY/get-random-values
+    getRandomValues<A extends Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array>(typedArray: A): A {
+        if (typedArray.byteLength > 65536) {
+            let error = new Error();
+            (error as any).code = 22;
+            error.message = 'Failed to execute \'getRandomValues\' on \'Crypto\': The ' +
+                'ArrayBufferView\'s byte length (' + typedArray.byteLength  + ') exceeds the ' +
+                'number of bytes of entropy available via this API (65536).';
+            error.name = 'QuotaExceededError';
+            throw error;
+        }
+        let bytes = crypto.randomBytes(typedArray.byteLength);
+        typedArray.set(bytes);
+        return typedArray;
     }
 
     /**
