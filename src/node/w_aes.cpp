@@ -17,8 +17,8 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generate", Generate);
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "import", Import);
+	Nan::SetMethod(tpl->GetFunction(), "generate", Generate);
+	Nan::SetMethod(tpl->GetFunction(), "import", Import);
 
 	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
 }

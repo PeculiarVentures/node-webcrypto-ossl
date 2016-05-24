@@ -12,7 +12,7 @@ void WCore::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "digest", Digest);
+	Nan::SetMethod(tpl->GetFunction(), "digest", Digest);
 
 	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
 }

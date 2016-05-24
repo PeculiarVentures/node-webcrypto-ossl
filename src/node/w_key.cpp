@@ -25,11 +25,11 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateRsa", GenerateRsa);
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "generateEc", GenerateEc);
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importJwk", ImportJwk);
-	Nan::SetMethod<v8::Local<v8::Object>>(tpl->GetFunction(), "importSpki", ImportSpki);
+	Nan::SetMethod(tpl->GetFunction(), "generateRsa", GenerateRsa);
+	Nan::SetMethod(tpl->GetFunction(), "generateEc", GenerateEc);
+	Nan::SetMethod(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
+	Nan::SetMethod(tpl->GetFunction(), "importJwk", ImportJwk);
+	Nan::SetMethod(tpl->GetFunction(), "importSpki", ImportSpki);
 
 	exports->Set(Nan::New(WKey::ClassName).ToLocalChecked(), tpl->GetFunction());
 }
