@@ -23,7 +23,9 @@ static Handle<ScopedEVP_PKEY> KEY_import(BIO *in, EVP_PKEY *(*d2i_function_bio)(
 
 	ScopedEVP_PKEY pkey;
 
-	BIO_seek(in, 0);
+	if (BIO_seek(in, 0) == -1){
+		THROW_OPENSSL("BIO_seek");	
+	}
 
 	pkey = d2i_function_bio(in, nullptr);
 	if (pkey.isEmpty()) {

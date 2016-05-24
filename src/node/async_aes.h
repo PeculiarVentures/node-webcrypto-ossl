@@ -29,7 +29,7 @@ public:
 		Handle<std::string> hInput,
 		Handle<std::string> hIv,
 		bool encrypt
-		) : AsyncWorker(callback), hKey(hKey), hInput(hInput), hIv(hIv), encrypt(encrypt) {}
+		) : AsyncWorker(callback), encrypt(encrypt), hIv(hIv), hInput(hInput), hKey(hKey) {}
 	~AsyncAesEncryptCBC() {}
 
 	void Execute();

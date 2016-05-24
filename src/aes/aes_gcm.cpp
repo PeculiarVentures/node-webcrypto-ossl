@@ -38,7 +38,7 @@ static Handle<std::string> AES_GCM_encrypt(
 	// Get encrypted block size
 	int gcm_block_size = EVP_CIPHER_block_size(cipher);
 	int max_output_len = gcm_block_size + hMsg->length() + 256;
-	if (max_output_len < hMsg->length())
+	if (max_output_len < (int) hMsg->length())
 		THROW_ERROR("Input data too large");
 
 	hOutput->resize(max_output_len);

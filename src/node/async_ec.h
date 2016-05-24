@@ -71,8 +71,8 @@ public:
 	void HandleOKCallback();
 
 protected:
-	int key_type;
 	Handle<JwkEc> jwk;
+	int key_type;
 	//Result
 	Handle<ScopedEVP_PKEY> pkey;
 };

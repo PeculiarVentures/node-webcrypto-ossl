@@ -27,9 +27,8 @@ static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std:
 	// According to the openssl docs, the amount of data written may be as large
 	// as (data_size + cipher_block_size - 1), constrained to a multiple of
 	// cipher_block_size.
-	int output_max_len = datalen;
-	output_max_len += AES_BLOCK_SIZE - 1;
-	if (output_max_len < datalen)
+	int output_max_len = AES_BLOCK_SIZE - 1 + datalen;
+	if (output_max_len < 0)
 		THROW_ERROR("Input data too large");
 
 	const unsigned remainder = output_max_len % AES_BLOCK_SIZE;
@@ -50,6 +49,8 @@ static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std:
 	case 32:
 		cipher = EVP_aes_256_cbc();
 		break;
+	default:
+		THROW_ERROR("Unknown AES CBC key size");
 	}
 
 	ScopedEVP_CIPHER_CTX ctx(EVP_CIPHER_CTX_new());
