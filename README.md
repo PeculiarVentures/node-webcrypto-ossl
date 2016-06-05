@@ -60,7 +60,7 @@ To use KeyStorage you shoud init WebCrypto with `directory` option. If `director
 var WebCrypto = require("node-webcrypto-ossl");
 
 var webcrypto = new WebCrypto({
-  direcotry: "key_storage"
+  directory: "key_storage"
 })
 ```
 
