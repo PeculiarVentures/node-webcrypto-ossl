@@ -5,11 +5,14 @@ import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 
+const JSON_FILE_EXT = ".json";
+
 class KeyStorageError extends WebCryptoError { }
 
 export interface IKeyStorageItem extends CryptoKey {
     name: string;
     keyJwk: string;
+    file?: string;
 }
 
 function jwkBufferToBase64(jwk: IKeyStorageItem): IKeyStorageItem {
@@ -44,11 +47,22 @@ function jwkBase64ToBuffer(jwk: IKeyStorageItem): IKeyStorageItem {
     return jwk;
 }
 
+/**
+ * Manage keys in folder
+ * 
+ * @export
+ * @class KeyStorage
+ */
 export class KeyStorage {
 
     protected directory: string = "";
     protected keys: { [key: string]: IKeyStorageItem } = {};
 
+    /**
+     * Creates an instance of KeyStorage.
+     * 
+     * @param {string} directory Path to directory
+     */
     constructor(directory: string) {
         this.directory = directory;
 
@@ -62,6 +76,14 @@ export class KeyStorage {
         mkdirp.sync(directory, flags);
     }
 
+    /**
+     * Read JWK file.
+     * If file doesn't have IKeyStorageItem data returns Null 
+     * 
+     * @protected
+     * @param {string} file Path to file
+     * @returns {IKeyStorageItem}
+     */
     protected readFile(file: string): IKeyStorageItem {
         if (!fs.existsSync(file))
             throw new KeyStorageError(`File '${file}' is not exists`);
@@ -73,12 +95,20 @@ export class KeyStorage {
         catch (e) {
             return null;
         }
+        // Add info about file
+        json.file = file;
+
         // check JSON structure
         if (json.algorithm && json.type && json.usages && json.name)
             return json;
         return null;
     }
 
+    /**
+     * Read all files from folder and push Keys to internal field "keys" 
+     * 
+     * @protected
+     */
     protected readDirectory() {
         if (!this.directory)
             throw new KeyStorageError("KeyStorage directory is not set");
@@ -96,14 +126,36 @@ export class KeyStorage {
         }
     }
 
+    /**
+     * Save file to directory  
+     * 
+     * @protected
+     * @param {IKeyStorageItem} key
+     */
     protected saveFile(key: IKeyStorageItem) {
         let json = JSON.stringify(key);
-        fs.writeFileSync(path.join(this.directory, key.name + ".json"), json, {
+        fs.writeFileSync(path.join(this.directory, key.name + JSON_FILE_EXT), json, {
             encoding: "utf8",
             flag: "w"
         });
     }
 
+    protected removeFile(key: IKeyStorageItem) {
+        let file = key.file;
+        if (!file) {
+            file = path.join(this.directory, key.name + JSON_FILE_EXT);
+        }
+        if (fs.existsSync(file)) {
+            fs.unlinkSync(file);
+        }
+    }
+
+    /**
+     * Retuns amount fo key in storage 
+     * 
+     * @readonly
+     * @type {number}
+     */
     get length(): number {
         return Object.keys(this.keys).length;
     }
@@ -132,6 +184,12 @@ export class KeyStorage {
         return this.keys[id] || null;
     }
 
+    /**
+     * Returns a CryptoKey from storage by name 
+     * 
+     * @param {string} key Name of 
+     * @returns {CryptoKey}
+     */
     getItem(key: string): CryptoKey {
         let item = this.getItemById(key);
         if (!item)
@@ -160,8 +218,17 @@ export class KeyStorage {
         throw new Error("Not implemented yet");
     }
 
+    /**
+     * Removes key from Storage 
+     * 
+     * @param {string} key Name of key in Storage
+     */
     removeItem(key: string): void {
-        throw new Error("Not implemented yet");
+        let item = this.getItemById(key);
+        if (item) {
+            this.removeFile(item);
+            delete this.keys[key];
+        }
     }
 
     setItem(key: string, data: CryptoKey): void {

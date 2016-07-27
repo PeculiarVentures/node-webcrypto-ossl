@@ -52,6 +52,34 @@ describe("Key storage", function () {
             .then(done, done);
     });
 
+    it("Remove key from storage", function (done) {
+        var key = null;
+        webcrypto.subtle.generateKey({
+            name: "RSASSA-PKCS1-v1_5",
+            modulusLength: 1024,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: {
+                name: "SHA-1"
+            },
+        },
+            true,
+            ["sign", "verify"]
+        )
+            .then(function (keyPair) {
+                webcrypto.keyStorage.setItem("remove_key", keyPair.privateKey);
+                var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
+                assert.equal(exists, true, "File with key is not created");
+                assert.equal(webcrypto.keyStorage.length, 2);
+
+                webcrypto.keyStorage.removeItem("remove_key");
+                var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
+                assert.equal(exists, false, "File with key is not removed");
+                assert.equal(webcrypto.keyStorage.length, 1);
+                return Promise.resolve();
+            })
+            .then(done, done);
+    });
+
     it("Clear key storage", function () {
         webcrypto.keyStorage.clear();
         assert.equal(webcrypto.keyStorage.length, 0);
