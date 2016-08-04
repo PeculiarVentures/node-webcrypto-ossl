@@ -1,0 +1,33 @@
+language: node_js
+node_js:
+  - "6"
+  - "5"
+  - "4"
+  - "0.12"
+
+compiler: gcc
+sudo: false
+
+os:
+  - linux
+  - osx
+
+before_install:
+  - npm install mocha -g
+  - npm install tsd -g
+  - npm install typescript -g
+  - node --version
+  - npm --version
+  - gcc --version
+
+script:
+  - npm install
+  - tsd install
+  - tsc
+  - npm test
+
+cache:
+  directories:
+    - $HOME/.node-gyp
+    - $HOME/.npm
+    - node_modules
