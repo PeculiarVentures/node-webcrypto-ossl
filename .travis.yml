@@ -3,38 +3,39 @@ node_js:
   - "6"
   - "5"
   - "4"
-  - "0.12"
-
-compiler: gcc
-sudo: false
-
-env:
-  - CXX=g++-4.8
   
+env:
+  - CXX=clang
+
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
     packages:
       - g++-4.8
+      - llvm-3.6
+      - libstdc++-4.9-dev
+      - llvm-3.6-dev
+      - clang-3.6
+
+compiler: clang
+
+sudo: false
 
 os:
   - linux
-  - osx
+  - os: osx
+
+osx_image: xcode7.2
 
 before_install:
-  - npm install mocha -g
-  - npm install tsd -g
-  - npm install typescript -g
   - node --version
   - npm --version
   - gcc --version
 
 script:
   - npm install
-  - tsd install
-  - tsc
-  - npm test
 
 cache:
   directories:
