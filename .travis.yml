@@ -39,7 +39,9 @@ before_install:
   - npm install mocha -g
 
 script:
+  - tsd install
   - npm install
+  - npm test
 
 cache:
   directories:
