@@ -9,7 +9,7 @@
   "main": "buildjs/webcrypto.js",
   "scripts": {
     "test": "mocha",
-    "install": "node-gyp rebuild && tsc"
+    "install": "node-gyp rebuild && tsd install && tsc"
   },
   "author": "PeculiarVentures",
   "license": "MIT",
