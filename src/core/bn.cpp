@@ -1,6 +1,5 @@
 #include "bn.h"
 #include <string.h>
-#include <stdint.h>
 
 /* OpenSSL does not currently have BN_bn2bin_padded for
  * now we will use this copy of that function.

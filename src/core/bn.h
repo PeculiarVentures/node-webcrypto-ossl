@@ -3,6 +3,7 @@
 
 #include "define.h"
 #include <openssl/bn.h>
+#include <stdint.h>
 
 int BN_bn2bin_padded(uint8_t *out, size_t len, const BIGNUM *in);
 
