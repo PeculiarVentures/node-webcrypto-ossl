@@ -26,9 +26,11 @@
   "dependencies": {
     "base64url": "^1.0.5",
     "mkdirp": "^0.5.1",
-    "nan": "2.3.x"
+    "nan": "2.3.x",
+    "typescript": "latest",
+    "tsd": "latest"
   },
   "devDependencies": {
-    "mocha": "^2.3.4"
+    "mocha": "latest"
   }
 }
