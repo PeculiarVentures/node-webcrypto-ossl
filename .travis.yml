@@ -6,10 +6,6 @@ node_js:
 
 env:
   - CXX=clang
-  global:
-    # https://github.com/DefinitelyTyped/tsd#tsdrc
-    # Token has no scope (read-only access to public information)
-    - TSD_GITHUB_TOKEN=8591f447276e1caa1b9636b9c8053d768130464f
 
 addons:
   apt:
@@ -34,6 +30,7 @@ os:
 osx_image: xcode7.2
 
 before_install:
+  - export TSD_GITHUB_TOKEN=8591f447276e1caa1b9636b9c8053d768130464f
   - node --version
   - npm --version
   - gcc --version
