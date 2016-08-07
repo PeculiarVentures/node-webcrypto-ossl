@@ -30,7 +30,8 @@
     "mkdirp": "^0.5.1",
     "nan": "2.3.x",
     "typescript": "latest",
-    "tsd": "latest"
+    "tsd": "latest",
+		"node-gyp": "latest"
   },
   "devDependencies": {
     "mocha": "latest"
