@@ -1,0 +1,8 @@
+{
+  "name": "node-webcrypto-ossl",
+  "globalDependencies": {
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#40c60850ad6c8175a62d5ab48c4e016ea5b3dffe",
+    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#40c60850ad6c8175a62d5ab48c4e016ea5b3dffe",
+    "mkdirp": "github:DefinitelyTyped/DefinitelyTyped/mkdirp/mkdirp.d.ts#1ec3d510e0c4d7c50e708ca7cb0765c7e06fa2ed"
+  }
+}
