@@ -9,7 +9,7 @@
   "main": "buildjs/webcrypto.js",
   "scripts": {
     "test": "mocha",
-    "install": "node-gyp rebuild && ./node_modules/.bin/tsd install && ./node_modules/.bin/tsc",
+    "install": "node-gyp rebuild && ./node_modules/.bin/typings install && ./node_modules/.bin/tsc",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push"
   },
@@ -30,7 +30,7 @@
     "mkdirp": "^0.5.1",
     "nan": "2.3.x",
     "typescript": "latest",
-    "tsd": "latest",
+    "typings": "^1.3.2",
     "node-gyp": "latest"
   },
   "devDependencies": {
