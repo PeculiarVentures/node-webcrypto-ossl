@@ -9,7 +9,7 @@
   "main": "buildjs/webcrypto.js",
   "scripts": {
     "test": "mocha",
-    "install": "node-gyp rebuild && ./node_modules/.bin/typings install && ./node_modules/.bin/tsc",
+    "postinstall": "node-gyp rebuild && ./node_modules/.bin/typings install && ./node_modules/.bin/tsc",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push"
   },
