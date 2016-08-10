@@ -8,9 +8,6 @@
         "sourceMap": false,
         "noImplicitAny": true
     },
-    "files": [
-        "typings/index.d.ts"
-    ],
     "exclude": [
         "node_modules", "buildjs"
     ]
