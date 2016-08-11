@@ -38,8 +38,6 @@ cd node-webcrypto-ossl
 
 ```
 npm install node-gyp -g
-npm install typescript -g
-npm install tsd -g
 npm install mocha -g
 ```
 
