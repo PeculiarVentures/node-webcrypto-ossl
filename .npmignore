@@ -1,6 +1,5 @@
 /.vscode
 /node_modules
 /build
-/lib
 /typings
 .gitignore
