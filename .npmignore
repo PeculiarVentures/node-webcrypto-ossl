@@ -4,5 +4,3 @@
 /lib
 /typings
 .gitignore
-tsconfig.json
-tsd.json
