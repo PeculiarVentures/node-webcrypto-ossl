@@ -1,32 +1,31 @@
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
 import * as native from "./native";
-let base64url = require("base64url");
 
-export interface IJwkKey {
+export interface IJwkKey extends JWK {
     kty: string;
     ext?: boolean;
     key_ops: string[];
 }
 
 export interface IAlgorithmBase {
-    generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void;
-    sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
-    encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void;
-    unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
-    exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
-    importKey(format: string, keyData: Buffer | IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
+    generateKey(alg: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey | CryptoKeyPair) => void): void;
+    sign(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    verify(alg: NodeAlgorithm, key: key.OsslCryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    encrypt(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    decrypt(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    wrapKey(key: key.OsslCryptoKey, wrappingKey: key.OsslCryptoKey, alg: NodeAlgorithm, cb: (err: Error, d: Buffer) => void): void;
+    unwrapKey(wrappedKey: Buffer, unwrappingKey: key.OsslCryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    deriveKey(algorithm: NodeAlgorithm, baseKey: key.OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
+    exportKey(format: string, key: key.OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
+    importKey(format: string, keyData: Buffer | IJwkKey, algorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
 }
 
 export class AlgorithmBase {
     static ALGORITHM_NAME: string = "";
 
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey | iwc.ICryptoKeyPair) => void): void {
+    static generateKey(alg: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey | CryptoKeyPair) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -34,7 +33,7 @@ export class AlgorithmBase {
         }
     }
 
-    static sign(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static sign(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -42,7 +41,7 @@ export class AlgorithmBase {
         }
     }
 
-    static verify(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+    static verify(alg: NodeAlgorithm, key: key.OsslCryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -50,7 +49,7 @@ export class AlgorithmBase {
         }
     }
 
-    static encrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static encrypt(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -58,7 +57,7 @@ export class AlgorithmBase {
         }
     }
 
-    static decrypt(alg: iwc.IAlgorithmIdentifier, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static decrypt(alg: NodeAlgorithm, key: key.OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -66,7 +65,7 @@ export class AlgorithmBase {
         }
     }
 
-    static wrapKey(key: key.CryptoKey, wrappingKey: key.CryptoKey, alg: iwc.IAlgorithmIdentifier, cb: (err: Error, d: Buffer) => void): void {
+    static wrapKey(key: key.OsslCryptoKey, wrappingKey: key.OsslCryptoKey, alg: NodeAlgorithm, cb: (err: Error, d: Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -74,7 +73,7 @@ export class AlgorithmBase {
         }
     }
 
-    static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+    static unwrapKey(wrappedKey: Buffer, unwrappingKey: key.OsslCryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -82,7 +81,7 @@ export class AlgorithmBase {
         }
     }
 
-    static deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+    static deriveKey(algorithm: NodeAlgorithm, baseKey: key.OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -90,7 +89,7 @@ export class AlgorithmBase {
         }
     }
 
-    static deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void {
+    static deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -98,7 +97,7 @@ export class AlgorithmBase {
         }
     }
 
-    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: key.OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
             throw new Error("Method is not supported");
         } catch (e) {
@@ -109,10 +108,10 @@ export class AlgorithmBase {
     static importKey(
         format: string,
         keyData: Buffer | IJwkKey,
-        algorithm: iwc.IAlgorithmIdentifier,
+        algorithm: NodeAlgorithm,
         extractable: boolean,
         keyUsages: string[],
-        cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+        cb: (err: Error, d: CryptoKey) => void): void {
         try {
             throw new Error("Method is not supported");
         }
@@ -177,22 +176,22 @@ export class AlgorithmBase {
             throw TypeError("AlgorithmIdentifier: Missing required property name");
     }
 
-    static checkKey(key: iwc.ICryptoKey, type: string) {
+    static checkKey(key: CryptoKey, type: string) {
         if (!key)
             throw new TypeError("CryptoKey: Key can not be null");
         if (key.type !== type)
             throw new TypeError(`CryptoKey: Wrong key type in use. Must be '${type}'`);
     }
 
-    static checkPrivateKey(key: iwc.ICryptoKey) {
+    static checkPrivateKey(key: CryptoKey) {
         this.checkKey(key, "private");
     }
 
-    static checkPublicKey(key: iwc.ICryptoKey) {
+    static checkPublicKey(key: CryptoKey) {
         this.checkKey(key, "public");
     }
 
-    static checkSecretKey(key: iwc.ICryptoKey) {
+    static checkSecretKey(key: CryptoKey) {
         this.checkKey(key, "secret");
     }
 } 

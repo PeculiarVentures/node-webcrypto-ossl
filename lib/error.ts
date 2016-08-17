@@ -26,14 +26,18 @@ function printf(text: string, ...args: any[]) {
 }
 
 export class WebCryptoError extends Error {
+
+    code = 0;
+
     constructor(template: string, ...args: any[]) {
         super();
         this.message = printf.apply(this, arguments);
-
-        this.stack = (new Error(this.message)).stack;
+        let error = new Error(this.message);
+        error.name = (this as any)["constructor"].name;
+        this.stack = error.stack;
     }
 }
 
-export class AlgorithmError extends WebCryptoError {}
+export class AlgorithmError extends WebCryptoError { }
 
-export class CryptoKeyError extends WebCryptoError {}
+export class CryptoKeyError extends WebCryptoError { }

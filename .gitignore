@@ -1,4 +1,5 @@
-/node_modules
+/.vscode
 /build
 /buildjs
-/.vscode
+/node_modules
+/typings

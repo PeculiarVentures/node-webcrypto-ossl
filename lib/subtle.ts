@@ -1,4 +1,4 @@
-import {CryptoKey} from "./key";
+import {OsslCryptoKey} from "./key";
 
 import * as native from "./native";
 
@@ -7,15 +7,13 @@ import * as rsa from "./rsa";
 import * as aes from "./aes";
 import * as ec from "./ec";
 
-import * as iwc from "./iwebcrypto";
-
-function prepare_algorithm(alg: iwc.AlgorithmType): iwc.IAlgorithmIdentifier {
-    let _alg: iwc.IAlgorithmIdentifier = { name: "" };
+function prepare_algorithm(alg: TAlgorithm): NodeAlgorithm {
+    let _alg: NodeAlgorithm = { name: "" };
     if (typeof alg === "string") {
         _alg = { name: alg };
     }
     else {
-        _alg = <iwc.IAlgorithmIdentifier>alg;
+        _alg = alg as NodeAlgorithm;
     }
     return _alg;
 }
@@ -24,17 +22,16 @@ function prepare_algorithm(alg: iwc.AlgorithmType): iwc.IAlgorithmIdentifier {
  * Prepare array of data before it's using 
  * @param data Array which must be prepared
  */
-function prepare_data(data: Buffer | ArrayBuffer): any {
-    return (data instanceof ArrayBuffer || data instanceof Uint8Array) ? ab2b(data as ArrayBuffer) : data;
+function prepare_data(data: NodeCryptoBuffer): Buffer {
+    return ab2b(data);
 }
 
 /**
  * Converts ArrayBuffer to Buffer
  * @param ab ArrayBuffer value wich must be converted to Buffer
  */
-function ab2b(ab: ArrayBuffer) {
-    let buf = new Uint8Array(ab);
-    return new Buffer(buf);
+function ab2b(ab: ArrayBufferView) {
+    return new Buffer(ab as Uint8Array);
 }
 
 /**
@@ -42,18 +39,14 @@ function ab2b(ab: ArrayBuffer) {
  * @param b Buffer value wich must be converted to ArrayBuffer
  */
 function b2ab(b: Buffer): ArrayBuffer {
-    return new Uint8Array(b).buffer;
+    return b.buffer;
 }
 
-declare class Promise {
-    constructor(fn: (resolve: Function, reject: Function) => any)
-};
+export class OsslSubtleCrypto implements NodeSubtleCrypto {
 
-export class SubtleCrypto implements SubtleCrypto {
-
-    digest(algorithm: iwc.IAlgorithmIdentifier, data: iwc.TBuffer): any {
+    digest(algorithm: NodeAlgorithm, data: NodeCryptoBuffer) {
         let that = this;
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
             let _data = prepare_data(data);
 
@@ -68,18 +61,18 @@ export class SubtleCrypto implements SubtleCrypto {
                         if (err)
                             reject(err);
                         else
-                            resolve(new Uint8Array(digest).buffer);
+                            resolve(digest.buffer);
                     });
                     break;
                 default:
-                    resolve(new Error("AlgorithmIdentifier: Unknown algorithm name"));
+                    throw new Error("AlgorithmIdentifier: Unknown algorithm name");
             }
         });
     }
 
-    generateKey(algorithm: iwc.AlgorithmType, extractable: boolean, keyUsages: string[]): any {
+    generateKey(algorithm: TAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<CryptoKey | CryptoKeyPair>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -117,11 +110,11 @@ export class SubtleCrypto implements SubtleCrypto {
         });
     }
 
-    sign(algorithm: iwc.AlgorithmType, key: CryptoKey, data: iwc.TBuffer): any {
+    sign(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -142,18 +135,18 @@ export class SubtleCrypto implements SubtleCrypto {
                 if (err)
                     reject(err);
                 else
-                    resolve(new Uint8Array(sig).buffer);
+                    resolve(sig.buffer);
             });
 
         });
     }
 
-    verify(algorithm: iwc.AlgorithmType, key: CryptoKey, signature: iwc.TBuffer, data: iwc.TBuffer): any {
+    verify(algorithm: TAlgorithm, key: OsslCryptoKey, signature: NodeCryptoBuffer, data: NodeCryptoBuffer) {
         let that = this;
         let _signature = prepare_data(signature);
         let _data = prepare_data(data);
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<boolean>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -179,11 +172,11 @@ export class SubtleCrypto implements SubtleCrypto {
         });
     }
 
-    encrypt(algorithm: iwc.AlgorithmType, key: CryptoKey, data: iwc.TBuffer): any {
+    encrypt(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -204,16 +197,16 @@ export class SubtleCrypto implements SubtleCrypto {
                 if (err)
                     reject(err);
                 else
-                    resolve(new Uint8Array(buf).buffer);
+                    resolve(buf.buffer);
             });
         });
     }
 
-    decrypt(algorithm: iwc.AlgorithmType, key: CryptoKey, data: iwc.TBuffer): any {
+    decrypt(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -234,15 +227,15 @@ export class SubtleCrypto implements SubtleCrypto {
                 if (err)
                     reject(err);
                 else
-                    resolve(new Uint8Array(buf).buffer);
+                    resolve(buf.buffer);
             });
         });
     }
 
-    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, algorithm: iwc.IAlgorithmIdentifier): any {
+    wrapKey(format: string, key: OsslCryptoKey, wrappingKey: OsslCryptoKey, algorithm: NodeAlgorithm) {
         let that = this;
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -263,16 +256,16 @@ export class SubtleCrypto implements SubtleCrypto {
                 if (err)
                     reject(err);
                 else
-                    resolve(new Uint8Array(buf).buffer);
+                    resolve(buf.buffer);
             });
         });
     }
 
-    unwrapKey(format: string, wrappedKey: iwc.TBuffer, unwrappingKey: CryptoKey, unwrapAlgorithm: iwc.IAlgorithmIdentifier, unwrappedAlgorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): any {
+    unwrapKey(format: string, wrappedKey: NodeCryptoBuffer, unwrappingKey: OsslCryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
         let _wrappedKey = prepare_data(wrappedKey);
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<CryptoKey>((resolve, reject) => {
             let _alg1 = prepare_algorithm(unwrapAlgorithm);
             let _alg2 = prepare_algorithm(unwrappedAlgorithm);
 
@@ -299,10 +292,10 @@ export class SubtleCrypto implements SubtleCrypto {
         });
     }
 
-    deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[]): any {
+    deriveKey(algorithm: NodeAlgorithm, baseKey: OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<CryptoKey>((resolve, reject) => {
             let _alg1 = prepare_algorithm(algorithm);
             let _alg2 = prepare_algorithm(derivedKeyType);
 
@@ -323,10 +316,10 @@ export class SubtleCrypto implements SubtleCrypto {
         });
     }
 
-    deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number): any {
+    deriveBits(algorithm: NodeAlgorithm, baseKey: OsslCryptoKey, length: number) {
         let that = this;
 
-        return new Promise((resolve: Function, reject: Function) => {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -341,15 +334,15 @@ export class SubtleCrypto implements SubtleCrypto {
                 if (err)
                     reject(err);
                 else
-                    resolve(new Uint8Array(dbits).buffer);
+                    resolve(dbits.buffer);
             });
         });
     }
 
-    exportKey(format: string, key: CryptoKey): any {
+    exportKey(format: string, key: OsslCryptoKey) {
         let that = this;
 
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise<JWK | ArrayBuffer>((resolve, reject) => {
             let KeyClass: any;
             switch (key.algorithm.name) {
                 case rsa.RsaPKCS1.ALGORITHM_NAME:
@@ -373,7 +366,7 @@ export class SubtleCrypto implements SubtleCrypto {
                 default:
                     throw new Error(`ExportKey: Unsupported algorithm ${key.algorithm.name}`);
             }
-            KeyClass.exportKey(format.toLocaleLowerCase(), key, function (err: Error, data: any) {
+            KeyClass.exportKey(format.toLowerCase(), key, function (err: Error, data: any) {
                 if (err)
                     reject(err);
                 else
@@ -389,14 +382,17 @@ export class SubtleCrypto implements SubtleCrypto {
 
     importKey(
         format: string,
-        keyData: iwc.TBuffer,
-        algorithm: iwc.IAlgorithmIdentifier,
+        keyData: JWK | NodeCryptoBuffer,
+        algorithm: NodeAlgorithm,
         extractable: boolean,
         keyUsages: string[]
-    ): any {
-        return new Promise(function (resolve: Function, reject: Function) {
+    ) {
+        return new Promise<CryptoKey>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
-            let _data = prepare_data(keyData);
+            let _data: Buffer | alg.IJwkKey = <any>keyData;
+            if (format.toLowerCase() !== "jwk") {
+                 _data = prepare_data(keyData as NodeCryptoBuffer);
+            }
 
             let AlgClass: alg.IAlgorithmBase = null;
             switch (_alg.name.toLowerCase()) {
@@ -421,18 +417,19 @@ export class SubtleCrypto implements SubtleCrypto {
                 default:
                     throw new TypeError("Unsupported algorithm in use");
             }
-            if (format.toLocaleLowerCase() === "jwk") {
+            if (format.toLowerCase() === "jwk") {
                 if (Buffer.isBuffer(keyData)) {
                     throw new Error("ImportKey: keydData must be Object");
                 }
                 // copy input object
+                // TODO: Apply Object.assign (check for Node v4, not supported for TS for ES5)
                 let cpy: any = {};
                 for (let i in _data) {
-                    cpy[i] = _data[i];
+                    cpy[i] = (<JWK>_data)[i];
                 }
                 _data = <any>cpy;
             }
-            AlgClass.importKey(format.toLocaleLowerCase(), _data, _alg, extractable, keyUsages, function (err, key) {
+            AlgClass.importKey(format.toLowerCase(), _data, _alg, extractable, keyUsages, function (err, key) {
                 if (err)
                     reject(err);
                 else

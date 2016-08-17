@@ -4,11 +4,26 @@
         "module": "commonjs",
         "rootDir": "lib",
         "outDir": "buildjs",
+        "removeComments": true,
         "declaration": false,
         "sourceMap": false,
         "noImplicitAny": true
     },
-    "exclude": [
-        "node_modules", "buildjs"
+    "files": [
+        "typings/index.d.ts",
+        "lib/typings/promise.d.ts",
+        "lib/typings/node-webcrypto.d.ts",
+        "lib/base64url.ts",
+        "lib/aes.ts",
+        "lib/alg.ts",
+        "lib/ec.ts",
+        "lib/error.ts",
+        "lib/iwebcrypto.ts",
+        "lib/key.ts",
+        "lib/key_storage.ts",
+        "lib/native.ts",
+        "lib/rsa.ts",
+        "lib/subtle.ts",
+        "lib/webcrypto.ts"
     ]
 }

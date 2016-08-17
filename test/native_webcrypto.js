@@ -1,6 +1,6 @@
 var assert = require('assert');
 var native = require("../buildjs/native");
-var base64url = require("base64url");
+var base64url = require("../buildjs/base64url").Base64Url;
 
 /**
  * Test with values from Chrome WebCrypto
@@ -39,7 +39,7 @@ function json_jwk(json) {
     var attrs = ["d", "dq", "n", "e", "p", "q", "qi", "dp", "dq"];
     for (var i in jwk) {
         if (attrs.indexOf(i) != -1) {
-            jwk[i] = new Buffer(base64url.decode(jwk[i], "binary"), "binary");
+            jwk[i] = base64url.decode(jwk[i]);
         }
     }
     return jwk;

@@ -49,6 +49,7 @@ mocha
 ## KeyStorage
 
 To use KeyStorage you shoud init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
+
 ```javascript
 var WebCrypto = require("node-webcrypto-ossl");
 

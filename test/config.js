@@ -1,3 +1,3 @@
-var WebCrypto = require("../buildjs/webcrypto.js").default;     
+var WebCrypto = require("../buildjs/webcrypto.js");     
     
 module.exports = new WebCrypto({directory: "test_storage"}) 

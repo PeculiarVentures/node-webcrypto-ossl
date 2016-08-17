@@ -3,11 +3,10 @@ import * as aes from "./aes";
 import * as alg from "./alg";
 import * as iwc from "./iwebcrypto";
 import * as key from "./key";
-import {CryptoKey} from "./key";
+import {OsslCryptoKey} from "./key";
 import * as native from "./native";
 import * as crypto from "crypto";
-
-let base64url = require("base64url");
+import {Base64Url} from "./base64url";
 
 let ALG_NAME_ECDH = "ECDH";
 let ALG_NAME_ECDSA = "ECDSA";
@@ -47,9 +46,9 @@ function nc2ssl(nc: any) {
 
 export class Ec extends alg.AlgorithmBase {
 
-    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void {
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void {
         try {
             this.checkAlgorithmIdentifier(alg);
             this.checkKeyGenParams(alg);
@@ -58,8 +57,8 @@ export class Ec extends alg.AlgorithmBase {
 
             native.Key.generateEc(namedCurve, function (err, key) {
                 cb(null, {
-                    "privateKey": new CryptoKey(key, alg, "private", extractable, keyUsages),
-                    "publicKey": new CryptoKey(key, alg, "public", extractable, keyUsages)
+                    "privateKey": new OsslCryptoKey(key, alg, "private", extractable, keyUsages),
+                    "publicKey": new OsslCryptoKey(key, alg, "public", extractable, keyUsages)
                 });
             });
         }
@@ -68,9 +67,9 @@ export class Ec extends alg.AlgorithmBase {
         }
     }
 
-    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
-    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void {
+    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: OsslCryptoKey) => void): void;
+    static importKey(format: string, keyData: Buffer | alg.IJwkKey, algorithm: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: OsslCryptoKey) => void): void {
         try {
             this.checkKeyType(format);
             this.checkAlgorithmIdentifier(algorithm);
@@ -79,7 +78,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "pkcs8":
                     native.Key.importPkcs8(<Buffer>keyData, function (err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, "private", extractable, keyUsages);
+                            let ec = new OsslCryptoKey(key, algorithm, "private", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -89,7 +88,7 @@ export class Ec extends alg.AlgorithmBase {
                 case "spki":
                     native.Key.importSpki(<Buffer>keyData, function (err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, "public", extractable, keyUsages);
+                            let ec = new OsslCryptoKey(key, algorithm, "public", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -107,16 +106,16 @@ export class Ec extends alg.AlgorithmBase {
                     };
                     let inJwk = <IJwkEcPrivateKey>keyData;
                     jwk.crv = nc2ssl(inJwk.crv);
-                    jwk.x = new Buffer(base64url.decode(inJwk.x, "binary"), "binary");
-                    jwk.y = new Buffer(base64url.decode(inJwk.y, "binary"), "binary");
+                    jwk.x = Base64Url.decode(<any>inJwk.x);
+                    jwk.y = Base64Url.decode(<any>inJwk.y);
                     let key_type = native.KeyType.PUBLIC;
                     if (inJwk.d) {
                         key_type = native.KeyType.PRIVATE;
-                        (<IJwkEcPrivateKey>jwk).d = new Buffer(base64url.decode(inJwk.d, "binary"), "binary");
+                        (<IJwkEcPrivateKey>jwk).d = Base64Url.decode(<any>inJwk.d);
                     }
                     native.Key.importJwk(jwk, key_type, function (err, key) {
                         if (!err) {
-                            let ec = new CryptoKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public", extractable, keyUsages);
+                            let ec = new OsslCryptoKey(key, algorithm, key_type === native.KeyType.PRIVATE ? "private" : "public", extractable, keyUsages);
                             cb(null, ec);
                         }
                         else
@@ -132,9 +131,9 @@ export class Ec extends alg.AlgorithmBase {
         }
     }
 
-    static exportKey(format: string, key: iwc.ICryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
     static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
-    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void;
+    static exportKey(format: string, key: OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
             this.checkKeyType(format);
 
@@ -160,10 +159,10 @@ export class Ec extends alg.AlgorithmBase {
                     nkey.exportJwk(key_type, function (err, jwk) {
                         if (!err) {
                             try {
-                                pubJwk.x = base64url(jwk.x);
-                                pubJwk.y = base64url(jwk.y);
+                                pubJwk.x = <any>Base64Url.encode(jwk.x);
+                                pubJwk.y = <any>Base64Url.encode(jwk.y);
                                 if (key_type === native.KeyType.PRIVATE)
-                                    (<IJwkEcPrivateKey>pubJwk).d = base64url(jwk.d);
+                                    (<IJwkEcPrivateKey>pubJwk).d = <any>Base64Url.encode(jwk.d);
                                 cb(null, pubJwk);
                             }
                             catch (e) {
@@ -187,7 +186,7 @@ export class Ec extends alg.AlgorithmBase {
         this.checkAlgorithmParams(alg);
     }
 
-    static checkAlgorithmHashedParams(alg: iwc.IAlgorithmIdentifier) {
+    static checkAlgorithmHashedParams(alg: NodeAlgorithm) {
         super.checkAlgorithmHashedParams(alg);
         let _alg = alg.hash;
         _alg.name = _alg.name.toUpperCase();
@@ -216,13 +215,13 @@ export class Ec extends alg.AlgorithmBase {
     }
 }
 
-export interface IEcKeyGenParams extends iwc.IAlgorithmIdentifier {
+export interface IEcKeyGenParams extends NodeAlgorithm {
     namedCurve: string;
 }
 
-export interface IEcAlgorithmParams extends iwc.IAlgorithmIdentifier {
+export interface IEcAlgorithmParams extends NodeAlgorithm {
     namedCurve: string;
-    public?: CryptoKey;
+    public?: OsslCryptoKey;
 }
 
 export interface IEcdsaAlgorithmParams extends IEcAlgorithmParams {
@@ -241,9 +240,9 @@ export class Ecdsa extends Ec {
         return _alg;
     }
 
-    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void {
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: any, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void {
         super.generateKey(alg, extractable, keyUsages, function (err, keys) {
             if (!err) {
                 keys.privateKey.usages = ["sign"];
@@ -255,9 +254,9 @@ export class Ecdsa extends Ec {
         });
     }
 
-    static sign(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static sign(alg: IEcdsaAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static sign(alg: IEcdsaAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static sign(alg: NodeAlgorithm, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static sign(alg: IEcdsaAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static sign(alg: IEcdsaAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(alg);
             this.checkAlgorithmHashedParams(alg);
@@ -272,9 +271,9 @@ export class Ecdsa extends Ec {
         }
     }
 
-    static verify(alg: iwc.IAlgorithmIdentifier, key: iwc.ICryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
-    static verify(alg: IEcdsaAlgorithmParams, key: CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
-    static verify(alg: IEcdsaAlgorithmParams, key: CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+    static verify(alg: NodeAlgorithm, key: CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    static verify(alg: IEcdsaAlgorithmParams, key: OsslCryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    static verify(alg: IEcdsaAlgorithmParams, key: OsslCryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
         try {
             this.checkAlgorithmIdentifier(alg);
             this.checkAlgorithmHashedParams(alg);
@@ -288,7 +287,7 @@ export class Ecdsa extends Ec {
         }
     }
 
-    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         super.exportKey(format, key, function (err, d) {
             if (!err) {
                 if (format === "jwk") {
@@ -314,9 +313,9 @@ export interface IEcDhAlgorithmParams extends IEcAlgorithmParams {
 export class Ecdh extends Ec {
     static ALGORITHM_NAME: string = ALG_NAME_ECDH;
 
-    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void;
-    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKeyPair) => void): void {
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void;
+    static generateKey(alg: IEcKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKeyPair) => void): void {
         super.generateKey(alg, extractable, keyUsages, function (err, keys) {
             if (!err) {
                 keys.privateKey.usages = ["deriveKey"];
@@ -328,9 +327,9 @@ export class Ecdh extends Ec {
         });
     }
 
-    static deriveKey(algorithm: iwc.IAlgorithmIdentifier, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static deriveKey(algorithm: IEcDhAlgorithmParams, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void;
-    static deriveKey(algorithm: IEcDhAlgorithmParams, baseKey: key.CryptoKey, derivedKeyType: iwc.IAlgorithmIdentifier, extractable: boolean, keyUsages: string[], cb: (err: Error, d: iwc.ICryptoKey) => void): void {
+    static deriveKey(algorithm: NodeAlgorithm, baseKey: key.OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    static deriveKey(algorithm: IEcDhAlgorithmParams, baseKey: key.OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void;
+    static deriveKey(algorithm: IEcDhAlgorithmParams, baseKey: key.OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey) => void): void {
         try {
             this.checkAlgorithmParams(algorithm);
             this.checkPublicKey(algorithm.public);
@@ -355,7 +354,7 @@ export class Ecdh extends Ec {
                 if (!err) {
                     native.AesKey.import(raw, function (err, key) {
                         if (!err) {
-                            let aesKey = new CryptoKey(key, derivedKeyType, "secret", extractable, keyUsages);
+                            let aesKey = new OsslCryptoKey(key, derivedKeyType, "secret", extractable, keyUsages);
                             cb(null, aesKey);
                         }
                         else
@@ -371,9 +370,9 @@ export class Ecdh extends Ec {
         }
     }
 
-    static deriveBits(algorithm: iwc.IAlgorithmIdentifier, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
-    static deriveBits(algorithm: IEcDhAlgorithmParams, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
-    static deriveBits(algorithm: IEcDhAlgorithmParams, baseKey: CryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void {
+    static deriveBits(algorithm: NodeAlgorithm, baseKey: OsslCryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
+    static deriveBits(algorithm: IEcDhAlgorithmParams, baseKey: OsslCryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void;
+    static deriveBits(algorithm: IEcDhAlgorithmParams, baseKey: OsslCryptoKey, length: number, cb: (err: Error, dbits: Buffer) => void): void {
         try {
             this.checkAlgorithmParams(algorithm);
             this.checkPublicKey(algorithm.public);
@@ -392,7 +391,7 @@ export class Ecdh extends Ec {
         }
     }
 
-    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         super.exportKey(format, key, function (err, d) {
             if (!err) {
                 if (format === "jwk") {

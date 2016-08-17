@@ -1,6 +1,6 @@
 import {WebCryptoError, AlgorithmError, CryptoKeyError} from "./error";
 import * as native from "./native";
-import {CryptoKey as _CryptoKey} from "./key";
+import {OsslCryptoKey as _CryptoKey} from "./key";
 import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";

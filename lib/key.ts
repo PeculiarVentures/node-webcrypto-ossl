@@ -1,10 +1,10 @@
 import * as iwc from "./iwebcrypto";
 import * as native from "./native";
 
-export class CryptoKey implements iwc.ICryptoKey {
+export class OsslCryptoKey implements CryptoKey {
     type: string;
     extractable: boolean;
-    algorithm: iwc.IAlgorithmIdentifier;
+    algorithm: NodeAlgorithm;
     usages: string[] = [];
 
     private native_: any;
@@ -12,9 +12,9 @@ export class CryptoKey implements iwc.ICryptoKey {
         return this.native_;
     }
 
-    constructor(key: native.AesKey, alg: iwc.IAlgorithmIdentifier, type: string, extractable: boolean, keyUsages: string[]);
-    constructor(key: native.Key, alg: iwc.IAlgorithmIdentifier, type: string, extractable: boolean, keyUsages: string[]);
-    constructor(key: native.AesKey | native.Key, alg: iwc.IAlgorithmIdentifier, type: string, extractable: boolean, keyUsages: string[]) {
+    constructor(key: native.AesKey, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]);
+    constructor(key: native.Key, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]);
+    constructor(key: native.AesKey | native.Key, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]) {
         this.native_ = key;
 
         this.extractable = extractable;
@@ -25,4 +25,3 @@ export class CryptoKey implements iwc.ICryptoKey {
         this.usages = keyUsages;
     }
 }
-
