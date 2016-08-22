@@ -1,4 +1,3 @@
-import * as iwc from "./iwebcrypto";
 import {WebCryptoError} from "./error";
 import * as subtle from "./subtle";
 import * as crypto from "crypto";
@@ -39,7 +38,7 @@ class WebCrypto implements Crypto {
      * Constructor
      */
     constructor(options?: WebCryptoOptions) {
-        this.subtle = new subtle.OsslSubtleCrypto();
+        this.subtle = new subtle.SubtleCrypto();
         if (options && options.directory)
             this.keyStorage = new KeyStorage(options.directory);
     }

@@ -38,3 +38,6 @@ interface NodeSubtleCrypto extends SubtleCrypto {
     wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: TAlgorithm): PromiseLike<ArrayBuffer>;
     unwrapKey(format: string, wrappedKey: NodeCryptoBuffer, unwrappingKey: CryptoKey, unwrapAlgorithm: TAlgorithm, unwrappedKeyAlgorithm: TAlgorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
 }
+
+declare type NodeCryptoKey = CryptoKey;
+declare type NodeCryptoKeyPair = CryptoKeyPair;

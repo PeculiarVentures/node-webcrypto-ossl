@@ -1,4 +1,4 @@
-import {OsslCryptoKey} from "./key";
+import {CryptoKey} from "./key";
 
 import * as native from "./native";
 
@@ -42,7 +42,7 @@ function b2ab(b: Buffer): ArrayBuffer {
     return b.buffer;
 }
 
-export class OsslSubtleCrypto implements NodeSubtleCrypto {
+export class SubtleCrypto implements NodeSubtleCrypto {
 
     digest(algorithm: NodeAlgorithm, data: NodeCryptoBuffer) {
         let that = this;
@@ -72,7 +72,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
 
     generateKey(algorithm: TAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
-        return new Promise<CryptoKey | CryptoKeyPair>((resolve, reject) => {
+        return new Promise<NodeCryptoKey | CryptoKeyPair>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
 
             let AlgClass: alg.IAlgorithmBase = null;
@@ -110,7 +110,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    sign(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
+    sign(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
@@ -141,7 +141,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    verify(algorithm: TAlgorithm, key: OsslCryptoKey, signature: NodeCryptoBuffer, data: NodeCryptoBuffer) {
+    verify(algorithm: TAlgorithm, key: CryptoKey, signature: NodeCryptoBuffer, data: NodeCryptoBuffer) {
         let that = this;
         let _signature = prepare_data(signature);
         let _data = prepare_data(data);
@@ -172,7 +172,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    encrypt(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
+    encrypt(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
@@ -202,7 +202,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    decrypt(algorithm: TAlgorithm, key: OsslCryptoKey, data: NodeCryptoBuffer) {
+    decrypt(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
         let that = this;
         let _data = prepare_data(data);
 
@@ -232,7 +232,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    wrapKey(format: string, key: OsslCryptoKey, wrappingKey: OsslCryptoKey, algorithm: NodeAlgorithm) {
+    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, algorithm: NodeAlgorithm) {
         let that = this;
 
         return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -261,11 +261,11 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    unwrapKey(format: string, wrappedKey: NodeCryptoBuffer, unwrappingKey: OsslCryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
+    unwrapKey(format: string, wrappedKey: NodeCryptoBuffer, unwrappingKey: CryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
         let _wrappedKey = prepare_data(wrappedKey);
 
-        return new Promise<CryptoKey>((resolve, reject) => {
+        return new Promise<NodeCryptoKey>((resolve, reject) => {
             let _alg1 = prepare_algorithm(unwrapAlgorithm);
             let _alg2 = prepare_algorithm(unwrappedAlgorithm);
 
@@ -292,10 +292,10 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    deriveKey(algorithm: NodeAlgorithm, baseKey: OsslCryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
+    deriveKey(algorithm: NodeAlgorithm, baseKey: CryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
         let that = this;
 
-        return new Promise<CryptoKey>((resolve, reject) => {
+        return new Promise<NodeCryptoKey>((resolve, reject) => {
             let _alg1 = prepare_algorithm(algorithm);
             let _alg2 = prepare_algorithm(derivedKeyType);
 
@@ -316,7 +316,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    deriveBits(algorithm: NodeAlgorithm, baseKey: OsslCryptoKey, length: number) {
+    deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number) {
         let that = this;
 
         return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -339,7 +339,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         });
     }
 
-    exportKey(format: string, key: OsslCryptoKey) {
+    exportKey(format: string, key: CryptoKey) {
         let that = this;
 
         return new Promise<JWK | ArrayBuffer>((resolve, reject) => {
@@ -387,7 +387,7 @@ export class OsslSubtleCrypto implements NodeSubtleCrypto {
         extractable: boolean,
         keyUsages: string[]
     ) {
-        return new Promise<CryptoKey>((resolve, reject) => {
+        return new Promise<NodeCryptoKey>((resolve, reject) => {
             let _alg = prepare_algorithm(algorithm);
             let _data: Buffer | alg.IJwkKey = <any>keyData;
             if (format.toLowerCase() !== "jwk") {

@@ -1,7 +1,6 @@
-import * as iwc from "./iwebcrypto";
 import * as native from "./native";
 
-export class OsslCryptoKey implements CryptoKey {
+export class CryptoKey implements NodeCryptoKey {
     type: string;
     extractable: boolean;
     algorithm: NodeAlgorithm;

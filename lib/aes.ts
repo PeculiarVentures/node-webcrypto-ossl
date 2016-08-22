@@ -1,5 +1,5 @@
 import * as alg from "./alg";
-import {OsslCryptoKey} from "./key";
+import {CryptoKey} from "./key";
 import * as native from "./native";
 import * as crypto from "crypto";
 import {Base64Url} from "./base64url";
@@ -43,7 +43,7 @@ export class Aes extends alg.AlgorithmBase {
 
             native.AesKey.generate(alg.length / 8, function(err, key) {
                 if (!err) {
-                    let aes = new OsslCryptoKey(key, alg, "secret", extractable, keyUsages);
+                    let aes = new CryptoKey(key, alg, "secret", extractable, keyUsages);
                     aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
                     cb(null, aes);
                 }
@@ -85,7 +85,7 @@ export class Aes extends alg.AlgorithmBase {
 
             let aes = native.AesKey.import(raw, function(err, key) {
                 if (!err) {
-                    let aes = new OsslCryptoKey(key, alg, "secret", extractable, keyUsages);
+                    let aes = new CryptoKey(key, alg, "secret", extractable, keyUsages);
                     aes.usages = ["encrypt", "decrypt", "wrapKey", "unwrapKey"];
                     cb(null, aes);
                 }
@@ -98,7 +98,7 @@ export class Aes extends alg.AlgorithmBase {
         }
     }
 
-    static exportKey(format: string, key: OsslCryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+    static exportKey(format: string, key: CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
         try {
             let nkey = <native.AesKey>key.native;
             switch (format) {
@@ -203,8 +203,8 @@ export class AesGCM extends Aes {
     }
 
     static encrypt(algorithm: NodeAlgorithm, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static encrypt(algorithm: IAesGCMAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static encrypt(algorithm: IAesGCMAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static encrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
             this.checkKeyGenParams(key.algorithm);
@@ -224,8 +224,8 @@ export class AesGCM extends Aes {
     }
 
     static decrypt(algorithm: NodeAlgorithm, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static decrypt(algorithm: IAesGCMAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
-    static decrypt(algorithm: IAesGCMAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static decrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static decrypt(algorithm: IAesGCMAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmIdentifier(key.algorithm);
             this.checkKeyGenParams(key.algorithm);
@@ -274,7 +274,7 @@ export class AesCBC extends Aes {
         return alg.iv;
     }
 
-    static encrypt(alg: IAesCBCAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static encrypt(alg: IAesCBCAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
@@ -289,7 +289,7 @@ export class AesCBC extends Aes {
         }
     }
 
-    static decrypt(alg: IAesCBCAlgorithmParams, key: OsslCryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+    static decrypt(alg: IAesCBCAlgorithmParams, key: CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
         try {
             this.checkAlgorithmParams(alg);
             this.checkSecretKey(key);
