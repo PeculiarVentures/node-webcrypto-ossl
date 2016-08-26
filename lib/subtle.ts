@@ -348,6 +348,9 @@ export class SubtleCrypto implements NodeSubtleCrypto {
                 case rsa.RsaPKCS1.ALGORITHM_NAME:
                     KeyClass = rsa.RsaPKCS1;
                     break;
+                case rsa.RsaPSS.ALGORITHM_NAME:
+                    KeyClass = rsa.RsaPSS;
+                    break;
                 case rsa.RsaOAEP.ALGORITHM_NAME:
                     KeyClass = rsa.RsaOAEP;
                     break;
@@ -398,6 +401,9 @@ export class SubtleCrypto implements NodeSubtleCrypto {
             switch (_alg.name.toLowerCase()) {
                 case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaPKCS1;
+                    break;
+                case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
+                    AlgClass = rsa.RsaPSS;
                     break;
                 case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
                     AlgClass = rsa.RsaOAEP;

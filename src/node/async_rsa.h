@@ -193,6 +193,54 @@ private:
 	bool res;
 };
 
+class AsyncSignRsaPSS : public Nan::AsyncWorker {
+public:
+	AsyncSignRsaPSS(
+		Nan::Callback *callback,
+		const EVP_MD *md,
+		Handle<ScopedEVP_PKEY> pkey,
+		int saltLen,
+		Handle<std::string> in)
+		: AsyncWorker(callback), md(md), pkey(pkey), saltLen(saltLen), in(in) {}
+	~AsyncSignRsaPSS() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	int saltLen;
+	Handle<std::string> in;
+	//Result
+	Handle<std::string> out;
+};
+
+class AsyncVerifyRsaPSS : public Nan::AsyncWorker {
+public:
+	AsyncVerifyRsaPSS(
+		Nan::Callback *callback,
+		const EVP_MD *md,
+		Handle<ScopedEVP_PKEY> pkey,
+		int saltLen,
+		Handle<std::string> in,
+		Handle<std::string> signature)
+		: AsyncWorker(callback), md(md), pkey(pkey), saltLen(saltLen), in(in), signature(signature) {}
+	~AsyncVerifyRsaPSS() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+private:
+	const EVP_MD *md;
+	Handle<ScopedEVP_PKEY> pkey;
+	int saltLen;
+	Handle<std::string> in;
+	Handle<std::string> signature;
+	// Result
+	bool res;
+};
+
 #include "common.h"
 
 #endif // OSSL_NODE_ASYNC_RSA_H_INCLUDE

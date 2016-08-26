@@ -245,3 +245,45 @@ void AsyncVerifyRsa::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncSignRsaPSS::Execute() {
+	try {
+		out = RSA_PSS_sign(pkey, md, saltLen, in);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncSignRsaPSS::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Object> v8Buffer = String_to_v8Buffer(out);
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		v8Buffer
+	};
+
+	callback->Call(2, argv);
+}
+
+void AsyncVerifyRsaPSS::Execute() {
+	try {
+		res = RSA_PSS_verify(pkey, md, saltLen, in, signature);
+	}
+	catch (std::exception& e) {
+		this->SetErrorMessage(e.what());
+	}
+}
+
+void AsyncVerifyRsaPSS::HandleOKCallback() {
+	Nan::HandleScope scope;
+
+	v8::Local<v8::Value> argv[] = {
+		Nan::Null(),
+		Nan::New<v8::Boolean>(res)
+	};
+
+	callback->Call(2, argv);
+}

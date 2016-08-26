@@ -7,5 +7,6 @@
 #include "rsa_jwk.h"
 #include "rsa_pkcs1.h"
 #include "rsa_oaep.h"
+#include "rsa_pss.h"
 
 #endif // OSSL_RSA_COMMON_H_INCLUDE

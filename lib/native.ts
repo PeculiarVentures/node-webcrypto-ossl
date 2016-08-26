@@ -114,6 +114,9 @@ export declare class Key {
      */
     RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
 
+    RsaPssSign(digestName: string, saltLength: number, data: Buffer, cb: (err: Error, signature: Buffer) => void): void;
+    RsaPssVerify(digestName: string, saltLength: number, data: Buffer, signature: Buffer, cb: (err: Error, verified: boolean) => void): void;
+
     /**
      * derives key with ECDH
      * @param pubkey public key for key derivation

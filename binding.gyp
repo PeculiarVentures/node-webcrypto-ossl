@@ -24,6 +24,7 @@
                  "src/rsa/rsa_jwk.cpp",
                  "src/rsa/rsa_pkcs1.cpp",
                  "src/rsa/rsa_oaep.cpp",
+                 "src/rsa/rsa_pss.cpp",
                  "src/ec/common.h",
                  "src/ec/ec_gen.cpp",
                  "src/ec/ec_dsa.cpp",
@@ -54,21 +55,21 @@
                                 "target_arch=='x64'",
                                 {
                                     "variables": {
-                                        "openssl_root%": "C:/Build-OpenSSL-VC-64"
+                                        "openssl_root%": "C:/github/openssl"
                                     }
                                 },
                                 {
                                     "variables": {
-                                        "openssl_root%": "C:/Build-OpenSSL-VC-32"
+                                        "openssl_root%": "C:/github/openssl"
                                     }
                                 }
                             ]
                         ],
                         "libraries": [
-                            "-l<(openssl_root)/lib/libeay32.lib"
+                            "-l<(openssl_root)/out32dll/libeay32.lib"
                         ],
                         "include_dirs": [
-                            "<(openssl_root)/include"
+                            "<(openssl_root)/inc32"
                         ]
                     },
                     {

@@ -311,8 +311,119 @@ export class RsaPKCS1 extends Rsa {
 
 }
 
+export interface IRsaPssParams extends NodeAlgorithm {
+    saltLength: number;
+}
+
 export class RsaPSS extends Rsa {
     static ALGORITHM_NAME: string = ALG_NAME_RSA_PSS;
+
+    static generateKey(alg: IRsaKeyGenParams, extractable: boolean, keyUsages: string[], cb: (err: Error, d: CryptoKey | CryptoKeyPair) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkRsaGenParams(alg);
+            this.checkAlgorithmHashedParams(alg);
+
+            super.generateKey(alg, extractable, keyUsages, function (err: Error, key: CryptoKey) {
+                try {
+                    if (err) {
+                        cb(err, null);
+                    }
+                    else {
+                        if (key.type === "public") {
+                            key.usages = ["verify"];
+                        }
+                        else {
+                            key.usages = ["sign"];
+                        }
+                        cb(null, key);
+                    }
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static exportKey(format: string, key: key.CryptoKey, cb: (err: Error, d: Object | Buffer) => void): void {
+        try {
+            super.exportKey(format, key, function (err, data) {
+                if (err)
+                    return cb(err, null);
+                try {
+                    if (format === "jwk") {
+                        let jwk = <IJwkRsaPrivateKey>data;
+                        // set alg
+                        let reg = /(\d+)$/;
+                        jwk.alg = "PS" + reg.exec(key.algorithm.hash.name)[1];
+                        jwk.ext = true;
+                        if (key.type === "public") {
+                            jwk.key_ops = ["verify"];
+                        }
+                        else {
+                            jwk.key_ops = ["sign"];
+                        }
+                        cb(null, jwk);
+                    }
+                    else
+                        cb(null, data);
+                }
+                catch (e) {
+                    cb(e, null);
+                }
+            });
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    protected static checkRsaAlgorithmParams(alg: IRsaPssParams) {
+        if (!alg.saltLength) {
+            throw new TypeError(`RsaPssAlgorithm: Parameter saltLength is required`);
+        }
+        if (alg.saltLength % 8) {
+            throw new TypeError(`RsaPssAlgorithm: Parameter saltLength should be a multiple of 8`);
+        }
+    }
+
+    static sign(alg: NodeAlgorithm, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static sign(alg: IRsaPssParams, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void;
+    static sign(alg: IRsaPssParams, key: key.CryptoKey, data: Buffer, cb: (err: Error, d: Buffer) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkRsaAlgorithmParams(alg);
+            this.checkPrivateKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
+
+            nkey.RsaPssSign(_alg, alg.saltLength / 8, data, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
+
+    static verify(alg: NodeAlgorithm, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    static verify(alg: IRsaPssParams, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void;
+    static verify(alg: IRsaPssParams, key: key.CryptoKey, signature: Buffer, data: Buffer, cb: (err: Error, d: boolean) => void): void {
+        try {
+            this.checkAlgorithmIdentifier(alg);
+            this.checkRsaAlgorithmParams(alg);
+            this.checkPublicKey(key);
+            let _alg = this.wc2ssl(key.algorithm);
+            let nkey = <native.Key>key.native;
+
+            nkey.RsaPssVerify(_alg, alg.saltLength / 8, data, signature, cb);
+        }
+        catch (e) {
+            cb(e, null);
+        }
+    }
 }
 
 export class RsaOAEP extends Rsa {

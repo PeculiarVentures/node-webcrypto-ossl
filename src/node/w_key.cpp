@@ -8,16 +8,18 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// methods
-	SetPrototypeMethod(tpl, "exportJwk", ExportJwk);
-	SetPrototypeMethod(tpl, "exportSpki", ExportSpki);
-	SetPrototypeMethod(tpl, "exportPkcs8", ExportPkcs8);
-	SetPrototypeMethod(tpl, "sign", Sign);
-	SetPrototypeMethod(tpl, "verify", Verify);
-	SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
-	SetPrototypeMethod(tpl, "EcdhDeriveKey", EcdhDeriveKey);
-	SetPrototypeMethod(tpl, "EcdhDeriveBits", EcdhDeriveBits);
-	SetPrototypeMethod(tpl, "modulusLength", ModulusLength);
-	SetPrototypeMethod(tpl, "publicExponent", PublicExponent);
+	Nan::SetPrototypeMethod(tpl, "exportJwk", ExportJwk);
+	Nan::SetPrototypeMethod(tpl, "exportSpki", ExportSpki);
+	Nan::SetPrototypeMethod(tpl, "exportPkcs8", ExportPkcs8);
+	Nan::SetPrototypeMethod(tpl, "sign", Sign);
+	Nan::SetPrototypeMethod(tpl, "verify", Verify);
+	Nan::SetPrototypeMethod(tpl, "RsaOaepEncDec", RsaOaepEncDec);
+	Nan::SetPrototypeMethod(tpl, "RsaPssSign", RsaPssSign);
+	Nan::SetPrototypeMethod(tpl, "RsaPssVerify", RsaPssVerify);
+	Nan::SetPrototypeMethod(tpl, "EcdhDeriveKey", EcdhDeriveKey);
+	Nan::SetPrototypeMethod(tpl, "EcdhDeriveBits", EcdhDeriveBits);
+	Nan::SetPrototypeMethod(tpl, "modulusLength", ModulusLength);
+	Nan::SetPrototypeMethod(tpl, "publicExponent", PublicExponent);
 
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
@@ -428,12 +430,12 @@ NAN_METHOD(WKey::Verify) {
 }
 
 /*
- * digestName: string
- * data: Buffer
- * label: Buffer
- * decrypt: boolean
- * cb: function
- */
+* digestName: string
+* data: Buffer
+* label: Buffer
+* decrypt: boolean
+* cb: function
+*/
 NAN_METHOD(WKey::RsaOaepEncDec) {
 	LOG_FUNC();
 
@@ -464,6 +466,74 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
 
 	Nan::AsyncQueueWorker(new AsyncEncrypDecryptRsaOAEP(callback, hKey, md, hData, hLabel, decrypt));
+}
+
+/*
+ * digestName: string
+ * saltLength: number
+ * data: Buffer
+ * cb: function
+ */
+NAN_METHOD(WKey::RsaPssSign) {
+	LOG_FUNC();
+
+	LOG_INFO("digestName");
+	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+	if (!md) {
+		Nan::ThrowError("Unknown digest name");
+		return;
+	}
+
+	LOG_INFO("saltLength");
+	int saltLength = info[1]->ToNumber()->Uint32Value();
+
+	LOG_INFO("data");
+	Handle<std::string> hData = v8Buffer_to_String(info[2]);
+
+	LOG_INFO("this->Key");
+	WKey *wKey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> hKey = wKey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncSignRsaPSS(callback, md, hKey, saltLength, hData));
+}
+
+/*
+* digestName: string
+* saltLength: number
+* data: Buffer
+* signature: Buffer
+* cb: function
+*/
+NAN_METHOD(WKey::RsaPssVerify) {
+	LOG_FUNC();
+
+	LOG_INFO("digestName");
+	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+	if (!md) {
+		Nan::ThrowError("Unknown digest name");
+		return;
+	}
+
+	LOG_INFO("saltLength");
+	int saltLength = info[1]->ToNumber()->Uint32Value();
+
+	LOG_INFO("data");
+	Handle<std::string> hData = v8Buffer_to_String(info[2]);
+
+	LOG_INFO("signature");
+	Handle<std::string> hSignature= v8Buffer_to_String(info[3]);
+
+	LOG_INFO("this->Key");
+	WKey *wKey = WKey::Unwrap<WKey>(info.This());
+	Handle<ScopedEVP_PKEY> hKey = wKey->data;
+
+	Nan::Callback *callback = new Nan::Callback(info[4].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncVerifyRsaPSS(callback, md, hKey, saltLength, hData, hSignature));
 }
 
 /*

@@ -1,0 +1,1 @@
+console.log(require("./build/Release/nodessl.node"));
