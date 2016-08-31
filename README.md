@@ -99,7 +99,7 @@ TODO: ADD ASSUMPTIONS
 
 ### Threats From A node-webcrypto-ossl Defect
 
-TODO: ADD THREATS FROM HANCOCK SERVICE COMPROMISE
+TODO: ADD THREATS FROM NODE-WEBCRYPTO-OSSL DEFECT
 
 ### Threats From Weak Cryptography
 
