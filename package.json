@@ -8,6 +8,9 @@
   "description": "A WebCrypto Polyfill for Node in TypeScript built on OpenSSL",
   "main": "buildjs/webcrypto.js",
   "scripts": {
+    "clean": "rm -rf build/ buildjs/ coverage/ .nyc_output/ npm-debug.log npm-debug.log.*",
+    "prepublish": "npm run build",
+    "postinstall": "npm run build",
     "pretest": "npm run build",
     "test": "mocha",
     "build": "typings install && tsc --sourceMap",
