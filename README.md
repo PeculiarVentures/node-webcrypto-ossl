@@ -117,6 +117,7 @@ Please report bugs either as pull requests or as issues in the issue tracker. no
 
 ## Related
  - [node-webcrypto-p11](https://github.com/PeculiarVentures/node-webcrypto-p11)
+ - [webcrypto-liner](https://github.com/PeculiarVentures/webcrypto-liner)
  - [MSR WebCrypto Polyfill](http://research.microsoft.com/en-us/downloads/29f9385d-da4c-479a-b2ea-2a7bb335d727/)
  - [OpenSSL](https://github.com/openssl/openssl)
  - [WebCrypto Examples](https://github.com/diafygi/webcrypto-examples)
