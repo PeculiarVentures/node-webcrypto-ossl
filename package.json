@@ -39,7 +39,8 @@
   ],
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "nan": "^2.4.0"
+    "nan": "^2.4.0",
+    "webcrypto-core": "*"
   },
   "devDependencies": {
     "live-server": "^1",

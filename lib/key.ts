@@ -1,9 +1,9 @@
 import * as native from "./native";
 
-export class CryptoKey implements NodeCryptoKey {
+export class CryptoKey implements NativeCryptoKey {
     type: string;
     extractable: boolean;
-    algorithm: NodeAlgorithm;
+    algorithm: Algorithm;
     usages: string[] = [];
 
     private native_: any;
@@ -11,9 +11,9 @@ export class CryptoKey implements NodeCryptoKey {
         return this.native_;
     }
 
-    constructor(key: native.AesKey, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]);
-    constructor(key: native.Key, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]);
-    constructor(key: native.AesKey | native.Key, alg: NodeAlgorithm, type: string, extractable: boolean, keyUsages: string[]) {
+    constructor(key: native.AesKey, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
+    constructor(key: native.Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
+    constructor(key: native.AesKey | native.Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]) {
         this.native_ = key;
 
         this.extractable = extractable;

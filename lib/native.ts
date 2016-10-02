@@ -112,7 +112,7 @@ export declare class Key {
      * @param decrypt type of operation
      * @param callback callback function (err: Error, raw: Buffer)
      */
-    RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
+    RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer | null, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
 
     RsaPssSign(digestName: string, saltLength: number, data: Buffer, cb: (err: Error, signature: Buffer) => void): void;
     RsaPssVerify(digestName: string, saltLength: number, data: Buffer, signature: Buffer, cb: (err: Error, verified: boolean) => void): void;
@@ -160,7 +160,7 @@ export declare class Key {
      * @param jwk key in JWK format
      * @param keyType type of imported key (PRIVATE or PUBLIC)
      */
-    static importJwk(jwk: Object, keyType: KeyType): any;
+    static importJwk(jwk: {[key: string]: Buffer}, keyType: KeyType): any;
 
     /**
      * create Key from SPKI

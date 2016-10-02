@@ -1,28 +1,23 @@
-import {CryptoKey} from "./key";
+// Core
+import * as webcrypto from "webcrypto-core";
+const AlgorithmError = webcrypto.AlgorithmError;
+const PrepareAlgorithm = webcrypto.PrepareAlgorithm;
+let BaseCrypto = webcrypto.BaseCrypto;
+const AlgorithmNames = webcrypto.AlgorithmNames;
 
+// Local
 import * as native from "./native";
-
-import * as alg from "./alg";
+import { CryptoKey } from "./key";
+// import * as alg from "./alg";
 import * as rsa from "./rsa";
-import * as aes from "./aes";
-import * as ec from "./ec";
-
-function prepare_algorithm(alg: TAlgorithm): NodeAlgorithm {
-    let _alg: NodeAlgorithm = { name: "" };
-    if (typeof alg === "string") {
-        _alg = { name: alg };
-    }
-    else {
-        _alg = alg as NodeAlgorithm;
-    }
-    return _alg;
-}
+// import * as aes from "./aes";
+// import * as ec from "./ec";
 
 /**
  * Prepare array of data before it's using 
  * @param data Array which must be prepared
  */
-function prepare_data(data: NodeCryptoBuffer): Buffer {
+function PrepareData(data: NodeBufferSource): Buffer {
     return ab2b(data);
 }
 
@@ -30,418 +25,317 @@ function prepare_data(data: NodeCryptoBuffer): Buffer {
  * Converts ArrayBuffer to Buffer
  * @param ab ArrayBuffer value wich must be converted to Buffer
  */
-function ab2b(ab: ArrayBufferView) {
-    return new Buffer(ab as Uint8Array);
+function ab2b(ab: NodeBufferSource) {
+    return new Buffer(ab as any);
 }
 
 /**
  * Converts Buffer to ArrayBuffer
  * @param b Buffer value wich must be converted to ArrayBuffer
  */
-function b2ab(b: Buffer): ArrayBuffer {
-    return b.buffer;
-}
+// function b2ab(b: Buffer): ArrayBuffer {
+//     return b.buffer;
+// }
 
-export class SubtleCrypto implements NodeSubtleCrypto {
-
-    digest(algorithm: NodeAlgorithm, data: NodeCryptoBuffer) {
-        let that = this;
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-            let _data = prepare_data(data);
-
-            let algName = _alg.name.toLowerCase();
-            switch (algName) {
-                case "sha-1":
-                case "sha-224":
-                case "sha-256":
-                case "sha-384":
-                case "sha-512":
-                    native.Core.digest(algName.replace("-", ""), _data, function (err, digest) {
-                        if (err)
-                            reject(err);
-                        else
-                            resolve(digest.buffer);
-                    });
-                    break;
-                default:
-                    throw new Error("AlgorithmIdentifier: Unknown algorithm name");
-            }
-        });
-    }
-
-    generateKey(algorithm: TAlgorithm, extractable: boolean, keyUsages: string[]) {
-        let that = this;
-        return new Promise<NodeCryptoKey | CryptoKeyPair>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPKCS1;
-                    break;
-                case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPSS;
-                    break;
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.generateKey(_alg, extractable, keyUsages, function (err, key) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(key);
-            });
-        });
-    }
-
-    sign(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
-        let that = this;
-        let _data = prepare_data(data);
-
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPKCS1;
-                    break;
-                case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPSS;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.sign(_alg, key, _data, function (err, sig) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(sig.buffer);
-            });
-
-        });
-    }
-
-    verify(algorithm: TAlgorithm, key: CryptoKey, signature: NodeCryptoBuffer, data: NodeCryptoBuffer) {
-        let that = this;
-        let _signature = prepare_data(signature);
-        let _data = prepare_data(data);
-
-        return new Promise<boolean>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPKCS1;
-                    break;
-                case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPSS;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.verify(_alg, key, _signature, _data, function (err, valid) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(valid);
-            });
-        });
-    }
-
-    encrypt(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
-        let that = this;
-        let _data = prepare_data(data);
-
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.encrypt(_alg, key, _data, function (err, buf) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(buf.buffer);
-            });
-        });
-    }
-
-    decrypt(algorithm: TAlgorithm, key: CryptoKey, data: NodeCryptoBuffer) {
-        let that = this;
-        let _data = prepare_data(data);
-
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.decrypt(_alg, key, _data, function (err, buf) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(buf.buffer);
-            });
-        });
-    }
-
-    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, algorithm: NodeAlgorithm) {
-        let that = this;
-
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.wrapKey(key, wrappingKey, _alg, function (err, buf) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(buf.buffer);
-            });
-        });
-    }
-
-    unwrapKey(format: string, wrappedKey: NodeCryptoBuffer, unwrappingKey: CryptoKey, unwrapAlgorithm: NodeAlgorithm, unwrappedAlgorithm: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
-        let that = this;
-        let _wrappedKey = prepare_data(wrappedKey);
-
-        return new Promise<NodeCryptoKey>((resolve, reject) => {
-            let _alg1 = prepare_algorithm(unwrapAlgorithm);
-            let _alg2 = prepare_algorithm(unwrappedAlgorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg1.name.toLowerCase()) {
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.unwrapKey(_wrappedKey, unwrappingKey, _alg1, _alg2, extractable, keyUsages, function (err, key) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(key);
-            });
-        });
-    }
-
-    deriveKey(algorithm: NodeAlgorithm, baseKey: CryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
-        let that = this;
-
-        return new Promise<NodeCryptoKey>((resolve, reject) => {
-            let _alg1 = prepare_algorithm(algorithm);
-            let _alg2 = prepare_algorithm(derivedKeyType);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg1.name.toLowerCase()) {
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.deriveKey(_alg1, baseKey, _alg2, extractable, keyUsages, function (err, key) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(key);
-            });
-        });
-    }
-
-    deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number) {
-        let that = this;
-
-        return new Promise<ArrayBuffer>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            AlgClass.deriveBits(_alg, baseKey, length, (err, dbits) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve(dbits.buffer);
-            });
-        });
-    }
-
-    exportKey(format: string, key: CryptoKey) {
-        let that = this;
-
-        return new Promise<JWK | ArrayBuffer>((resolve, reject) => {
-            let KeyClass: any;
-            switch (key.algorithm.name) {
-                case rsa.RsaPKCS1.ALGORITHM_NAME:
-                    KeyClass = rsa.RsaPKCS1;
-                    break;
-                case rsa.RsaPSS.ALGORITHM_NAME:
-                    KeyClass = rsa.RsaPSS;
-                    break;
-                case rsa.RsaOAEP.ALGORITHM_NAME:
-                    KeyClass = rsa.RsaOAEP;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME:
-                    KeyClass = aes.AesCBC;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME:
-                    KeyClass = aes.AesGCM;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME:
-                    KeyClass = ec.Ecdsa;
-                    break;
-                case ec.Ecdh.ALGORITHM_NAME:
-                    KeyClass = ec.Ecdh;
-                    break;
-                default:
-                    throw new Error(`ExportKey: Unsupported algorithm ${key.algorithm.name}`);
-            }
-            KeyClass.exportKey(format.toLowerCase(), key, function (err: Error, data: any) {
-                if (err)
-                    reject(err);
-                else
-                    if (Buffer.isBuffer(data)) {
-                        let ubuf = new Uint8Array(<any>data);
-                        resolve(ubuf.buffer);
+export class SubtleCrypto extends webcrypto.SubtleCrypto {
+    /**
+     * Computes a digest
+     * 
+     * > Note: Has difference from W3 WebcCrypto API
+     * > - Supports Buffer
+     * > - Supports SHA-1, SHA-224, SAH-256, SHA-384, SHA-512 algorithms 
+     * 
+     * @param {AlgorithmIdentifier} algorithm
+     * @param {NodeSourceBuffer} data
+     * @returns {PromiseLike<ArrayBuffer>}
+     * 
+     * @memberOf SubtleCrypto
+     */
+    digest(algorithm: AlgorithmIdentifier, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
+        return super.digest.apply(this, arguments)
+            .then(() => {
+                return new Promise((resolve, reject) => {
+                    const _alg = PrepareAlgorithm(algorithm);
+                    const _data = PrepareData(data);
+                    let algName = _alg.name.toLowerCase();
+                    switch (algName) {
+                        case "sha-1":
+                        case "sha-224":
+                        case "sha-256":
+                        case "sha-384":
+                        case "sha-512":
+                            native.Core.digest(algName.replace("-", ""), _data, (err, digest) => {
+                                if (err)
+                                    reject(err);
+                                else
+                                    resolve(digest.buffer);
+                            });
+                            break;
+                        default:
+                            throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, algName);
                     }
-                    else
-                        resolve(data);
+                });
             });
-        });
     }
 
-    importKey(
-        format: string,
-        keyData: JWK | NodeCryptoBuffer,
-        algorithm: NodeAlgorithm,
-        extractable: boolean,
-        keyUsages: string[]
-    ) {
-        return new Promise<NodeCryptoKey>((resolve, reject) => {
-            let _alg = prepare_algorithm(algorithm);
-            let _data: Buffer | alg.IJwkKey = <any>keyData;
-            if (format.toLowerCase() !== "jwk") {
-                 _data = prepare_data(keyData as NodeCryptoBuffer);
-            }
+    generateKey(algorithm: string, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair | CryptoKey>;
+    generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams | DhKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair>;
+    generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+    generateKey(algorithm: any, extractable: boolean, keyUsages: string[]) {
+        return super.generateKey.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm);
 
-            let AlgClass: alg.IAlgorithmBase = null;
-            switch (_alg.name.toLowerCase()) {
-                case rsa.RsaPKCS1.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPKCS1;
-                    break;
-                case rsa.RsaPSS.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaPSS;
-                    break;
-                case rsa.RsaOAEP.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = rsa.RsaOAEP;
-                    break;
-                case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdsa;
-                    break;
-                case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = ec.Ecdh;
-                    break;
-                case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesCBC;
-                    break;
-                case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    AlgClass = aes.AesGCM;
-                    break;
-                default:
-                    throw new TypeError("Unsupported algorithm in use");
-            }
-            if (format.toLowerCase() === "jwk") {
-                if (Buffer.isBuffer(keyData)) {
-                    throw new Error("ImportKey: keydData must be Object");
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaSSA.toLowerCase():
+                        AlgClass = rsa.RsaPKCS1;
+                        break;
+                    case AlgorithmNames.RsaPSS.toLowerCase():
+                        AlgClass = rsa.RsaPSS;
+                        break;
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = aes.AesGCM;
+                    //     break;
+                    // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = aes.AesCBC;
+                    //     break;
+                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = ec.Ecdsa;
+                    //     break;
+                    // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = ec.Ecdh;
+                    //     break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
-                // copy input object
-                // TODO: Apply Object.assign (check for Node v4, not supported for TS for ES5)
-                let cpy: any = {};
-                for (let i in _data) {
-                    cpy[i] = (<JWK>_data)[i];
-                }
-                _data = <any>cpy;
-            }
-            AlgClass.importKey(format.toLowerCase(), _data, _alg, extractable, keyUsages, function (err, key) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(key);
+                return AlgClass.generateKey(_alg as any, extractable, keyUsages);
             });
-        });
+    }
+
+    sign(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
+        return super.sign.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm as string);
+                let _data = PrepareData(data);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaSSA.toLowerCase():
+                        AlgClass = rsa.RsaPKCS1;
+                        break;
+                    case AlgorithmNames.RsaPSS.toLowerCase():
+                        AlgClass = rsa.RsaPSS;
+                        break;
+                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = ec.Ecdsa;
+                    //     break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.sign(_alg, key, _data);
+            });
+    }
+
+    verify(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean> {
+        return super.verify.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm as string);
+                let _signature = PrepareData(signature);
+                let _data = PrepareData(data);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaSSA.toLowerCase():
+                        AlgClass = rsa.RsaPKCS1;
+                        break;
+                    case AlgorithmNames.RsaPSS.toLowerCase():
+                        AlgClass = rsa.RsaPSS;
+                        break;
+                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
+                    //     AlgClass = ec.Ecdsa;
+                    //     break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.verify(_alg, key, _signature, _data);
+            });
+    }
+
+    encrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
+        return super.encrypt.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm);
+                let _data = PrepareData(data);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.encrypt(_alg, key, _data);
+            });
+    }
+
+    decrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: BufferSource): PromiseLike<ArrayBuffer> {
+        return super.decrypt.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm);
+                let _data = PrepareData(data);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.decrypt(_alg, key, _data);
+            });
+    }
+
+    wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier): PromiseLike<ArrayBuffer> {
+        return super.wrapKey.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(wrapAlgorithm);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.wrapKey(format, key, wrappingKey, _alg);
+            });
+    }
+
+    unwrapKey(format: string, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+        return super.unwrapKey.apply(this, arguments)
+            .then(() => {
+                let _unwrapAlgorithm = PrepareAlgorithm(unwrapAlgorithm);
+                let _unwrappedKeyAlgorithm = PrepareAlgorithm(unwrappedKeyAlgorithm);
+                let _data = PrepareData(wrappedKey);
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_unwrapAlgorithm.name.toLowerCase()) {
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _unwrapAlgorithm.name);
+                }
+                return AlgClass.unwrapKey(format, _data, unwrappingKey, _unwrapAlgorithm, _unwrappedKeyAlgorithm, extractable, keyUsages);
+            });
+    }
+
+
+    // deriveKey(algorithm: NodeAlgorithm, baseKey: CryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
+    //     let that = this;
+
+    //     return new Promise<NodeCryptoKey>((resolve, reject) => {
+    //         let _alg1 = PrepareAlgorithm(algorithm);
+    //         let _alg2 = PrepareAlgorithm(derivedKeyType);
+
+    //         let AlgClass: alg.IAlgorithmBase = null;
+    //         switch (_alg1.name.toLowerCase()) {
+    //             case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+    //                 AlgClass = ec.Ecdh;
+    //                 break;
+    //             default:
+    //                 throw new TypeError("Unsupported algorithm in use");
+    //         }
+    //         AlgClass.deriveKey(_alg1, baseKey, _alg2, extractable, keyUsages, function (err, key) {
+    //             if (err)
+    //                 reject(err);
+    //             else
+    //                 resolve(key);
+    //         });
+    //     });
+    // }
+
+    // deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number) {
+    //     let that = this;
+
+    //     return new Promise<ArrayBuffer>((resolve, reject) => {
+    //         let _alg = PrepareAlgorithm(algorithm);
+
+    //         let AlgClass: alg.IAlgorithmBase = null;
+    //         switch (_alg.name.toLowerCase()) {
+    //             case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
+    //                 AlgClass = ec.Ecdh;
+    //                 break;
+    //             default:
+    //                 throw new TypeError("Unsupported algorithm in use");
+    //         }
+    //         AlgClass.deriveBits(_alg, baseKey, length, (err, dbits) => {
+    //             if (err)
+    //                 reject(err);
+    //             else
+    //                 resolve(dbits.buffer);
+    //         });
+    //     });
+    // }
+
+    exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
+    exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
+    exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+        return super.exportKey.apply(this, arguments)
+            .then(() => {
+                let AlgClass: typeof BaseCrypto;
+                switch (key.algorithm.name.toLowerCase()) {
+                    case AlgorithmNames.RsaSSA.toLowerCase():
+                        AlgClass = rsa.RsaPKCS1;
+                        break;
+                    case AlgorithmNames.RsaPSS.toLowerCase():
+                        AlgClass = rsa.RsaPSS;
+                        break;
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, key.algorithm.name);
+                }
+                return AlgClass.exportKey(format, key);
+            });
+    }
+
+    importKey(format: "jwk", keyData: JsonWebKey, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+    importKey(format: "raw" | "pkcs8" | "spki", keyData: NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+    importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+        return super.importKey.apply(this, arguments)
+            .then(() => {
+                let _alg = PrepareAlgorithm(algorithm as string);
+
+                let _data = keyData;
+                if (format !== "jwk") {
+                    _data = PrepareData(_data as NodeBufferSource);
+                }
+
+                let AlgClass: typeof BaseCrypto;
+                switch (_alg.name.toLowerCase()) {
+                    case AlgorithmNames.RsaSSA.toLowerCase():
+                        AlgClass = rsa.RsaPKCS1;
+                        break;
+                    case AlgorithmNames.RsaPSS.toLowerCase():
+                        AlgClass = rsa.RsaPSS;
+                        break;
+                    case AlgorithmNames.RsaOAEP.toLowerCase():
+                        AlgClass = rsa.RsaOAEP;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
+                }
+                return AlgClass.importKey(format, _data, _alg, extractable, keyUsages);
+            });
     }
 
 }

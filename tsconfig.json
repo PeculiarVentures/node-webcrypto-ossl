@@ -1,6 +1,13 @@
 {
     "compilerOptions": {
         "target": "es5",
+        "lib": [
+            "es5",
+            "es2015.promise",
+            "dom"
+        ],
+        "noUnusedLocals": true,
+        "strictNullChecks": true,
         "module": "commonjs",
         "rootDir": "lib",
         "outDir": "buildjs",
@@ -11,8 +18,7 @@
     },
     "files": [
         "typings/index.d.ts",
-        "lib/typings/promise.d.ts",
-        "lib/typings/node-webcrypto.d.ts",
+        "lib/typings/index.d.ts",
         "lib/webcrypto.ts"
     ]
 }
