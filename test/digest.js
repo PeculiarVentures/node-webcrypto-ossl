@@ -7,7 +7,7 @@ describe("WebCrypto digest", function () {
 
     context("Sha", function () {
 
-        ["SHA-1", "SHA-224", "SHA-256", "SHA-384", "SHA-512"].forEach(digestAlg =>
+        ["SHA-1", "SHA-256", "SHA-384", "SHA-512"].forEach(digestAlg =>
             it(`Valid digest ${digestAlg}`, done => {
                 webcrypto.subtle.digest({ name: digestAlg }, TEST_MESSAGE)
                     .then(function (k) {

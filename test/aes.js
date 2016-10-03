@@ -1,213 +1,223 @@
 var assert = require('assert');
 var webcrypto = require('./config');
 
+var keys = [];
+
 describe("WebCrypto Aes", function () {
 
-    var TEST_MESSAGE = new Buffer("12345678901234561234567890123456");
+    var TEST_MESSAGE = new Buffer("1234567890123456");
+    var KEYS = [
+        { alg: "AES-CBC", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+        { alg: "AES-GCM", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+    ];
 
-    before(function (done) {
-        done();
-    })
+    context("Generate key", () => {
 
-    it("Aes CBC", function (done) {
-        var key = null;
-        var iv = webcrypto.getRandomValues(new Uint8Array(16));
-        webcrypto.subtle.generateKey({
-            name: "AES-CBC",
-            length: 256, //can be  128, 192, or 256
-        },
-            false, //whether the key is extractable (i.e. can be used in exportKey)
-            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-            )
-            .then(function (k) {
-                assert.equal(k.key !== null, true, "Has no key value");
-                key = k;
+        // Algs
+        KEYS.forEach(key => {
+            // length
+            [128, 192, 256].forEach(length => {
+                var keyName = `${key.alg} l:${length}`;
+                var keyTemplate = {
+                    name: keyName,
+                    key: null,
+                    usages: key.usages,
+                };
+                keys.push(keyTemplate);
+                it(keyName, done => {
+                    var alg = {
+                        name: key.alg,
+                        length: length
+                    };
+                    webcrypto.subtle.generateKey(alg, true, key.usages)
+                        .then(aesKey => {
+                            assert.equal(!!aesKey, true, "Aes key is empty");
+                            keyTemplate.key = aesKey;
+                        })
+                        .then(done, done);
+                });
+            });
+        })
 
-                return webcrypto.subtle.encrypt(
-                    {
-                        name: "AES-CBC",
+    });
 
-                        //Don't re-use initialization vectors!
-                        //Always generate a new iv every time your encrypt!
-                        iv: iv
-                    },
-                    key, //from generateKey or importKey above
-                    TEST_MESSAGE //ArrayBuffer of data you want to encrypt
-                    )
-            })
-            .then(function (enc) {
-                assert.equal(enc !== null, true, "Has no encrypted value");
-                assert.notEqual(enc.length, 0, "Has empty encrypted value");
-                return webcrypto.subtle.decrypt(
-                    {
-                        name: "AES-CBC",
-                        iv: iv //The initialization vector you used to encrypt
-                    },
-                    key, //from generateKey or importKey above
-                    enc //ArrayBuffer of the data
-                    );
-            })
-            .then(function (dec) {
-                var s = "";
-                var buf = new Uint8Array(dec);
-                for (var i = 0; i < buf.length; i++) {
-                    s += String.fromCharCode(buf[i]);
-                }
-                assert.equal(s, TEST_MESSAGE.toString(), "AES-CBC encrypt/decrypt is not valid")
-            })
-            .then(done, done);
-    })
+    context("Encrypt/Decrypt", () => {
 
-    it("Aes CBC JWK export/import", function (done) {
-        var key = null;
-        var _jwk;
-        webcrypto.subtle.generateKey({
-            name: "AES-CBC",
-            length: 256, //can be  128, 192, or 256
-        },
-            false, //whether the key is extractable (i.e. can be used in exportKey)
-            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-            )
-            .then(function (k) {
-                assert.equal(k.key !== null, true, "Has no key value");
-                key = k;
+        context("AES-CBC", () => {
 
-                return webcrypto.subtle.exportKey("jwk", key);
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK secretKey");
-                assert.equal(jwk.k !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.key_ops.length === 4, true, "Wrong JWK key usages amount");
-                assert.equal(jwk.alg === "A256CBC", true, "Wrong JWK key algorithm");
-                assert.equal(jwk.kty === "oct", true, "Wrong JWK key type");
-                assert.equal(jwk.ext, true, "Wrong JWK key extractable");
-                _jwk = jwk;
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "AES-CBC"
-                    },
-                    true,
-                    ["encrypt", "decrypt"]
-                    );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "secret", true, "Key is not Secret");
-                assert.equal(k.algorithm.name === "AES-CBC", true, "Key is not AES-CBC");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", k)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK secretKey");
-                assert.equal(jwk.k === _jwk.k, true, "Wrong JWK key param");
-            })
-            .then(done, done);
-    })
+            // Filter CBC
+            keys.filter(key => /AES-CBC/.test(key.name))
+                .forEach(key => {
+                    [new Uint8Array(16), new Uint8Array(16)].forEach(iv => {
+                        it(`iv:${iv.length}\t${key.name}`, done => {
+                            var alg = { name: "AES-CBC", iv: iv };
+                            webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
+                                .then(enc => {
+                                    assert(!!enc, true, "Encrypted message is empty");
+                                    return webcrypto.subtle.decrypt(alg, key.key, enc);
+                                })
+                                .then(dec => {
+                                    assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
+                                })
+                                .then(done, done);
+                        });
+                    });
+                });
+        });
 
-    it("Aes GCM", function (done) {
-        var key = null;
-        var iv = webcrypto.getRandomValues(new Uint8Array(12));
-        webcrypto.subtle.generateKey({
-            name: "AES-GCM",
-            length: 256, //can be  128, 192, or 256
-        },
-            false, //whether the key is extractable (i.e. can be used in exportKey)
-            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-            )
-            .then(function (k) {
-                assert.equal(k.key !== null, true, "Has no key value");
-                key = k;
+        context("AES-GCM", () => {
+            // Filter GCM
+            keys.filter(key => /AES-GCM/.test(key.name))
+                .forEach(key => {
+                    // IV
+                    [new Uint8Array(16)].forEach(iv => {
+                        // AAD
+                        [new Uint8Array([1, 2, 3, 4, 5]), null].forEach(aad => {
+                            // Tag
+                            [32, 64, 96, 104, 112, 120, 128].forEach(tag => {
+                                it(`aad:${aad ? "+" : "-"} t:${tag}\t${key.name}`, done => {
+                                    var alg = { name: "AES-GCM", iv: iv, aad: aad, tagLength: tag };
+                                    webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
+                                        .then(enc => {
+                                            assert(!!enc, true, "Encrypted message is empty");
+                                            return webcrypto.subtle.decrypt(alg, key.key, enc);
+                                        })
+                                        .then(dec => {
+                                            assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
+                                        })
+                                        .then(done, done);
+                                });
+                            });
+                        });
+                    });
+                });
+        });
 
-                return webcrypto.subtle.encrypt(
-                    {
-                        name: "AES-GCM",
+    });
 
-                        //Don't re-use initialization vectors!
-                        //Always generate a new iv every time your encrypt!
-                        iv: iv,
-                        //Additional authentication data (optional)
-                        additionalData: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer,
+    context("", () => {
 
-                        //Tag length (optional)
-                        tagLength: 128, //can be 32, 64, 96, 104, 112, 120 or 128 (default)
-                    },
-                    key, //from generateKey or importKey above
-                    TEST_MESSAGE //ArrayBuffer of data you want to encrypt
-                    )
-            })
-            .then(function (enc) {
-                assert.equal(enc !== null, true, "Has no encrypted value");
-                assert.notEqual(enc.length, 0, "Has empty encrypted value");
-                return webcrypto.subtle.decrypt(
-                    {
-                        name: "AES-GCM",
-                        iv: iv, //The initialization vector you used to encrypt
-                        //Additional authentication data (optional)
-                        additionalData: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]).buffer,
+        context("AES-CBC", () => {
 
-                        //Tag length (optional)
-                        tagLength: 128, //can be 32, 64, 96, 104, 112, 120 or 128 (default)
-                    },
-                    key, //from generateKey or importKey above
-                    enc //ArrayBuffer of the data
-                    );
-            })
-            .then(function (dec) {
-                var s = "";
-                var buf = new Uint8Array(dec);
-                for (var i = 0; i < buf.length; i++) {
-                    s += String.fromCharCode(buf[i]);
-                }
-                assert.equal(s, TEST_MESSAGE.toString(), "AES-GCM encrypt/decrypt is not valid")
-            })
-            .then(done, done);
-    })
+            // Filter CBC
+            keys.filter(key => /AES-CBC/.test(key.name))
+                .forEach(key => {
+                    [new Uint8Array(16), new Uint8Array(16)].forEach(iv => {
+                        it(`iv:${iv.length}\t${key.name}`, done => {
+                            var alg = { name: "AES-CBC", iv: iv };
+                            webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
+                                .then(enc => {
+                                    assert(!!enc, true, "Encrypted message is empty");
+                                    return webcrypto.subtle.decrypt(alg, key.key, enc);
+                                })
+                                .then(dec => {
+                                    assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
+                                })
+                                .then(done, done);
+                        });
+                    });
+                });
+        });
 
-    it("Aes GCM JWK export/import", function (done) {
-        var key = null;
-        var _jwk;
-        webcrypto.subtle.generateKey({
-            name: "AES-GCM",
-            length: 256, //can be  128, 192, or 256
-        },
-            false, //whether the key is extractable (i.e. can be used in exportKey)
-            ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
-            )
-            .then(function (k) {
-                assert.equal(k.key !== null, true, "Has no key value");
-                key = k;
+        context("AES-GCM", () => {
+            // Filter GCM
+            keys.filter(key => /AES-GCM/.test(key.name))
+                .forEach(key => {
+                    // IV
+                    [new Uint8Array(16)].forEach(iv => {
+                        // AAD
+                        [new Uint8Array([1, 2, 3, 4, 5]), null].forEach(aad => {
+                            // Tag
+                            [32, 64, 96, 104, 112, 120, 128].forEach(tag => {
+                                it(`aad:${aad ? "+" : "-"} t:${tag}\t${key.name}`, done => {
+                                    var alg = { name: "AES-GCM", iv: iv, aad: aad, tagLength: tag };
+                                    webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
+                                        .then(enc => {
+                                            assert(!!enc, true, "Encrypted message is empty");
+                                            return webcrypto.subtle.decrypt(alg, key.key, enc);
+                                        })
+                                        .then(dec => {
+                                            assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
+                                        })
+                                        .then(done, done);
+                                });
+                            });
+                        });
+                    });
+                });
+        });
 
-                return webcrypto.subtle.exportKey("jwk", key);
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK secretKey");
-                assert.equal(jwk.k !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.key_ops.length === 4, true, "Wrong JWK key usages amount");
-                assert.equal(jwk.alg === "A256GCM", true, "Wrong JWK key algorithm");
-                assert.equal(jwk.kty === "oct", true, "Wrong JWK key type");
-                assert.equal(jwk.ext, true, "Wrong JWK key extractable");
-                _jwk = jwk;
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "AES-GCM"
-                    },
-                    true,
-                    ["encrypt", "decrypt"]
-                    );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "secret", true, "Key is not Secret");
-                assert.equal(k.algorithm.name === "AES-GCM", true, "Key is not AES-CBC");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", k)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK secretKey");
-                assert.equal(jwk.k === _jwk.k, true, "Wrong JWK key param");
-            })
-            .then(done, done);
-    })
+    });
+
+    context("Export/Import", () => {
+
+        // Keys
+        keys.forEach(key => {
+            // Format
+            ["jwk", "raw"].forEach(format => {
+                it(`${format}\t${key.name}`, done => {
+                    webcrypto.subtle.exportKey(format, key.key)
+                        .then(jwk => {
+                            assert.equal(!!jwk, true, "Has no jwk value");
+                            if (format === "jwk")
+                                assert.equal(!!jwk.k, true, "Has no k value");
+                            else
+                                assert.equal(!!jwk.byteLength, true, "Wrong raw length");
+                            return webcrypto.subtle.importKey(format, jwk, key.key.algorithm, true, key.key.usages);
+                        })
+                        .then(k => {
+                            assert.equal(!!k, true, "Imported key is empty")
+                            assert.equal(!!k.native_, true, "Has no native key value");
+                        })
+                        .then(done, done);
+                });
+            });
+        });
+    });
+
+    context("Wrap/Unwrap", () => {
+        context("AES-CBC", () => {
+            // AES keys
+            keys.filter(key => /AES-CBC/.test(key.name)).forEach(key => {
+                ["jwk", "raw"].forEach(format => {
+                    it(`format:${format} ${key.name}`, done => {
+                        var _alg = { name: "AES-CBC", iv: new Uint8Array(16) }
+                        webcrypto.subtle.wrapKey(format, key.key, key.key, _alg)
+                            .then(wrappedKey => {
+                                assert.equal(!!wrappedKey, true, "Wrapped key is empty");
+
+                                return webcrypto.subtle.unwrapKey(format, wrappedKey, key.key, _alg, key.key.algorithm, true, ["encrypt", "decrypt"]);
+                            })
+                            .then(key => {
+                                assert.equal(!!key, true, "Unwrapped key is empty");
+                            })
+                            .then(done, done);
+                    })
+
+                });
+            });
+        });
+        context("AES-GCM", () => {
+            // AES keys
+            keys.filter(key => /AES-GCM/.test(key.name)).forEach(key => {
+                ["jwk", "raw"].forEach(format => {
+                    it(`format:${format} ${key.name}`, done => {
+                        var _alg = { name: "AES-GCM", iv: new Uint8Array(16) }
+                        webcrypto.subtle.wrapKey(format, key.key, key.key, _alg)
+                            .then(wrappedKey => {
+                                assert.equal(!!wrappedKey, true, "Wrapped key is empty");
+
+                                return webcrypto.subtle.unwrapKey(format, wrappedKey, key.key, _alg, key.key.algorithm, true, ["encrypt", "decrypt"]);
+                            })
+                            .then(key => {
+                                assert.equal(!!key, true, "Unwrapped key is empty");
+                            })
+                            .then(done, done);
+                    })
+
+                });
+            });
+        });
+    });
+
 })

@@ -12,7 +12,7 @@ describe("WebCrypto RSA", () => {
     ];
     var DIGEST = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
     var PUBLIC_EXPONENT = [new Uint8Array([3]), new Uint8Array([1, 0, 1])];
-    var MODULUS_LENGTH = [1024, /*2048, /*4096*/];
+    var MODULUS_LENGTH = [1024, 2048, /*4096*/];
 
     var keys = [];
 
@@ -61,6 +61,7 @@ describe("WebCrypto RSA", () => {
         keys.filter(key => key.usages.some(usage => usage === "sign"))
             .forEach(key => {
                 it(key.name, done => {
+                    // TODO: Add label
                     webcrypto.subtle.sign({ name: key.privateKey.algorithm.name }, key.privateKey, TEST_MESSAGE)
                         .then(sig => {
                             assert.equal(!!sig, true, "Has no signature value");
@@ -125,20 +126,43 @@ describe("WebCrypto RSA", () => {
 
     context("Wrap/Unwrap", () => {
 
+        var aesKeys = [{}, {}, {}];
+
+        before(done => {
+            var promise = Promise.resolve();
+            [128, 192, 256].forEach((length, index) => {
+                var keyTemplate = aesKeys[index];
+                promise.then(() => {
+                    return webcrypto.subtle.generateKey({ name: "AES-CBC", length: length }, true, ["encrypt", "decrypt"])
+                        .then(key => {
+                            keyTemplate.key = key;
+                            // return Promise.resolve();
+                        });
+                });
+            });
+            promise.then(done, done);
+        });
+
         // Keys
         keys.filter(key => key.usages.some(usage => "wrapKey" === usage))
             .forEach(key => {
-                // Format
-                ["jwk", "pkcs8"].forEach(format => {
-                    [null, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])].forEach(label => {
-                        it(`${label ? "label\t" : "no label"}\t${key.name}`, done => {
-                            webcrypto.subtle.wrapKey(format, key.privateKey, key.publicKey, { name: key.publicKey.algorithm.name, label: label })
-                                .then(enc => {
-                                    assert.equal(!!enc, true, "Has no encrypted value");
-                                    // TODO assert JWK params
-                                    return webcrypto.subtle.unwrapKey(format, enc, key.privateKey, key.privateKey.algorithm, true, key.privateKey.usages);
-                                })
-                                .then(done, done);
+                // AES keys
+                aesKeys.forEach(aes => {
+                    // Format
+                    ["raw"].forEach(format => {
+                        [null, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])].forEach(label => {
+                            it(`${label ? "label\t" : "no label"}\t${key.name}`, done => {
+                                var _alg = { name: key.publicKey.algorithm.name, label: label };
+                                webcrypto.subtle.wrapKey(format, aes.key, key.publicKey, _alg)
+                                    .then(enc => {
+                                        assert.equal(!!enc, true, "Has no encrypted value");
+                                        return webcrypto.subtle.unwrapKey(format, enc, key.privateKey, _alg, aes.key.algorithm, true, aes.key.usages);
+                                    })
+                                    .then(key => {
+                                        assert.equal(!!key, true, "Has no unwrapped key");
+                                    })
+                                    .then(done, done);
+                            });
                         });
                     });
                 });

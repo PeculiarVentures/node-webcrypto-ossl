@@ -1,16 +1,12 @@
 // Core
 import * as webcrypto from "webcrypto-core";
-const AlgorithmError = webcrypto.AlgorithmError;
 const WebCryptoError = webcrypto.WebCryptoError;
-const AlgorithmNames = webcrypto.AlgorithmNames;
-// const PrepareAlgorithm = webcrypto.PrepareAlgorithm;
 const BaseCrypto = webcrypto.BaseCrypto;
 const Base64Url = webcrypto.Base64Url;
 
 // Local
 import { CryptoKey } from "./key";
 import * as native from "./native";
-// import * as aes from "./aes";
 
 function b64_decode(b64url: string): Buffer {
     return new Buffer(Base64Url.decode(b64url));
@@ -317,68 +313,6 @@ export class RsaOAEP extends RsaCrypto {
 
     static decrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
         return this.EncryptDecrypt(algorithm, key, data, true);
-    }
-
-    static wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: RsaOaepParams): PromiseLike<ArrayBuffer> {
-        return Promise.resolve()
-            .then(() => {
-                let AlgClass: typeof BaseCrypto;
-                switch (key.algorithm.name.toLowerCase()) {
-                    case AlgorithmNames.RsaSSA.toLowerCase():
-                        AlgClass = RsaPKCS1;
-                        break;
-                    case AlgorithmNames.RsaPSS.toLowerCase():
-                        AlgClass = RsaPSS;
-                        break;
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = RsaOAEP;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, key.algorithm.name);
-                }
-                return AlgClass.exportKey(format, key)
-                    .then(exportedKey => {
-                        let _data: Buffer;
-                        if (!(exportedKey instanceof ArrayBuffer)) {
-                            _data = new Buffer(JSON.stringify(exportedKey));
-                        }
-                        else {
-                            _data = new Buffer(exportedKey);
-                        }
-                        return this.encrypt(wrapAlgorithm, wrappingKey, _data);
-                    });
-            });
-    }
-
-    static unwrapKey(format: string, wrappedKey: Buffer, unwrappingKey: CryptoKey, unwrapAlgorithm: RsaOaepParams, unwrappedKeyAlgorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
-        return Promise.resolve()
-            .then(() => {
-                return this.decrypt(unwrapAlgorithm, unwrappingKey, wrappedKey);
-            })
-            .then(decryptedKey => {
-                let keyData: JsonWebKey | Buffer;
-                if (format === "jwk") {
-                    keyData = JSON.parse(new Buffer(decryptedKey).toString());
-                }
-                else {
-                    keyData = new Buffer(decryptedKey);
-                }
-                let AlgClass: typeof BaseCrypto;
-                switch (unwrappedKeyAlgorithm.name.toLowerCase()) {
-                    case AlgorithmNames.RsaSSA.toLowerCase():
-                        AlgClass = RsaPKCS1;
-                        break;
-                    case AlgorithmNames.RsaPSS.toLowerCase():
-                        AlgClass = RsaPSS;
-                        break;
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = RsaOAEP;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, unwrappedKeyAlgorithm.name);
-                }
-                return AlgClass.importKey(format, keyData, unwrappedKeyAlgorithm, extractable, keyUsages);
-            });
     }
 
 }

@@ -10,7 +10,7 @@ import * as native from "./native";
 import { CryptoKey } from "./key";
 // import * as alg from "./alg";
 import * as rsa from "./rsa";
-// import * as aes from "./aes";
+import * as aes from "./aes";
 // import * as ec from "./ec";
 
 /**
@@ -97,12 +97,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
-                    // case aes.AesGCM.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = aes.AesGCM;
-                    //     break;
-                    // case aes.AesCBC.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = aes.AesCBC;
-                    //     break;
+                    case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesGCM.toLowerCase():
+                        AlgClass = aes.AesCrypto;
+                        break;
                     // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
                     //     AlgClass = ec.Ecdsa;
                     //     break;
@@ -176,6 +174,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesGCM.toLowerCase():
+                        AlgClass = aes.AesCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
@@ -194,6 +196,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesGCM.toLowerCase():
+                        AlgClass = aes.AesCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
@@ -204,36 +210,37 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
     wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier): PromiseLike<ArrayBuffer> {
         return super.wrapKey.apply(this, arguments)
             .then(() => {
-                let _alg = PrepareAlgorithm(wrapAlgorithm);
-
-                let AlgClass: typeof BaseCrypto;
-                switch (_alg.name.toLowerCase()) {
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = rsa.RsaOAEP;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
-                }
-                return AlgClass.wrapKey(format, key, wrappingKey, _alg);
+                return this.exportKey(format as any, key)
+                    .then(exportedKey => {
+                        let _data: Buffer;
+                        if (!(exportedKey instanceof ArrayBuffer)) {
+                            _data = new Buffer(JSON.stringify(exportedKey));
+                        }
+                        else {
+                            _data = new Buffer(exportedKey);
+                        }
+                        return this.encrypt(wrapAlgorithm, wrappingKey, _data);
+                    });
             });
     }
 
     unwrapKey(format: string, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return super.unwrapKey.apply(this, arguments)
             .then(() => {
-                let _unwrapAlgorithm = PrepareAlgorithm(unwrapAlgorithm);
-                let _unwrappedKeyAlgorithm = PrepareAlgorithm(unwrappedKeyAlgorithm);
-                let _data = PrepareData(wrappedKey);
-
-                let AlgClass: typeof BaseCrypto;
-                switch (_unwrapAlgorithm.name.toLowerCase()) {
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = rsa.RsaOAEP;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _unwrapAlgorithm.name);
-                }
-                return AlgClass.unwrapKey(format, _data, unwrappingKey, _unwrapAlgorithm, _unwrappedKeyAlgorithm, extractable, keyUsages);
+                return Promise.resolve()
+                    .then(() => {
+                        return this.decrypt(unwrapAlgorithm, unwrappingKey, wrappedKey);
+                    })
+                    .then(decryptedKey => {
+                        let keyData: JsonWebKey | Buffer;
+                        if (format === "jwk") {
+                            keyData = JSON.parse(new Buffer(decryptedKey).toString());
+                        }
+                        else {
+                            keyData = new Buffer(decryptedKey);
+                        }
+                        return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm, extractable, keyUsages);
+                    });
             });
     }
 
@@ -301,6 +308,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesGCM.toLowerCase():
+                        AlgClass = aes.AesCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, key.algorithm.name);
                 }
@@ -330,6 +341,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
+                        break;
+                    case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesGCM.toLowerCase():
+                        AlgClass = aes.AesCrypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);

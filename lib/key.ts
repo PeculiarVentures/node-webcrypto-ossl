@@ -11,8 +11,6 @@ export class CryptoKey implements NativeCryptoKey {
         return this.native_;
     }
 
-    constructor(key: native.AesKey, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
-    constructor(key: native.Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
     constructor(key: native.AesKey | native.Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]) {
         this.native_ = key;
 
