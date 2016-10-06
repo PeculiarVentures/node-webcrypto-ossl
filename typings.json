@@ -8,7 +8,6 @@
   },
   "globalDevDependencies": {
     "mocha": "registry:dt/mocha#2.2.5+20160720003353",
-    "typescript": "registry:dt/typescript#0.4.0+20160317120654",
     "watch": "registry:dt/watch#0.0.0+20160316155526"
   }
 }

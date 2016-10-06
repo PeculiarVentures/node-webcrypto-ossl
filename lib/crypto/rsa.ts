@@ -12,7 +12,7 @@ function b64_decode(b64url: string): Buffer {
     return new Buffer(Base64Url.decode(b64url));
 }
 
-export class RsaCrypto extends BaseCrypto {
+export abstract class RsaCrypto extends BaseCrypto {
 
     static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
