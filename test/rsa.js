@@ -106,7 +106,7 @@ describe("WebCrypto RSA", () => {
                     var promise = Promise.resolve();
                     // Check public and private keys
                     [key.privateKey, key.publicKey].forEach(_key => {
-                        if ((format === "spki" && _key.type === "public") || (format === "pkcs8" && _key.type === "private"))
+                        if ((format === "spki" && _key.type === "public") || (format === "pkcs8" && _key.type === "private") || format === "jwk")
                             promise = promise.then(() => {
                                 return webcrypto.subtle.exportKey(format, _key)
                                     .then(jwk => {

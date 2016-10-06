@@ -9,9 +9,9 @@ const AlgorithmNames = webcrypto.AlgorithmNames;
 import * as native from "./native";
 import { CryptoKey } from "./key";
 // import * as alg from "./alg";
-import * as rsa from "./rsa";
-import * as aes from "./aes";
-// import * as ec from "./ec";
+import * as rsa from "./crypto/rsa";
+import * as aes from "./crypto/aes";
+import * as ec from "./crypto/ec";
 
 /**
  * Prepare array of data before it's using 
@@ -81,7 +81,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
     generateKey(algorithm: string, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair | CryptoKey>;
     generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams | DhKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair>;
     generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-    generateKey(algorithm: any, extractable: boolean, keyUsages: string[]) {
+    generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair | CryptoKey> {
         return super.generateKey.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm);
@@ -101,12 +101,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.AesGCM.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
-                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = ec.Ecdsa;
-                    //     break;
-                    // case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = ec.Ecdh;
-                    //     break;
+                    case AlgorithmNames.EcDSA.toLowerCase():
+                    case AlgorithmNames.EcDH.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
@@ -114,7 +112,8 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             });
     }
 
-    sign(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
+    sign(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+    sign(algorithm: any, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
         return super.sign.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm as string);
@@ -128,17 +127,18 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaPSS.toLowerCase():
                         AlgClass = rsa.RsaPSS;
                         break;
-                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = ec.Ecdsa;
-                    //     break;
+                    case AlgorithmNames.EcDSA.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
-                return AlgClass.sign(_alg, key, _data);
+                return AlgClass.sign(_alg as any, key, _data);
             });
     }
 
-    verify(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean> {
+    verify(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean>;
+    verify(algorithm: any, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean> {
         return super.verify.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm as string);
@@ -153,17 +153,18 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaPSS.toLowerCase():
                         AlgClass = rsa.RsaPSS;
                         break;
-                    // case ec.Ecdsa.ALGORITHM_NAME.toLowerCase():
-                    //     AlgClass = ec.Ecdsa;
-                    //     break;
+                    case AlgorithmNames.EcDSA.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
-                return AlgClass.verify(_alg, key, _signature, _data);
+                return AlgClass.verify(_alg as any, key, _signature, _data);
             });
     }
 
-    encrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
+    encrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+    encrypt(algorithm: any, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
         return super.encrypt.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm);
@@ -185,7 +186,8 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             });
     }
 
-    decrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: BufferSource): PromiseLike<ArrayBuffer> {
+    decrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+    decrypt(algorithm: any, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
         return super.decrypt.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm);
@@ -224,7 +226,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             });
     }
 
-    unwrapKey(format: string, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    unwrapKey(format: string, wrappedKey: NodeBufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return super.unwrapKey.apply(this, arguments)
             .then(() => {
                 return Promise.resolve()
@@ -244,56 +246,46 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             });
     }
 
+    deriveKey(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: string | AesDerivedKeyParams | HmacImportParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+    deriveKey(algorithm: any, baseKey: CryptoKey, derivedKeyType: any, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+        return super.deriveKey.apply(this, arguments)
+            .then(() => {
+                let _algorithm = PrepareAlgorithm(algorithm);
+                let _derivedKeyType = PrepareAlgorithm(derivedKeyType);
 
-    // deriveKey(algorithm: NodeAlgorithm, baseKey: CryptoKey, derivedKeyType: NodeAlgorithm, extractable: boolean, keyUsages: string[]) {
-    //     let that = this;
+                let AlgClass: typeof BaseCrypto;
+                switch (_algorithm.name.toLowerCase()) {
+                    case AlgorithmNames.EcDH.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _algorithm.name);
+                }
+                return AlgClass.deriveKey(_algorithm as any, baseKey, _derivedKeyType, extractable, keyUsages);
+            });
+    }
 
-    //     return new Promise<NodeCryptoKey>((resolve, reject) => {
-    //         let _alg1 = PrepareAlgorithm(algorithm);
-    //         let _alg2 = PrepareAlgorithm(derivedKeyType);
+    deriveBits(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer>;
+    deriveBits(algorithm: any, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer> {
+        return super.deriveBits.apply(this, arguments)
+            .then(() => {
+                let _algorithm = PrepareAlgorithm(algorithm);
 
-    //         let AlgClass: alg.IAlgorithmBase = null;
-    //         switch (_alg1.name.toLowerCase()) {
-    //             case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-    //                 AlgClass = ec.Ecdh;
-    //                 break;
-    //             default:
-    //                 throw new TypeError("Unsupported algorithm in use");
-    //         }
-    //         AlgClass.deriveKey(_alg1, baseKey, _alg2, extractable, keyUsages, function (err, key) {
-    //             if (err)
-    //                 reject(err);
-    //             else
-    //                 resolve(key);
-    //         });
-    //     });
-    // }
-
-    // deriveBits(algorithm: NodeAlgorithm, baseKey: CryptoKey, length: number) {
-    //     let that = this;
-
-    //     return new Promise<ArrayBuffer>((resolve, reject) => {
-    //         let _alg = PrepareAlgorithm(algorithm);
-
-    //         let AlgClass: alg.IAlgorithmBase = null;
-    //         switch (_alg.name.toLowerCase()) {
-    //             case ec.Ecdh.ALGORITHM_NAME.toLowerCase():
-    //                 AlgClass = ec.Ecdh;
-    //                 break;
-    //             default:
-    //                 throw new TypeError("Unsupported algorithm in use");
-    //         }
-    //         AlgClass.deriveBits(_alg, baseKey, length, (err, dbits) => {
-    //             if (err)
-    //                 reject(err);
-    //             else
-    //                 resolve(dbits.buffer);
-    //         });
-    //     });
-    // }
+                let AlgClass: typeof BaseCrypto;
+                switch (_algorithm.name.toLowerCase()) {
+                    case AlgorithmNames.EcDH.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
+                    default:
+                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _algorithm.name);
+                }
+                return AlgClass.deriveBits(_algorithm as any, baseKey, length);
+            });
+    }
 
     exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
     exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
+    exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
     exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return super.exportKey.apply(this, arguments)
             .then(() => {
@@ -312,6 +304,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.AesGCM.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
+                    case AlgorithmNames.EcDSA.toLowerCase():
+                    case AlgorithmNames.EcDH.toLowerCase():
+                        AlgClass = ec.EcCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, key.algorithm.name);
                 }
@@ -321,7 +317,8 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
 
     importKey(format: "jwk", keyData: JsonWebKey, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
     importKey(format: "raw" | "pkcs8" | "spki", keyData: NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-    importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+    importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return super.importKey.apply(this, arguments)
             .then(() => {
                 let _alg = PrepareAlgorithm(algorithm as string);
@@ -345,6 +342,10 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                         AlgClass = aes.AesCrypto;
+                        break;
+                    case AlgorithmNames.EcDSA.toLowerCase():
+                    case AlgorithmNames.EcDH.toLowerCase():
+                        AlgClass = ec.EcCrypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);

@@ -7,7 +7,7 @@ export class CryptoKey implements NativeCryptoKey {
     usages: string[] = [];
 
     private native_: any;
-    get native(): any{
+    get native(): any {
         return this.native_;
     }
 

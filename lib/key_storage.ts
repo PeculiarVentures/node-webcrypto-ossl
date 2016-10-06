@@ -1,17 +1,19 @@
-import {WebCryptoError, AlgorithmError, CryptoKeyError} from "./error";
+// Core
+import * as core from "webcrypto-core";
+
 import * as native from "./native";
-import {CryptoKey as _CryptoKey} from "./key";
+import { CryptoKey as _CryptoKey } from "./key";
 import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 
 const JSON_FILE_EXT = ".json";
 
-class KeyStorageError extends WebCryptoError { }
+class KeyStorageError extends core.WebCryptoError { }
 
 export interface IKeyStorageItem extends CryptoKey {
     name: string;
-    keyJwk: string;
+    keyJwk: any;
     file?: string;
 }
 
@@ -84,11 +86,11 @@ export class KeyStorage {
      * @param {string} file Path to file
      * @returns {IKeyStorageItem}
      */
-    protected readFile(file: string): IKeyStorageItem {
+    protected readFile(file: string): IKeyStorageItem | null {
         if (!fs.existsSync(file))
             throw new KeyStorageError(`File '${file}' is not exists`);
         let ftext = fs.readFileSync(file, "utf8");
-        let json: IKeyStorageItem = null;
+        let json: IKeyStorageItem;
         try {
             json = JSON.parse(ftext);
         }
@@ -190,14 +192,14 @@ export class KeyStorage {
      * @param {string} key Name of 
      * @returns {CryptoKey}
      */
-    getItem(key: string): CryptoKey {
+    getItem(key: string): CryptoKey | null {
         let item = this.getItemById(key);
         if (!item)
             return null;
 
         item = jwkBase64ToBuffer(item);
-        let res: CryptoKey = null;
-        let nativeKey: native.Key = null;
+        let res: CryptoKey;
+        let nativeKey: native.Key;
         switch (item.type.toLowerCase()) {
             case "public":
                 nativeKey = native.Key.importJwk(item.keyJwk, native.KeyType.PUBLIC);
@@ -207,10 +209,10 @@ export class KeyStorage {
                 break;
             case "secret":
                 throw new Error("Not implemented yet");
+            default:
+                throw new Error(`Unknown type '${item.type}'`);
         }
-        if (nativeKey) {
-            res = new _CryptoKey(nativeKey, item.algorithm as any, item.type, item.extractable, item.usages);
-        }
+        res = new _CryptoKey(nativeKey, item.algorithm as any, item.type, item.extractable, item.usages);
         return res;
     }
 

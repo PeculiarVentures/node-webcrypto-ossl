@@ -4,7 +4,7 @@ import * as webcrypto from "webcrypto-core";
 // Local
 import * as subtle from "./subtle";
 import * as crypto from "crypto";
-// import {KeyStorage} from "./key_storage";
+import {KeyStorage} from "./key_storage";
 
 // Fix btoa and atob for NodeJS
 let _global = global as any;
@@ -23,7 +23,7 @@ export interface WebCryptoOptions {
  */
 class WebCrypto implements NativeCrypto  {
 
-    // keyStorage: KeyStorage = null;
+    keyStorage: KeyStorage;
 
     subtle: NativeSubtleCrypto;
 
@@ -50,8 +50,8 @@ class WebCrypto implements NativeCrypto  {
      */
     constructor(options?: WebCryptoOptions) {
         this.subtle = new subtle.SubtleCrypto();
-        // if (options && options.directory)
-        //     this.keyStorage = new KeyStorage(options.directory);
+        if (options && options.directory)
+            this.keyStorage = new KeyStorage(options.directory);
     }
 }
 module.exports = WebCrypto;
