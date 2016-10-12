@@ -1,551 +1,183 @@
+"use strict";
 var assert = require('assert');
 var webcrypto = require('./config');
 
-describe("WebCrypto RSA", function () {
+describe("WebCrypto RSA", () => {
 
-    var TEST_MESSAGE = new Buffer("This is test message for crypto functions");
+    var TEST_MESSAGE = new Buffer("1234567890123456");
+    var KEYS = [
+        { alg: "RSASSA-PKCS1-v1_5", usages: ["sign", "verify"] },
+        { alg: "RSA-PSS", usages: ["sign", "verify"] },
+        { alg: "RSA-OAEP", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+    ];
+    var DIGEST = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+    var PUBLIC_EXPONENT = [new Uint8Array([3]), new Uint8Array([1, 0, 1])];
+    var MODULUS_LENGTH = [1024, 2048, /*4096*/];
 
-    before(function (done) {
-        done();
-    })
+    var keys = [];
 
-    it("RSA PKCS1 1.5 sign/verify", function (done) {
-        var key = null;
-        webcrypto.subtle.generateKey({
-            name: "RSASSA-PKCS1-v1_5",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["sign", "verify"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5" }, key.privateKey, TEST_MESSAGE)
-            })
-            .then(function (sig) {
-                assert.equal(sig !== null, true, "Has no signature value");
-                assert.notEqual(sig.length, 0, "Has empty signature value");
-                return webcrypto.subtle.verify({ name: "RSASSA-PKCS1-v1_5" }, key.publicKey, sig, TEST_MESSAGE)
-            })
-            .then(function (v) {
-                assert.equal(v, true, "Rsa PKCS1 signature is not valid")
-            })
-            .then(done, done);
-    })
-
-    it("RSA PKCS1 export/import JWK", function (done) {
-        var key = null;
-        var _jwk;
-        webcrypto.subtle.generateKey({
-            name: "RSASSA-PKCS1-v1_5",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([3]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["sign", "verify"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey != null, true, "Has no private key");
-                assert.equal(k.publicKey != null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", key.publicKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK publicKey");
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSASSA-PKCS1-v1_5",
-                        hash: {
-                            name: "SHA-1"
+    context("Generate key", () => {
+        // Algs
+        KEYS.forEach(key => {
+            // Digest
+            DIGEST.forEach(digest => {
+                // publicExponent
+                PUBLIC_EXPONENT.forEach(pubExp => {
+                    // modulusLength
+                    MODULUS_LENGTH.forEach(modLen => {
+                        var keyName = `${key.alg} ${digest} e:${pubExp.length === 1 ? 3 : 65535} n:${modLen}`
+                        var keyTemplate = {
+                            name: keyName,
+                            privateKey: null,
+                            publicKey: null,
+                            usages: key.usages,
                         }
-                    },
-                    false,
-                    ["verify"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "public", true, "Key is not Public");
-                assert.equal(k.algorithm.name === "RSASSA-PKCS1-v1_5", true, "Key is not RSASSA-PKCS1-v1_5");
-                return webcrypto.subtle.exportKey("jwk", key.privateKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                assert.equal(jwk.e !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.n !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.d !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.p !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.q !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.dp !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.dq !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.qi !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.alg !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.key_ops !== null, true, "Wrong JWK key param");
-                _jwk = jwk;
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSASSA-PKCS1-v1_5",
-                        hash: {
-                            name: "SHA-1"
-                        }
-                    },
-                    true,
-                    ["sign"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "private", true, "Key is not Private");
-                assert.equal(k.algorithm.name === "RSASSA-PKCS1-v1_5", true, "Key is not RSASSA-PKCS1-v1_5");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", k)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                assert.equal(jwk.n === _jwk.n, true, "RSA has wrong key parameter");
-                assert.equal(jwk.e === _jwk.e, true, "RSA has wrong key parameter");
-                assert.equal(jwk.d === _jwk.d, true, "RSA has wrong key parameter");
-                assert.equal(jwk.p === _jwk.p, true, "RSA has wrong key parameter");
-                assert.equal(jwk.q === _jwk.q, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dp === _jwk.dp, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dq === _jwk.dq, true, "RSA has wrong key parameter");
-                assert.equal(jwk.qi === _jwk.qi, true, "RSA has wrong key parameter");
-                return webcrypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5" }, key, TEST_MESSAGE)
-            })
-            .then(function (sig) {
-                assert.equal(sig !== null, true, "Has no signature value");
-            })
-            .then(done, done);
-    })
+                        keys.push(keyTemplate);
+                        it(keyName, done => {
+                            var alg = {
+                                name: key.alg,
+                                hash: { name: digest },
+                                modulusLength: modLen,
+                                publicExponent: pubExp
+                            };
+                            webcrypto.subtle.generateKey(alg, true, key.usages)
+                                .then(keyPair => {
+                                    assert.equal(!!(keyPair.privateKey || keyPair.publicKey), true, "KeyPair is empty");
+                                    // save  keays for next tests
+                                    keyTemplate.privateKey = keyPair.privateKey;
+                                    keyTemplate.publicKey = keyPair.publicKey;
+                                    return Promise.resolve();
+                                })
+                                .then(done, done);
+                        }).timeout(modLen === 2048 ? 4000 : 2000);
+                    });
+                });
+            });
+        });
+    });
 
-    it("RSA PSS sign/verify", function (done) {
-        var key = null;
-        webcrypto.subtle.generateKey({
-            name: "RSA-PSS",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-256"
-            }
-        },
-            false,
-            ["sign", "verify"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.sign({ name: "RSA-PSS", saltLength: 128 }, key.privateKey, TEST_MESSAGE)
-            })
-            .then(function (sig) {
-                assert.equal(sig !== null, true, "Has no signature value");
-                assert.notEqual(sig.length, 0, "Has empty signature value");
-                return webcrypto.subtle.verify({ name: "RSA-PSS", saltLength: 128 }, key.publicKey, sig, TEST_MESSAGE)
-            })
-            .then(function (v) {
-                assert.equal(v, true, "Rsa PSS signature is not valid")
-            })
-            .then(done, done);
-    })
+    context("Sign/Verify", () => {
 
-    it("RSA PSS export/import JWK", function (done) {
-        var key = null;
-        var _jwk;
-        webcrypto.subtle.generateKey({
-            name: "RSA-PSS",
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-256"
-            }
-        },
-            false,
-            ["sign", "verify"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey != null, true, "Has no private key");
-                assert.equal(k.publicKey != null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", key.publicKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK publicKey");
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSA-PSS",
-                        hash: {
-                            name: "SHA-256"
-                        }
-                    },
-                    false,
-                    ["verify"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "public", true, "Key is not Public");
-                assert.equal(k.algorithm.name === "RSA-PSS", true, "Key is not RSA-PSS");
-                return webcrypto.subtle.exportKey("jwk", key.privateKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                assert.equal(jwk.e !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.n !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.d !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.p !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.q !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.dp !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.dq !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.qi !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.alg !== null, true, "Wrong JWK key param");
-                assert.equal(jwk.key_ops !== null, true, "Wrong JWK key param");
-                _jwk = jwk;
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSA-PSS",
-                        hash: {
-                            name: "SHA-256"
-                        }
-                    },
-                    true,
-                    ["sign"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "private", true, "Key is not Private");
-                assert.equal(k.algorithm.name === "RSA-PSS", true, "Key is not RSA-PSS");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", k)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                assert.equal(jwk.n === _jwk.n, true, "RSA has wrong key parameter");
-                assert.equal(jwk.e === _jwk.e, true, "RSA has wrong key parameter");
-                assert.equal(jwk.d === _jwk.d, true, "RSA has wrong key parameter");
-                assert.equal(jwk.p === _jwk.p, true, "RSA has wrong key parameter");
-                assert.equal(jwk.q === _jwk.q, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dp === _jwk.dp, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dq === _jwk.dq, true, "RSA has wrong key parameter");
-                assert.equal(jwk.qi === _jwk.qi, true, "RSA has wrong key parameter");
-                return webcrypto.subtle.sign({ name: "RSA-PSS", saltLength: 128 }, key, TEST_MESSAGE)
-            })
-            .then(function (sig) {
-                assert.equal(sig !== null, true, "Has no signature value");
-            })
-            .then(done, done);
-    })
+        keys.filter(key => key.usages.some(usage => usage === "sign"))
+            .forEach(key => {
+                it(key.name, done => {
+                    // TODO: Add label
+                    webcrypto.subtle.sign({ name: key.privateKey.algorithm.name }, key.privateKey, TEST_MESSAGE)
+                        .then(sig => {
+                            assert.equal(!!sig, true, "Has no signature value");
+                            assert.notEqual(sig.length, 0, "Has empty signature value");
+                            return webcrypto.subtle.verify({ name: key.publicKey.algorithm.name }, key.publicKey, sig, TEST_MESSAGE)
+                        })
+                        .then(v => assert.equal(v, true, "Signature is not valid"))
+                        .then(done, done);
+                });
+            });
+    });
 
-    it("RSA OAEP export/import JWK", function (done) {
-        var key = null;
-        var _jwk;
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-256"
-            }
-        },
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey != null, true, "Has no private key");
-                assert.equal(k.publicKey != null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", key.publicKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK publicKey");
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSA-OAEP",
-                        hash: {
-                            name: "SHA-256"
-                        }
-                    },
-                    false,
-                    ["encrypt"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "public", true, "Key is not Public");
-                assert.equal(k.algorithm.name === "RSA-OAEP", true, "Key is not RSA-OAEP");
-                return webcrypto.subtle.exportKey("jwk", key.privateKey)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                _jwk = jwk;
-                return webcrypto.subtle.importKey(
-                    "jwk",
-                    jwk,
-                    {
-                        name: "RSA-OAEP",
-                        hash: {
-                            name: "SHA-256"
-                        }
-                    },
-                    true,
-                    ["decrypt"]
-                );
-            })
-            .then(function (k) {
-                assert.equal(k.type === "private", true, "Key is not Private");
-                assert.equal(k.algorithm.name === "RSA-OAEP", true, "Key is not RSA-OAEP");
-                return webcrypto.subtle.exportKey("jwk", k)
-            })
-            .then(function (jwk) {
-                assert.equal(jwk != null, true, "Has no JWK privateKey");
-                assert.equal(jwk.n === _jwk.n, true, "RSA has wrong key parameter");
-                assert.equal(jwk.e === _jwk.e, true, "RSA has wrong key parameter");
-                assert.equal(jwk.d === _jwk.d, true, "RSA has wrong key parameter");
-                assert.equal(jwk.p === _jwk.p, true, "RSA has wrong key parameter");
-                assert.equal(jwk.q === _jwk.q, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dp === _jwk.dp, true, "RSA has wrong key parameter");
-                assert.equal(jwk.dq === _jwk.dq, true, "RSA has wrong key parameter");
-                assert.equal(jwk.qi === _jwk.qi, true, "RSA has wrong key parameter");
-            })
-            .then(done, done);
-    })
+    context("Encrypt/Decrypt", () => {
+        // Select keys for encrypt
+        keys.filter(key => key.usages.some(usage => usage === "encrypt"))
+            .forEach(key => {
+                // Label
+                [null, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])].forEach(label => {
+                    it(`${label ? "label\t" : "no label"}\t${key.name}`, done => {
+                        webcrypto.subtle.encrypt({ name: key.privateKey.algorithm.name, label: label }, key.publicKey, TEST_MESSAGE)
+                            .catch(e => {
+                                if (e.message.indexOf("RSA_padding_add_PKCS1_OAEP_mgf1") > -1)
+                                    return Promise.reject();
+                                return Promise.reject(e);
+                            })
+                            .then(enc => {
+                                assert.equal(!!enc, true, "Has no encrpted value");
+                                assert.notEqual(enc.length, 0, "Has empty encrypted value");
+                                return webcrypto.subtle.decrypt({ name: key.publicKey.algorithm.name, label: label }, key.privateKey, enc)
+                            })
+                            .then(dec => {
+                                assert.equal(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is not valid")
+                            })
+                            .then(done, done);
+                    });
+                });
+            });
+    });
 
-    it("RSA OAEP encrypt/decrypt", function (done) {
-        var key = null;
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.encrypt({ name: "RSA-OAEP" }, key.publicKey, TEST_MESSAGE)
-            })
-            .then(function (enc) {
-                assert.equal(enc !== null, true, "Has no encrypted value");
-                assert.notEqual(enc.length, 0, "Has empty encrypted value");
-                return webcrypto.subtle.decrypt({ name: "RSA-OAEP" }, key.privateKey, enc);
-            })
-            .then(function (dec) {
-                var str = "";
-                var buf = new Uint8Array(dec);
-                for (var i = 0; i < buf.length; i++)
-                    str += String.fromCharCode(buf[i]);
-                assert.equal(str, TEST_MESSAGE.toString(), "Rsa OAEP encrypt/decrypt is not valid")
-            })
-            .then(done, done);
-    })
+    context("Export/Import", () => {
 
-    it("RSA OAEP wrap/unwrap", function (done) {
-        var key = null;
-        var skey = null;
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["wrapKey", "unwrapKey"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.generateKey({
-                    name: "AES-CBC",
-                    length: 128, //can be  128, 192, or 256
-                },
-                    true, //whether the key is extractable (i.e. can be used in exportKey)
-                    ["encrypt", "decrypt"]);
-            })
-            .then(function (sk) {
-                skey = sk;
-                assert.equal(skey.key !== null, true, "Has no secret key");
-                return webcrypto.subtle.wrapKey(
-                    "raw",
-                    skey,
-                    key.publicKey,
-                    {
-                        name: "RSA-OAEP",
-                        hash: { name: "SHA-1" }
-                    })
-            })
-            .then(function (dec) {
-                return webcrypto.subtle.unwrapKey(
-                    "raw", //the import format, must be "raw" (only available sometimes)
-                    dec, //the key you want to unwrap
-                    key.privateKey, //the private key with "unwrapKey" usage flag
-                    {   //these are the wrapping key's algorithm options
-                        name: "RSA-OAEP",
-                        modulusLength: 1024,
-                        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-                        hash: { name: "SHA-1" },
-                    },
-                    {   //this what you want the wrapped key to become (same as when wrapping)
-                        name: "AES-CBC",
-                        length: 128
-                    },
-                    false, //whether the key is extractable (i.e. can be used in exportKey)
-                    ["encrypt", "decrypt"] //the usages you want the unwrapped key to have
-                )
-            })
-            .then(function (sk) {
-                assert.equal(sk.key !== null, true, "Has no secret key");
-            })
-            .then(done, done);
-    })
+        // Keys
+        keys.forEach(key => {
+            // Format
+            ["jwk", "spki", "pkcs8"].forEach(format => {
+                it(`${format}\t${key.name}`, done => {
+                    var promise = Promise.resolve();
+                    // Check public and private keys
+                    [key.privateKey, key.publicKey].forEach(_key => {
+                        if ((format === "spki" && _key.type === "public") || (format === "pkcs8" && _key.type === "private") || format === "jwk")
+                            promise = promise.then(() => {
+                                return webcrypto.subtle.exportKey(format, _key)
+                                    .then(jwk => {
+                                        assert.equal(!!jwk, true, "Has no jwk value");
+                                        // TODO assert JWK params
+                                        return webcrypto.subtle.importKey(format, jwk, _key.algorithm, true, _key.usages);
+                                    })
+                            })
+                                .then(k => assert.equal(!!k, true, "Imported key is empty"))
+                        // TODO assert imported key params
+                    });
+                    promise.then(done, done);
+                });
+            });
+        });
+    });
 
-    it("RSA OAEP encrypt/decrypt with label", function (done) {
-        var key = null;
-        var label = null;
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("jwk", k.privateKey);
-            })
-            .then(function (jwk) {
-                label = webcrypto.getRandomValues(new Uint8Array(4));
-                return webcrypto.subtle.encrypt({ name: "RSA-OAEP", label: label }, key.publicKey, TEST_MESSAGE)
-            })
-            .then(function (enc) {
-                assert.equal(enc !== null, true, "Has no encrypted value");
-                assert.notEqual(enc.length, 0, "Has empty encrypted value");
-                return webcrypto.subtle.decrypt({ name: "RSA-OAEP", label: label }, key.privateKey, enc);
-            })
-            .then(function (dec) {
-                var str = "";
-                var buf = new Uint8Array(dec);
-                for (var i = 0; i < buf.length; i++)
-                    str += String.fromCharCode(buf[i]);
-                assert.equal(str, TEST_MESSAGE.toString(), "Rsa OAEP encrypt/decrypt is not valid")
-            })
-            .then(done, done);
-    })
+    context("Wrap/Unwrap", () => {
 
-    it("RSA OAEP import/export SPKI", function (done) {
-        var key = null;
-        var label = null;
-        // Geberate RSA key
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 1024,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("spki", k.publicKey);
-            })
-            .then(function (spki) {
-                assert.equal(spki instanceof ArrayBuffer, true, "Is empty exported RSA key");
-                return webcrypto.subtle.importKey("spki", spki, {
-                    name: "RSA-OAEP",
-                    hash: {
-                        name: "SHA-1"
-                    }
-                },
-                    true,
-                    ["encrypt"])
-            })
-            .then(function (key) {
-                assert.equal(!!key, true, "Key is empty");
-                assert.equal(key.algorithm.name, "RSA-OAEP", "Wrong algorithm name");
-                assert.equal(key.extractable, true, "Wrong extractable param");
-                assert.equal(key.usages.length, 1, "Wrong key usages length");
-                assert.equal(key.usages[0], "encrypt", "Wrong key usages value");
-                assert.equal(key.algorithm.modulusLength, 1024, "Wrong modulus length value");
-                assert.equal(key.algorithm.publicExponent.length, 3, "Wrong public exponent value");
-                assert.equal(key.type, "public", "Wrong key type");
-            })
-            .then(done, done);
-    })
+        var aesKeys = [{}, {}, {}];
 
-    it("RSA OAEP import/export PKCS8", function (done) {
-        var key = null;
-        var label = null;
-        // Geberate RSA key
-        webcrypto.subtle.generateKey({
-            name: "RSA-OAEP",
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([3]),
-            hash: {
-                name: "SHA-1"
-            }
-        },
-            false,
-            ["encrypt", "decrypt"]
-        )
-            .then(function (k) {
-                assert.equal(k.privateKey !== null, true, "Has no private key");
-                assert.equal(k.publicKey !== null, true, "Has no public key");
-                key = k;
-                return webcrypto.subtle.exportKey("pkcs8", k.privateKey);
-            })
-            .then(function (pkcs8) {
-                assert.equal(pkcs8 instanceof ArrayBuffer, true, "Is empty exported RSA key");
-                return webcrypto.subtle.importKey("pkcs8", pkcs8, {
-                    name: "RSA-OAEP",
-                    hash: {
-                        name: "SHA-1"
-                    }
-                },
-                    false,
-                    ["decrypt"])
-            })
-            .then(function (key) {
-                assert.equal(!!key, true, "Key is empty");
-                assert.equal(key.algorithm.name, "RSA-OAEP", "Wrong algorithm name");
-                assert.equal(key.extractable, false, "Wrong extractable param");
-                assert.equal(key.usages.length, 1, "Wrong key usages length");
-                assert.equal(key.usages[0], "decrypt", "Wrong key usages value");
-                assert.equal(key.algorithm.modulusLength, 2048, "Wrong modulus length value");
-                assert.equal(key.algorithm.publicExponent.length, 1, "Wrong public exponent value");
-                assert.equal(key.type, "private", "Wrong key type");
-            })
-            .then(done, done);
-    })
+        before(done => {
+            var promise = Promise.resolve();
+            [128, 192, 256].forEach((length, index) => {
+                var keyTemplate = aesKeys[index];
+                promise.then(() => {
+                    return webcrypto.subtle.generateKey({ name: "AES-CBC", length: length }, true, ["encrypt", "decrypt"])
+                        .then(key => {
+                            keyTemplate.key = key;
+                            // return Promise.resolve();
+                        });
+                });
+            });
+            promise.then(done, done);
+        });
+
+        // Keys
+        keys.filter(key => key.usages.some(usage => "wrapKey" === usage))
+            .forEach(key => {
+                // AES keys
+                aesKeys.forEach(aes => {
+                    // Format
+                    ["raw"].forEach(format => {
+                        [null, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])].forEach(label => {
+                            it(`${label ? "label\t" : "no label"}\t${key.name}`, done => {
+                                var _alg = { name: key.publicKey.algorithm.name, label: label };
+                                webcrypto.subtle.wrapKey(format, aes.key, key.publicKey, _alg)
+                                    .catch(e => {
+                                        if (e.message.indexOf("RSA_padding_add_PKCS1_OAEP_mgf1") > -1)
+                                            return Promise.reject();
+                                        return Promise.reject(e);
+                                    })
+                                    .then(enc => {
+                                        assert.equal(!!enc, true, "Has no encrypted value");
+                                        return webcrypto.subtle.unwrapKey(format, enc, key.privateKey, _alg, aes.key.algorithm, true, aes.key.usages);
+                                    })
+                                    .then(key => {
+                                        assert.equal(!!key, true, "Has no unwrapped key");
+                                    })
+                                    .then(done, done);
+                            });
+                        });
+                    });
+                });
+            });
+    });
+
+
 })

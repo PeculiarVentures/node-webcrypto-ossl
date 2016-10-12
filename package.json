@@ -13,7 +13,7 @@
     "postinstall": "npm run build",
     "pretest": "npm run build",
     "test": "mocha",
-    "build": "typings install && tsc --sourceMap",
+    "build": "tsc --sourceMap",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push",
     "coverage": "nyc npm test",
@@ -39,15 +39,17 @@
   ],
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "nan": "^2.4.0"
+    "nan": "^2.4.0",
+    "webcrypto-core": "latest"
   },
   "devDependencies": {
+    "@types/mkdirp": "^0.3.29",
+    "@types/node": "^6.0.45",
     "live-server": "^1",
     "mocha": "^3",
     "npm-run-all": "^3",
     "nyc": "^8",
-    "typescript": "^1.8.10",
-    "typings": "^1.3.3",
+    "typescript": "^2.0.3",
     "watch": "^0"
   }
 }
