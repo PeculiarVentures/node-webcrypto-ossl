@@ -18,7 +18,6 @@
     },
     "files": [
         "typings/index.d.ts",
-        "lib/typings/index.d.ts",
         "lib/webcrypto.ts"
     ]
 }

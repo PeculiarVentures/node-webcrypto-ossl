@@ -43,6 +43,7 @@
     "webcrypto-core": "latest"
   },
   "devDependencies": {
+    "@types/mkdirp": "^0.3.29",
     "@types/node": "^6.0.45",
     "live-server": "^1",
     "mocha": "^3",
