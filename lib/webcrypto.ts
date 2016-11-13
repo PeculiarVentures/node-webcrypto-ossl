@@ -15,7 +15,7 @@ _global.atob = (data: string) => new Buffer(data, "base64").toString("binary");
 const ERR_RANDOM_VALUE_LENGTH = "Failed to execute 'getRandomValues' on 'Crypto': The ArrayBufferView's byte length (%1) exceeds the number of bytes of entropy available via this API (65536).";
 
 export interface WebCryptoOptions {
-    directory: string;
+    directory?: string;
 }
 
 /**
@@ -25,7 +25,7 @@ class WebCrypto implements NativeCrypto  {
 
     keyStorage: KeyStorage;
 
-    subtle: NativeSubtleCrypto;
+    subtle: SubtleCrypto;
 
     /**
      * Generates cryptographically random values

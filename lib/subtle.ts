@@ -7,7 +7,7 @@ const AlgorithmNames = webcrypto.AlgorithmNames;
 
 // Local
 import * as native from "./native";
-import { CryptoKey } from "./key";
+import { CryptoKey, CryptoKeyPair } from "./key";
 // import * as alg from "./alg";
 import * as rsa from "./crypto/rsa";
 import * as aes from "./crypto/aes";

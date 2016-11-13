@@ -2,7 +2,7 @@
 import * as core from "webcrypto-core";
 
 import * as native from "./native";
-import { CryptoKey as _CryptoKey } from "./key";
+import { CryptoKey } from "./key";
 import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
@@ -11,7 +11,7 @@ const JSON_FILE_EXT = ".json";
 
 class KeyStorageError extends core.WebCryptoError { }
 
-export interface IKeyStorageItem extends CryptoKey {
+export interface IKeyStorageItem extends NativeCryptoKey {
     name: string;
     keyJwk: any;
     file?: string;
@@ -212,7 +212,7 @@ export class KeyStorage {
             default:
                 throw new Error(`Unknown type '${item.type}'`);
         }
-        res = new _CryptoKey(nativeKey, item.algorithm as any, item.type, item.extractable, item.usages);
+        res = new CryptoKey(nativeKey, item.algorithm as any, item.type, item.extractable, item.usages);
         return res;
     }
 
@@ -234,7 +234,7 @@ export class KeyStorage {
     }
 
     setItem(key: string, data: CryptoKey): void {
-        let nativeKey = (data as _CryptoKey).native;
+        let nativeKey = (data as CryptoKey).native;
         let jwk: any = null;
         switch (data.type.toLowerCase()) {
             case "public":

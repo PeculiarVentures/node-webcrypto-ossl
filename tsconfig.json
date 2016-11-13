@@ -9,15 +9,15 @@
         "noUnusedLocals": true,
         "strictNullChecks": true,
         "module": "commonjs",
-        "rootDir": "lib",
+        "moduleResolution": "node",
         "outDir": "buildjs",
         "removeComments": true,
         "declaration": false,
         "sourceMap": false,
         "noImplicitAny": true
     },
-    "files": [
-        "lib/typings/index.d.ts",
-        "lib/webcrypto.ts"
+    "exclude": [
+        "node_modules",
+        "test"
     ]
 }

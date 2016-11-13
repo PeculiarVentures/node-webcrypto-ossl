@@ -82,7 +82,7 @@ export class AesCrypto extends BaseCrypto {
                             resolve(data.buffer);
                     });
                     break;
-                default: throw new WebCryptoError(`ExportKey: Unknown export frmat '${format}'`);
+                default: throw new WebCryptoError(`ExportKey: Unknown export format '${format}'`);
             }
         });
     }

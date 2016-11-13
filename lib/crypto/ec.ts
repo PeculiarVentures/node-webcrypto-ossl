@@ -158,7 +158,7 @@ export class EcCrypto extends BaseCrypto {
                     });
                     break;
                 default:
-                    throw new WebCryptoError(`ExportKey: Unknown export frmat '${format}'`);
+                    throw new WebCryptoError(`ExportKey: Unknown export format '${format}'`);
             }
         });
     }

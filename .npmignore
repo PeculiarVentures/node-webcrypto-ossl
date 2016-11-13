@@ -2,3 +2,4 @@
 /node_modules
 /build
 .gitignore
+libeay32.dll

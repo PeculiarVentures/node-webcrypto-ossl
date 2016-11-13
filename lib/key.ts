@@ -1,13 +1,18 @@
 import * as native from "./native";
 
+export interface CryptoKeyPair extends NativeCryptoKeyPair {
+    privateKey: CryptoKey;
+    publicKey: CryptoKey;
+}
+
 export class CryptoKey implements NativeCryptoKey {
     type: string;
     extractable: boolean;
     algorithm: Algorithm;
     usages: string[] = [];
 
-    private native_: any;
-    get native(): any {
+    private native_: native.AesKey | native.Key;
+    get native(): native.AesKey | native.Key {
         return this.native_;
     }
 
