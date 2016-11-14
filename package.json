@@ -18,6 +18,7 @@
     "build:es5": "tsc",
     "build:source": "tsc --sourceMap",
     "build:es2015": "tsc --module es2015 --target es2015",
+    "install": "npm run build",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push",
     "coverage": "nyc npm test",
