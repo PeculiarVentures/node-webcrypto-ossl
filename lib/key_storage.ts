@@ -116,7 +116,7 @@ export class KeyStorage {
             throw new KeyStorageError("KeyStorage directory is not set");
         this.keys = {}; // clear keys
         let items = fs.readdirSync(this.directory);
-        for (let item of items) {
+        items.forEach(item => {
             if (item !== "." && item !== "..") {
                 let file = path.join(this.directory, item);
                 let stat = fs.statSync(file);
@@ -125,7 +125,7 @@ export class KeyStorage {
                     if (key) this.keys[key.name] = key;
                 }
             }
-        }
+        });
     }
 
     /**
@@ -171,7 +171,7 @@ export class KeyStorage {
             return;
         this.keys = {}; // clear keys
         let items = fs.readdirSync(this.directory);
-        for (let item of items) {
+        items.forEach(item => {
             if (item !== "." && item !== "..") {
                 let file = path.join(this.directory, item);
                 let stat = fs.statSync(file);
@@ -179,7 +179,7 @@ export class KeyStorage {
                     fs.unlinkSync(file);
                 }
             }
-        }
+        });
     }
 
     protected getItemById(id: string): IKeyStorageItem {
