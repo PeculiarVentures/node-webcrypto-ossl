@@ -18,7 +18,6 @@
     "build:es5": "tsc",
     "build:source": "tsc --sourceMap",
     "build:es2015": "tsc --module es2015 --target es2015",
-    "install": "npm run build",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push",
     "coverage": "nyc npm test",
@@ -44,12 +43,12 @@
   ],
   "dependencies": {
     "@types/node": "^6.0.45",
+    "@types/mkdirp": "^0.3.29",
     "mkdirp": "^0.5.1",
     "nan": "^2.4.0",
     "webcrypto-core": "git+https://github.com/PeculiarVentures/webcrypto-core#types"
   },
   "devDependencies": {
-    "@types/mkdirp": "^0.3.29",
     "live-server": "^1",
     "mocha": "^3",
     "npm-run-all": "^3",
