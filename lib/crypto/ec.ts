@@ -37,6 +37,14 @@ function b64_decode(b64url: string): Buffer {
     return new Buffer(Base64Url.decode(b64url));
 }
 
+function buf_pad(buf: Buffer, padSize: number = 0) {
+    if (padSize && Buffer.length < padSize) {
+        let pad = new Buffer(new Uint8Array(padSize - buf.length).map(v => 0));
+        return Buffer.concat([pad, buf]);
+    }
+    return buf;
+}
+
 export class EcCrypto extends BaseCrypto {
 
     static generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
@@ -129,10 +137,20 @@ export class EcCrypto extends BaseCrypto {
                             jwk.crv = (key.algorithm as any).namedCurve;
                             jwk.key_ops = key.usages;
                             // convert base64 -> base64url for all props
-                            jwk.x = Base64Url.encode(data.x);
-                            jwk.y = Base64Url.encode(data.y);
+                            let padSize = 0;
+                            switch (jwk.crv) {
+                                // case "P-251":
+                                // break;
+                                // case "P-384":
+                                // break;
+                                case "P-521":
+                                    padSize = 66;
+                                    break;
+                            }
+                            jwk.x = Base64Url.encode(buf_pad(data.x, padSize));
+                            jwk.y = Base64Url.encode(buf_pad(data.y, padSize));
                             if (key.type === "private") {
-                                jwk.d = Base64Url.encode(data.d);
+                                jwk.d = Base64Url.encode(buf_pad(data.d, padSize));
                             }
                             resolve(jwk);
                         }
