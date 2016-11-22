@@ -22,11 +22,11 @@ static Handle<std::string> AES_GCM_encrypt(
 	Handle<std::string> hIv,
 	Handle<std::string> hAad,
 	int tagSize
-	)
+)
 {
 	LOG_FUNC();
 
-	const EVP_CIPHER* cipher = GCM_get_cipher(hKey->length());
+	const EVP_CIPHER* cipher = GCM_get_cipher((int)hKey->length());
 	const byte* iv = (byte*)hIv->c_str();
 	const byte* key = (byte*)hKey->c_str();
 	const byte* aad = (byte*)hAad->c_str();
@@ -37,8 +37,8 @@ static Handle<std::string> AES_GCM_encrypt(
 
 	// Get encrypted block size
 	int gcm_block_size = EVP_CIPHER_block_size(cipher);
-	int max_output_len = gcm_block_size + hMsg->length() + 256;
-	if (max_output_len < (int) hMsg->length())
+	int max_output_len = gcm_block_size + (int)hMsg->length() + 256;
+	if (max_output_len < (int)hMsg->length())
 		THROW_ERROR("Input data too large");
 
 	hOutput->resize(max_output_len);
@@ -55,7 +55,7 @@ static Handle<std::string> AES_GCM_encrypt(
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), nullptr))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, (int)hIv->length(), nullptr))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */
@@ -65,13 +65,13 @@ static Handle<std::string> AES_GCM_encrypt(
 	/* Provide any AAD data. This can be called zero or more times as
 	* required
 	*/
-	if (1 != EVP_EncryptUpdate(ctx.Get(), nullptr, &output_len, aad, hAad->length()))
+	if (1 != EVP_EncryptUpdate(ctx.Get(), nullptr, &output_len, aad, (int)hAad->length()))
 		THROW_OPENSSL("Provide any AAD data");
 
 	/* Provide the message to be encrypted, and obtain the encrypted output.
 	* EVP_EncryptUpdate can be called multiple times if necessary
 	*/
-	if (1 != EVP_EncryptUpdate(ctx.Get(), output, &output_len, msg, hMsg->length()))
+	if (1 != EVP_EncryptUpdate(ctx.Get(), output, &output_len, msg, (int)hMsg->length()))
 		THROW_OPENSSL("EVP_EncryptUpdate");
 	final_output_len = output_len;
 
@@ -98,11 +98,11 @@ static Handle<std::string> AES_GCM_decrypt(
 	Handle<std::string> hIv,
 	Handle<std::string> hAad,
 	int tagSize
-	)
+)
 {
 	LOG_FUNC();
 
-	const EVP_CIPHER* cipher = GCM_get_cipher(hKey->length());
+	const EVP_CIPHER* cipher = GCM_get_cipher((int)hKey->length());
 	const byte* iv = (byte*)hIv->c_str();
 	const byte* key = (byte*)hKey->c_str();
 	const byte* aad = (byte*)hAad->c_str();
@@ -110,13 +110,13 @@ static Handle<std::string> AES_GCM_decrypt(
 	int output_len, final_output_len;
 	Handle<std::string> hOutput(new std::string());
 
-	int msg_len = hMsg->length() - tagSize;
+	int msg_len = (int)hMsg->length() - tagSize;
 	std::string sTag = hMsg->substr(hMsg->length() - tagSize);
 	hMsg->resize(msg_len);
 	const byte* msg = (byte*)hMsg->c_str();
 
 	// Get decrypted block size
-	int max_output_len = hMsg->length();
+	int max_output_len = (int)hMsg->length();
 	hOutput->resize(max_output_len);
 	output = (byte*)hOutput->c_str();
 
@@ -131,7 +131,7 @@ static Handle<std::string> AES_GCM_decrypt(
 		THROW_OPENSSL("Initialise the encryption operation");
 
 	/* Set IV length if default 12 bytes (96 bits) is not appropriate */
-	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, hIv->length(), nullptr))
+	if (1 != EVP_CIPHER_CTX_ctrl(ctx.Get(), EVP_CTRL_GCM_SET_IVLEN, (int)hIv->length(), nullptr))
 		THROW_OPENSSL("EVP_CIPHER_CTX_ctrl");
 
 	/* Initialise key and IV */
@@ -141,14 +141,14 @@ static Handle<std::string> AES_GCM_decrypt(
 	/* Provide any AAD data. This can be called zero or more times as
 	* required
 	*/
-	if (1 != EVP_DecryptUpdate(ctx.Get(), nullptr, &output_len, aad, hAad->length()))
+	if (1 != EVP_DecryptUpdate(ctx.Get(), nullptr, &output_len, aad, (int)hAad->length()))
 		THROW_OPENSSL("Provide any AAD data");
 
 
 	/* Provide the message to be encrypted, and obtain the encrypted output.
 	* EVP_EncryptUpdate can be called multiple times if necessary
 	*/
-	if (1 != EVP_DecryptUpdate(ctx.Get(), output, &output_len, msg, hMsg->length()))
+	if (1 != EVP_DecryptUpdate(ctx.Get(), output, &output_len, msg, (int)hMsg->length()))
 		THROW_OPENSSL("EVP_EncryptUpdate");
 	final_output_len = output_len;
 

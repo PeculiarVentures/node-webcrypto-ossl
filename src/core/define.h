@@ -5,6 +5,10 @@
 
 template<typename T> using  Handle = std::shared_ptr<T>;
 
+template <typename T> T bit2byte(T x) {
+	return (x / 8) + (7 + (x % 8)) / 8;
+}
+
 //Key type
 #define NODESSL_KT_PUBLIC 0
 #define NODESSL_KT_PRIVATE 1

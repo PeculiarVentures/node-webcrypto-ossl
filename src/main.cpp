@@ -10,6 +10,7 @@ NAN_MODULE_INIT(InitModule) {
 
 	WKey::Init(target);
 	WAes::Init(target);
+	WHmac::Init(target);
 	WCore::Init(target);
 
 }

@@ -4,7 +4,7 @@ Handle<std::string> RSA_PKCS1_sign(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md
 	LOG_FUNC();
 
 	ScopedEVP_MD_CTX ctx(EVP_MD_CTX_create());
-	EVP_PKEY_CTX* pctx = nullptr;  
+	EVP_PKEY_CTX* pctx = nullptr;
 
 	size_t siglen = 0;
 	if (ctx.isEmpty() ||
@@ -47,7 +47,7 @@ bool RSA_PKCS1_verify(Handle<ScopedEVP_PKEY> hKey, const EVP_MD *md, Handle<std:
 	size_t signaturelen = hSignature->length();
 
 	byte* data = (byte*)hData->c_str();
-	size_t datalen= hData->length();
+	size_t datalen = hData->length();
 
 	if (!EVP_DigestVerifyUpdate(ctx.Get(), data, datalen)) {
 		THROW_OPENSSL("EVP_DigestSignUpdate");

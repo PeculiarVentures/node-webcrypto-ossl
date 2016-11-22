@@ -10,7 +10,7 @@
 class ScopedAES {
 public:
 	ScopedAES() {}
-	ScopedAES(Handle<std::string> aes): value(aes) {}
+	ScopedAES(Handle<std::string> aes): value(aes), type(EVP_PKEY_NONE) {}
 	~ScopedAES() {}
 
 	Handle<std::string> value;
@@ -24,6 +24,8 @@ public:
 
 	Handle<std::string> wrap();
 	Handle<std::string> unwrap();
+
+	int type;
 };
 
 #endif // OSSL_AES_DEF_H_INCLUDE
