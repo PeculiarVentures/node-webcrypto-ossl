@@ -5,6 +5,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/PeculiarVentures/node-webcrypto-ossl/badge.svg?branch=master)](https://coveralls.io/github/PeculiarVentures/node-webcrypto-ossl?branch=master)
 [![NPM version](https://badge.fury.io/js/node-webcrypto-ossl.png)](http://badge.fury.io/js/node-webcrypto-ossl)
 
+[![NPM](https://nodei.co/npm-dl/node-webcrypto-ossl.png?months=3&height=2)](https://nodei.co/npm/node-webcrypto-ossl/)
+
 We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography availible in browser is [Web Crypto](caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfil for WebCrypto based on Openssl.
 
 ## Table Of Contents
