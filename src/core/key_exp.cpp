@@ -44,7 +44,7 @@ Handle<std::string> KEY_export_spki(EVP_PKEY *pkey) {
 Handle<ScopedEVP_PKEY> KEY_import_spki(Handle<std::string> in) {
 	LOG_FUNC();
 
-	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), in->length()));
+	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), (int)in->length()));
 	return KEY_import(bio.Get(), &d2i_PUBKEY_bio);
 }
 
@@ -57,6 +57,6 @@ Handle<std::string> KEY_export_pkcs8(EVP_PKEY *pkey) {
 Handle<ScopedEVP_PKEY> KEY_import_pkcs8(Handle<std::string> in) {
 	LOG_FUNC();
 
-	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), in->length()));
+	ScopedBIO bio(BIO_new_mem_buf((void *)in->c_str(), (int)in->length()));
 	return KEY_import(bio.Get(), &d2i_PrivateKey_bio);
 }

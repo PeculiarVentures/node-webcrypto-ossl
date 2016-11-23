@@ -10,7 +10,7 @@ Handle<std::string> v8Buffer_to_String(v8::Local<v8::Object> v8Buffer) {
 
 	LOG_INFO("Copy buffer to Bio");
 	char *buf = node::Buffer::Data(v8Buffer);
-	int buflen = node::Buffer::Length(v8Buffer);
+	int buflen = (int)node::Buffer::Length(v8Buffer);
 
 	Handle<std::string> hBuffer(new std::string(buf, buflen));
 
@@ -24,7 +24,7 @@ v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer) {
 	char *data = (char*)hBuffer->c_str();
 	size_t datalen = hBuffer->length();
 
-	v8::Local<v8::Object> v8Buffer = Nan::NewBuffer(datalen).ToLocalChecked();
+	v8::Local<v8::Object> v8Buffer = Nan::NewBuffer((uint32_t)datalen).ToLocalChecked();
 	char *buffer = node::Buffer::Data(v8Buffer);
 	memcpy(buffer, data, datalen);
 

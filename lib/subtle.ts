@@ -12,6 +12,7 @@ import { CryptoKey, CryptoKeyPair } from "./key";
 import * as rsa from "./crypto/rsa";
 import * as aes from "./crypto/aes";
 import * as ec from "./crypto/ec";
+import * as hmac from "./crypto/hmac";
 
 /**
  * Prepare array of data before it's using 
@@ -105,6 +106,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.EcDH.toLowerCase():
                         AlgClass = ec.EcCrypto;
                         break;
+                    case AlgorithmNames.Hmac.toLowerCase():
+                        AlgClass = hmac.HmacCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
                 }
@@ -129,6 +133,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.EcDSA.toLowerCase():
                         AlgClass = ec.EcCrypto;
+                        break;
+                    case AlgorithmNames.Hmac.toLowerCase():
+                        AlgClass = hmac.HmacCrypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
@@ -155,6 +162,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.EcDSA.toLowerCase():
                         AlgClass = ec.EcCrypto;
+                        break;
+                    case AlgorithmNames.Hmac.toLowerCase():
+                        AlgClass = hmac.HmacCrypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);
@@ -308,6 +318,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.EcDH.toLowerCase():
                         AlgClass = ec.EcCrypto;
                         break;
+                    case AlgorithmNames.Hmac.toLowerCase():
+                        AlgClass = hmac.HmacCrypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, key.algorithm.name);
                 }
@@ -346,6 +359,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.EcDSA.toLowerCase():
                     case AlgorithmNames.EcDH.toLowerCase():
                         AlgClass = ec.EcCrypto;
+                        break;
+                    case AlgorithmNames.Hmac.toLowerCase():
+                        AlgClass = hmac.HmacCrypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);

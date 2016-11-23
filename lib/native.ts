@@ -1,6 +1,6 @@
 let native = require("../build/Release/nodessl.node");
 
-export enum EcNamedCurves {
+export declare enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
     secp128r1 = 706,
@@ -36,12 +36,12 @@ export enum EcNamedCurves {
     sect571r1 = 734
 }
 
-export enum RsaPublicExponent {
+export declare enum RsaPublicExponent {
     RSA_3,
     RSA_F4
 }
 
-export enum KeyType {
+export declare enum KeyType {
     PUBLIC,
     PRIVATE
 }
@@ -192,6 +192,34 @@ export declare class AesKey {
     static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
 }
 
+export declare class HmacKey {
+    /**
+     * generate key
+     * @param keySize size of generated key (should be 16, 24, 32)
+     * @param callback callback function (err: Error, key: KeyPair)
+     */
+    static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
+
+    export(callback: (err: Error, raw: Buffer) => void): void;
+    static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
+    /**
+     * sign data
+     * @param digestName name of digest algorithm
+     * @param message message
+     * @param callback callback function (err: Error, signature: Buffer)
+     */
+    sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void;
+
+    /**
+     * verify data
+     * @param digestName name of digest algorithm
+     * @param message message
+     * @param signature signature from message
+     * @param callback callback function (err: Error, valid: boolean)
+     */
+    verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void;
+}
+
 export declare class Core {
     /**
      * Returns a digest generated from the hash function and text given as parameters
@@ -202,6 +230,4 @@ export declare class Core {
     static digest(digestName: string, messgae: Buffer, callback: (err: Error, digest: Buffer) => void): void;
 }
 
-module.exports.Key = native.Key;
-module.exports.Core = native.Core;
-module.exports.AesKey = native.AesKey;
+module.exports = native;

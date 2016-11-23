@@ -43,7 +43,7 @@ Handle<std::string> RSA_OAEP_enc_dec(
 	if (hLabel->length()) {
 		LOG_INFO("Set label for RSA OAEP");
 		char *label = (char*)hLabel->c_str();
-		int label_len = hLabel->length();
+		int label_len = (int)hLabel->length();
 		char *label_copy = (char*)OPENSSL_malloc(label_len);
 		memcpy(label_copy, label, label_len);
 		if (EVP_PKEY_CTX_set0_rsa_oaep_label(ctx.Get(), label_copy, label_len) < 1) {

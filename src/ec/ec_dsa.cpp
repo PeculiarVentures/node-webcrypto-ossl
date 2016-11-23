@@ -29,13 +29,13 @@ static Handle<std::string> ConvertWebCryptoSignatureToDerSignature(
 	LOG_FUNC();
 
 	LOG_INFO("Determine the length of r and s");
-	size_t order_size_bytes = GetEcGroupOrderSize(key);
+	int order_size_bytes = (int)GetEcGroupOrderSize(key);
 
 	// If the size of the signature is incorrect, verification must fail. Success
 	// is returned here rather than an error, so that the caller can fail
 	// verification with a boolean, rather than reject the promise with an
 	// exception.
-	if (signaturelen != 2 * order_size_bytes) {
+	if (signaturelen != 2 * (size_t)order_size_bytes) {
 		*incorrect_length = true;
 		return nullptr;
 	}

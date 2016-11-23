@@ -6,7 +6,7 @@ static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std:
 	LOG_INFO("AES key");
 
 	const byte *key = reinterpret_cast<const byte*>(hKey->c_str());
-	uint8_t keylen = hKey->length();
+	uint8_t keylen = (uint8_t)hKey->length();
 
 	if (!keylen) {
 		THROW_ERROR("Error on AES key getting");
@@ -14,11 +14,11 @@ static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std:
 
 	LOG_INFO("data");
 	const byte *data = reinterpret_cast<const byte*> (hMsg->c_str());
-	uint8_t datalen = hMsg->length();
+	uint8_t datalen = (uint8_t)hMsg->length();
 
 	LOG_INFO("iv");
 	const byte *iv = reinterpret_cast<const byte*>(hIv->c_str());
-	uint8_t ivlen = hIv->length();
+	uint8_t ivlen = (uint8_t)hIv->length();
 
 	if (ivlen != EVP_MAX_IV_LENGTH) {
 		THROW_ERROR("Incorrect IV length");

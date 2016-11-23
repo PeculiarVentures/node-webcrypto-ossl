@@ -12,7 +12,7 @@ export class CryptoKey implements NativeCryptoKey {
     usages: string[] = [];
 
     private native_: native.AesKey | native.Key;
-    get native(): native.AesKey | native.Key {
+    get native(): native.AesKey | native.Key | native.HmacKey {
         return this.native_;
     }
 
