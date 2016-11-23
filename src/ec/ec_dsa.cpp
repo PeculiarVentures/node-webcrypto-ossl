@@ -35,7 +35,7 @@ static Handle<std::string> ConvertWebCryptoSignatureToDerSignature(
 	// is returned here rather than an error, so that the caller can fail
 	// verification with a boolean, rather than reject the promise with an
 	// exception.
-	if (signaturelen != 2 * order_size_bytes) {
+	if (signaturelen != 2 * (size_t)order_size_bytes) {
 		*incorrect_length = true;
 		return nullptr;
 	}
