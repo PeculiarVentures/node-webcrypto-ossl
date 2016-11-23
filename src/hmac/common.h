@@ -15,7 +15,7 @@ public:
 	static Handle<ScopedHMAC> generate(int &length);
 
 	Handle<std::string> sign(Handle<std::string> hMsg, const EVP_MD *md);
-	boolean verify(Handle<std::string> hMsg, const EVP_MD *md, Handle<std::string> signature);
+	bool verify(Handle<std::string> hMsg, const EVP_MD *md, Handle<std::string> signature);
 
 	int type;
 };

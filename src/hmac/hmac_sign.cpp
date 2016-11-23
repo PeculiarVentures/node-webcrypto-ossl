@@ -24,7 +24,7 @@ Handle<std::string> ScopedHMAC::sign(Handle<std::string> hMsg, const EVP_MD *md)
 	return res;
 
 }
-boolean ScopedHMAC::verify(Handle<std::string> hMsg, const EVP_MD *md, Handle<std::string> signature) {
+bool ScopedHMAC::verify(Handle<std::string> hMsg, const EVP_MD *md, Handle<std::string> signature) {
 	LOG_FUNC();
 
 	Handle<std::string> signature2 = this->sign(hMsg, md);
