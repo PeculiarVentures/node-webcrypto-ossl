@@ -1,6 +1,6 @@
 let native = require("../build/Release/nodessl.node");
 
-export enum EcNamedCurves {
+export declare enum EcNamedCurves {
     secp112r1 = 704,
     secp112r2 = 705,
     secp128r1 = 706,
@@ -36,12 +36,12 @@ export enum EcNamedCurves {
     sect571r1 = 734
 }
 
-export enum RsaPublicExponent {
+export declare enum RsaPublicExponent {
     RSA_3,
     RSA_F4
 }
 
-export enum KeyType {
+export declare enum KeyType {
     PUBLIC,
     PRIVATE
 }

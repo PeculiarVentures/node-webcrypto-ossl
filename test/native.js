@@ -44,7 +44,7 @@ describe("native", function () {
             assert(key != null, true, "Error on key generation");
             done();
         })
-    })
+    }).timeout(30e3)
 
     it("generate RSA error", function (done) {
         native.Key.generateRsa(1024, 3, function (err, key) {
