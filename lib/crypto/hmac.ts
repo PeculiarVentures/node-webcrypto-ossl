@@ -55,7 +55,7 @@ export class HmacCrypto extends BaseCrypto {
                 default:
                     throw new WebCryptoError(`ImportKey: Wrong format value '${format}'`);
             }
-            native.AesKey.import(raw, (err, key) => {
+            native.HmacKey.import(raw, (err, key) => {
                 if (err) reject(err);
                 else
                     resolve(new CryptoKey(key, algorithm as Algorithm, "secret", extractable, keyUsages));
