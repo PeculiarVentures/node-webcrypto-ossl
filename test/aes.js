@@ -1,5 +1,6 @@
-var assert = require('assert');
-var webcrypto = require('./config');
+const assert = require('assert');
+const webcrypto = require('./config');
+const checkAlgorithms = require('./helper').checkAlgorithms;
 
 var keys = [];
 
@@ -95,60 +96,6 @@ describe("WebCrypto Aes", function () {
 
     });
 
-    context("", () => {
-
-        context("AES-CBC", () => {
-
-            // Filter CBC
-            keys.filter(key => /AES-CBC/.test(key.name))
-                .forEach(key => {
-                    [new Uint8Array(16), new Uint8Array(16)].forEach(iv => {
-                        it(`iv:${iv.length}\t${key.name}`, done => {
-                            var alg = { name: "AES-CBC", iv: iv };
-                            webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
-                                .then(enc => {
-                                    assert(!!enc, true, "Encrypted message is empty");
-                                    return webcrypto.subtle.decrypt(alg, key.key, enc);
-                                })
-                                .then(dec => {
-                                    assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
-                                })
-                                .then(done, done);
-                        });
-                    });
-                });
-        });
-
-        context("AES-GCM", () => {
-            // Filter GCM
-            keys.filter(key => /AES-GCM/.test(key.name))
-                .forEach(key => {
-                    // IV
-                    [new Uint8Array(16)].forEach(iv => {
-                        // AAD
-                        [new Uint8Array([1, 2, 3, 4, 5]), null].forEach(aad => {
-                            // Tag
-                            [32, 64, 96, 104, 112, 120, 128].forEach(tag => {
-                                it(`aad:${aad ? "+" : "-"} t:${tag}\t${key.name}`, done => {
-                                    var alg = { name: "AES-GCM", iv: iv, aad: aad, tagLength: tag };
-                                    webcrypto.subtle.encrypt(alg, key.key, TEST_MESSAGE)
-                                        .then(enc => {
-                                            assert(!!enc, true, "Encrypted message is empty");
-                                            return webcrypto.subtle.decrypt(alg, key.key, enc);
-                                        })
-                                        .then(dec => {
-                                            assert(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is wrong");
-                                        })
-                                        .then(done, done);
-                                });
-                            });
-                        });
-                    });
-                });
-        });
-
-    });
-
     context("Export/Import", () => {
 
         // Keys
@@ -168,6 +115,7 @@ describe("WebCrypto Aes", function () {
                         .then(k => {
                             assert.equal(!!k, true, "Imported key is empty")
                             assert.equal(!!k.native_, true, "Has no native key value");
+                            checkAlgorithms(key.algorithm, k.algorithm);
                         })
                         .then(done, done);
                 });

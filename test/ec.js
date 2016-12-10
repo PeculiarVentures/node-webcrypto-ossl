@@ -1,6 +1,7 @@
 "use strict";
-var assert = require('assert');
-var webcrypto = require('./config');
+const assert = require('assert');
+const webcrypto = require('./config');
+const checkAlgorithms = require('./helper').checkAlgorithms;
 
 describe("WebCrypto EC", () => {
 
@@ -135,8 +136,10 @@ describe("WebCrypto EC", () => {
                                         return webcrypto.subtle.importKey(format, jwk, _key.algorithm, true, _key.usages);
                                     })
                             })
-                                .then(k => assert.equal(!!k, true, "Imported key is empty"))
-                        // TODO assert imported key params
+                                .then(k => {
+                                    assert.equal(!!k, true, "Imported key is empty");
+                                    checkAlgorithms(_key.algorithm, k.algorithm);
+                                })
                     });
                     promise.then(done, done);
                 });

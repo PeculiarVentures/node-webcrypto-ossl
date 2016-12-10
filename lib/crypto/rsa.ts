@@ -48,11 +48,11 @@ export abstract class RsaCrypto extends BaseCrypto {
     static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             let _format = format.toLocaleLowerCase();
+            const alg = algorithm as Algorithm;
             switch (_format) {
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
                     const data: { [key: string]: Buffer } = {};
-                    const alg = algorithm as Algorithm;
                     // prepare data
                     data["kty"] = jwk.kty as any;
                     data["n"] = b64_decode(jwk.n!);

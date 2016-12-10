@@ -66,11 +66,11 @@ export class EcCrypto extends BaseCrypto {
     static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             let _format = format.toLocaleLowerCase();
+            const alg = algorithm as Algorithm;
             switch (_format) {
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
                     const data: { [key: string]: Buffer } = {};
-                    const alg = algorithm as Algorithm;
                     // prepare data
                     data["kty"] = jwk.kty as any;
                     data["crv"] = nc2ssl(jwk.crv);
@@ -86,8 +86,8 @@ export class EcCrypto extends BaseCrypto {
                             if (err)
                                 reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
                             else {
-                                let rsa = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
-                                resolve(rsa);
+                                let ec = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
+                                resolve(ec);
                             }
                         }
                         catch (e) {
@@ -107,8 +107,8 @@ export class EcCrypto extends BaseCrypto {
                             if (err)
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
                             else {
-                                let rsa = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
-                                resolve(rsa);
+                                let ec = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
+                                resolve(ec);
                             }
                         }
                         catch (e) {

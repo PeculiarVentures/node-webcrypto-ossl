@@ -1,9 +1,9 @@
 /// <reference types="node" />
 /// <reference types="webcrypto-core" />
 
-declare type NodeBufferSource = BufferSource | Buffer;
-
 declare namespace NodeWebcryptoOpenSSL {
+
+    type NodeBufferSource = BufferSource | Buffer;
 
     enum EcNamedCurves {
         secp112r1 = 704,

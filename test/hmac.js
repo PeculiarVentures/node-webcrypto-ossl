@@ -1,6 +1,7 @@
 "use strict";
 const assert = require('assert');
 const webcrypto = require('./config');
+const checkAlgorithms = require('./helper').checkAlgorithms;
 const subtle = webcrypto.subtle;
 
 const keys = [];
@@ -58,6 +59,7 @@ describe("WebCrypto", function () {
                             .then(k => {
                                 assert.equal(!!k, true);
                                 assert.equal(!!k.native, true);
+                                checkAlgorithms(hmac.key.algorithm, k.algorithm);
                                 done();
                             })
                             .catch(done);
