@@ -27,7 +27,7 @@ void AsyncEcGenerateKey::HandleOKCallback() {
 
 void AsyncEcdhDeriveKey::Execute() {
 	try {
-		dkey = ECDH_derive_key(pkey,pubkey, secret_len);
+		dkey = ECDH_derive_key(pkey, pubkey, secret_len);
 	}
 	catch (std::exception& e) {
 		this->SetErrorMessage(e.what());

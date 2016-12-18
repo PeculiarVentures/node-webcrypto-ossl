@@ -226,7 +226,7 @@ export class EcCrypto extends BaseCrypto {
             }
 
             // derive key
-            (baseKey.native as native.Key).EcdhDeriveKey((_algorithm.public as any).native, _derivedKeyType.length, (err, raw) => {
+            (baseKey.native as native.Key).EcdhDeriveKey((_algorithm.public as any).native, _derivedKeyType.length / 8, (err, raw) => {
                 if (err) reject(err);
                 else {
                     AesClass.importKey("raw", raw, _derivedKeyType, extractable, keyUsages)
