@@ -42,6 +42,7 @@ export class AesCrypto extends BaseCrypto {
                 default:
                     throw new WebCryptoError(`ImportKey: Wrong format value '${format}'`);
             }
+            (algorithm as any).length = raw.byteLength * 8;
             native.AesKey.import(raw, (err, key) => {
                 if (err) reject(err);
                 else
@@ -66,7 +67,7 @@ export class AesCrypto extends BaseCrypto {
                         ext: true
                     };
                     // set alg
-                    jwk.alg = "A" + (key.algorithm as any).length + /-(\w+)$/.exec(key.algorithm.name) ![1];
+                    jwk.alg = "A" + (key.algorithm as any).length + /-(\w+)$/.exec(key.algorithm.name) ![1].toUpperCase();
                     nkey.export((err, data) => {
                         if (err) reject(err);
                         else {

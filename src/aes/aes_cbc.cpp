@@ -14,7 +14,7 @@ static Handle<std::string> AES_CBC_encrypt(Handle<std::string> hKey, Handle<std:
 
 	LOG_INFO("data");
 	const byte *data = reinterpret_cast<const byte*> (hMsg->c_str());
-	uint8_t datalen = (uint8_t)hMsg->length();
+	int datalen = (int)hMsg->length();
 
 	LOG_INFO("iv");
 	const byte *iv = reinterpret_cast<const byte*>(hIv->c_str());
