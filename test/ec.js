@@ -16,6 +16,31 @@ describe("WebCrypto EC", () => {
     var keys = [];
 
     context("Generate key", () => {
+
+        it("Params", done => {
+            webcrypto.subtle.generateKey(
+                { name: "ECDSA", namedCurve: "P-256" },
+                false,
+                ["sign"]
+            )
+                .then(keyPair => {
+                    let pkey = keyPair.privateKey;
+                    assert.equal(pkey.type, "private");
+                    assert.equal(pkey.algorithm.name, "ECDSA");
+                    assert.equal(pkey.algorithm.namedCurve, "P-256");
+                    assert.equal(pkey.extractable, false);
+                    assert.equal(pkey.usages.toString(), "sign");
+
+                    let pubkey = keyPair.publicKey;
+                    assert.equal(pubkey.type, "public");
+                    assert.equal(pubkey.algorithm.name, "ECDSA");
+                    assert.equal(pubkey.algorithm.namedCurve, "P-256");
+                    assert.equal(pubkey.extractable, true);
+                    assert.equal(pubkey.usages.toString(), "");
+                })
+                .then(done, done);
+        });
+
         // Algs
         KEYS.forEach(key => {
             // namedCurve
@@ -39,6 +64,7 @@ describe("WebCrypto EC", () => {
                             // save  keays for next tests
                             keyTemplate.privateKey = keyPair.privateKey;
                             keyTemplate.publicKey = keyPair.publicKey;
+
                             return Promise.resolve();
                         })
                         .then(done, done);

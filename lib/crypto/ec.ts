@@ -54,11 +54,16 @@ export class EcCrypto extends BaseCrypto {
 
             native.Key.generateEc(namedCurve, (err, key) => {
                 if (err) reject(err);
-                else
+                else {
+                    const prvUsages = ["sign", "deriveKey", "deriveBits"]
+                        .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
+                    const pubUsages = ["verify"]
+                        .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
                     resolve({
-                        privateKey: new CryptoKey(key, algorithm, "private", extractable, keyUsages),
-                        publicKey: new CryptoKey(key, algorithm, "public", extractable, keyUsages)
+                        privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
+                        publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages)
                     });
+                }
             });
         });
     }

@@ -18,6 +18,35 @@ describe("WebCrypto RSA", () => {
     var keys = [];
 
     context("Generate key", () => {
+
+        it("Params", done => {
+            webcrypto.subtle.generateKey(
+                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256", modulusLength: 1024, publicExponent: new Uint8Array([1, 0, 1]) },
+                false,
+                ["sign"]
+            )
+                .then(keyPair => {
+                    let pkey = keyPair.privateKey;
+                    assert.equal(pkey.type, "private");
+                    assert.equal(pkey.algorithm.name, "RSASSA-PKCS1-v1_5");
+                    assert.equal(pkey.algorithm.hash.name, "SHA-256");
+                    assert.equal(pkey.algorithm.modulusLength, 1024);
+                    assert.equal(pkey.algorithm.publicExponent.length, 3);
+                    assert.equal(pkey.algorithm.publicExponent[0], 1);
+                    assert.equal(pkey.extractable, false);
+
+                    let pubkey = keyPair.publicKey;
+                    assert.equal(pubkey.type, "public");
+                    assert.equal(pubkey.algorithm.name, "RSASSA-PKCS1-v1_5");
+                    assert.equal(pubkey.algorithm.hash.name, "SHA-256");
+                    assert.equal(pubkey.algorithm.modulusLength, 1024);
+                    assert.equal(pubkey.algorithm.publicExponent.length, 3);
+                    assert.equal(pubkey.algorithm.publicExponent[0], 1);
+                    assert.equal(pubkey.extractable, true);
+                })
+                .then(done, done);
+        });
+
         // Algs
         KEYS.forEach(key => {
             // Digest
@@ -47,6 +76,7 @@ describe("WebCrypto RSA", () => {
                                     // save  keays for next tests
                                     keyTemplate.privateKey = keyPair.privateKey;
                                     keyTemplate.publicKey = keyPair.publicKey;
+
                                     return Promise.resolve();
                                 })
                                 .then(done, done);

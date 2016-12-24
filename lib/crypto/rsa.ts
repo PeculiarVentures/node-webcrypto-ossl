@@ -34,7 +34,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                             .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
                         resolve({
                             privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
-                            publicKey: new CryptoKey(key, algorithm, "public", extractable, pubUsages)
+                            publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages)
                         });
                     }
                 }
