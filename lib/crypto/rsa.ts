@@ -220,7 +220,7 @@ export class RsaPSS extends RsaCrypto {
             let _alg = this.wc2ssl(key.algorithm);
             let nkey = key.native as native.Key;
 
-            nkey.RsaPssSign(_alg, _alg.saltLength / 8, data, (err, signature) => {
+            nkey.RsaPssSign(_alg, (algorithm as any).saltLength, data, (err, signature) => {
                 if (err)
                     reject(new WebCryptoError("NativeError: " + err.message));
                 else
@@ -234,7 +234,7 @@ export class RsaPSS extends RsaCrypto {
             let _alg = this.wc2ssl(key.algorithm);
             let nkey = key.native as native.Key;
 
-            nkey.RsaPssVerify(_alg, _alg.saltLength / 8, data, signature, (err, res) => {
+            nkey.RsaPssVerify(_alg, (algorithm as any).saltLength, data, signature, (err, res) => {
                 if (err)
                     reject(new WebCryptoError("NativeError: " + err.message));
                 else
