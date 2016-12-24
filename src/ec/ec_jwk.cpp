@@ -40,8 +40,8 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	y = BN_CTX_get(ctx.Get());
 
 	LOG_INFO("Get public key");
-	if (1 != EC_POINT_get_affine_coordinates_GF2m(group, point, x.Get(), y.Get(), ctx.Get())) {
-		THROW_OPENSSL("EC_POINT_get_affine_coordinates_GF2m");
+	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x.Get(), y.Get(), ctx.Get())) {
+		THROW_OPENSSL("EC_POINT_get_affine_coordinates_GFp");
 	}
 	jwk->x = BN_dup(x.Get());
 	jwk->y = BN_dup(y.Get());
@@ -53,7 +53,7 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 			THROW_OPENSSL("EC_KEY_get0_private_key");
 		}
 	}
-	
+
 	return jwk;
 }
 
@@ -98,6 +98,6 @@ Handle<ScopedEVP_PKEY> JwkEc::To(int &key_type) {
 	Handle<ScopedEVP_PKEY> new_key(new ScopedEVP_PKEY(EVP_PKEY_new()));
 	EVP_PKEY_assign_EC_KEY(new_key->Get(), ec_key.Get());
 	ec_key.unref();
-	
+
 	return new_key;
 }

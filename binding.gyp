@@ -1,11 +1,9 @@
 {
-    "variables": {
-        "node_shared_openssl%": "true"
-    },
     "targets": [
         {
             "include_dirs": [
-                "<!(node -e \"require('nan')\")"
+                "<!(node -e \"require('nan')\")",
+                "<(node_root_dir)/deps/openssl/openssl/include"
             ],
             "target_name": "nodessl",
             "sources": [
@@ -52,44 +50,6 @@
             ],
             "cflags_cc": ["-fexceptions"],
             "conditions": [
-                [
-                    "OS=='win'",
-                    {
-                        "conditions": [
-                            [
-                                "target_arch=='x64'",
-                                {
-                                    "variables": {
-                                        "openssl_root%": "C:/github/openssl"
-                                    }
-                                },
-                                {
-                                    "variables": {
-                                        "openssl_root%": "C:/github/openssl"
-                                    }
-                                }
-                            ]
-                        ],
-                        "libraries": [
-                            "-l<(openssl_root)/out32dll/libeay32.lib"
-                        ],
-                        "include_dirs": [
-                            "<(openssl_root)/inc32"
-                        ]
-                    },
-                    {
-                        "conditions": [
-                            [
-                                "node_shared_openssl=='false'",
-                                {
-                                    "include_dirs": [
-                                        "<(node_root_dir)/deps/openssl/openssl/include"
-                                    ]
-                                }
-                            ]
-                        ]
-                    }
-                ],
                 [ 'OS=="mac"', {
                   'xcode_settings': {
                     'OTHER_CPLUSPLUSFLAGS' : ['-std=c++11','-stdlib=libc++', '-v'],
