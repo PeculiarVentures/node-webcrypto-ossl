@@ -105,4 +105,25 @@ protected:
 	Handle<std::string> hOutput;
 };
 
+class AsyncAesWrapKey : public Nan::AsyncWorker {
+public:
+	AsyncAesWrapKey(
+		Nan::Callback *callback,
+		Handle<ScopedAES> hKey,
+		Handle<std::string> hInput,
+		bool encrypt
+	) : AsyncWorker(callback), hKey(hKey), hInput(hInput), encrypt(encrypt) {}
+	~AsyncAesWrapKey() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	Handle<ScopedAES> hKey;
+	Handle<std::string> hInput;
+	bool encrypt;
+	// Result
+	Handle<std::string> hOutput;
+};
+
 #endif // OSSL_NODE_ASYNC_AES_H_INCLUDE

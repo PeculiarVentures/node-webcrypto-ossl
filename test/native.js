@@ -304,6 +304,65 @@ describe("native", function () {
         });
     })
 
+    context("AES-KW", () => {
+
+        it("WrapKey small data", done => {
+            native.AesKey.generate(32, (err, key) => {
+                assert(!err, true, `generate: ${err}`);
+                key.wrapKey(new Buffer("123456789012345"), (err, data) => {
+                    assert(!!err, true);
+                    done();
+                });
+            });
+        });
+
+        it("UnwrapKey small data", done => {
+            native.AesKey.generate(32, (err, key) => {
+                assert(!err, true, `generate: ${err}`);
+                key.unwrapKey(new Buffer("12345678901234567890123"), (err, data) => {
+                    assert(!!err, true);
+                    done();
+                });
+            });
+        });
+
+        it("WrapKey data is not % 8", done => {
+            native.AesKey.generate(32, (err, key) => {
+                assert(!err, true, `generate: ${err}`);
+                key.wrapKey(new Buffer("12345678901234567"), (err, data) => {
+                    assert(!!err, true);
+                    done();
+                });
+            });
+        });
+
+        it("UnwrapKey data is not % 8", done => {
+            native.AesKey.generate(32, (err, key) => {
+                assert(!err, true, `generate: ${err}`);
+                key.unwrapKey(new Buffer("1234567890123456789012346"), (err, data) => {
+                    assert(!!err, true);
+                    done();
+                });
+            });
+        });
+
+        it("wrap/unwrap", done => {
+            let MSG = new Buffer("1234567890123456");
+            native.AesKey.generate(32, (err, key) => {
+                assert(!err, true, `generate: ${err}`);
+                key.wrapKey(MSG, (err, data) => {
+                    assert(!err, true, "Cannot wrap key");
+                    key.unwrapKey(data, (err, data) => {
+                        assert(!err, true, "Cannot unwrap key");
+                        assert(data.toString("hex"), MSG.toString("hex"), "Cannot unwrap key");
+                        done();
+                    });
+                });
+            });
+        });
+
+    });
+
     function test_encrypt_gcm(keySize, aad, tag, done) {
         var msg = new Buffer("Hello world");
         native.AesKey.generate(keySize, function (err, key) {

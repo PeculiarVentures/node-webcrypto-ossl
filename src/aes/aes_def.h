@@ -22,8 +22,8 @@ public:
 	Handle<std::string> encryptGcm(Handle<std::string> hMsg, Handle<std::string> hIv, Handle<std::string> hAad, int tagSize);
 	Handle<std::string> decryptGcm(Handle<std::string> hMsg, Handle<std::string> hIv, Handle<std::string> hAad, int tagSize);
 
-	Handle<std::string> wrap();
-	Handle<std::string> unwrap();
+	Handle<std::string> wrap(Handle<std::string> data);
+	Handle<std::string> unwrap(Handle<std::string> encKey);
 
 	int type;
 };

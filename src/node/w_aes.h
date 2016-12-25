@@ -25,6 +25,8 @@ public:
 	static NAN_METHOD(Generate);
 	static NAN_METHOD(Encrypt);
 	static NAN_METHOD(Decrypt);
+	static NAN_METHOD(WrapKey);
+	static NAN_METHOD(UnwrapKey);
 	static NAN_METHOD(Export);
 	static NAN_METHOD(Import);
 	static NAN_METHOD(EncryptGcm);

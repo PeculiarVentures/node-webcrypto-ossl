@@ -99,14 +99,53 @@ Handle<std::string> ScopedAES::decryptCbc(Handle<std::string> hMsg, Handle<std::
 	return AES_CBC_encrypt(this->value, hMsg, hIv, false);
 }
 
-Handle<std::string> ScopedAES::wrap() {
+Handle<std::string> ScopedAES::wrap(Handle<std::string> data) {
 	LOG_FUNC();
 
-	THROW_ERROR("Not implemented");
+	if (data->length() < 16)
+		THROW_ERROR("Data too small");
+	if (data->length() % 8)
+		THROW_ERROR("Invalid AES-KW data length");
+	
+	AES_KEY aes_key;
+	if (AES_set_encrypt_key((const byte*)this->value->c_str(), data->length() * 8, &aes_key) < 0)
+		THROW_OPENSSL("AES_set_encrypt_key");
+
+	// Key wrap's overhead is 8 bytes
+	size_t len = data->length();
+	len += 8;
+	if (len < data->length())
+		THROW_ERROR("Data too large");
+
+	Handle<std::string> res(new std::string());
+	res->resize(len);
+
+	if (AES_wrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), data->length()) < 0)
+		THROW_OPENSSL("AES_wrap_key");
+
+	return res;
 }
 
-Handle<std::string> ScopedAES::unwrap() {
+Handle<std::string> ScopedAES::unwrap(Handle<std::string> data) {
 	LOG_FUNC();
 
-	THROW_ERROR("Not implemented");
+	if (data->length() < 24)
+		THROW_ERROR("Data too small");
+	if (data->length() % 8)
+		THROW_ERROR("Invalid AES-KW data length");
+
+	AES_KEY aes_key;
+	if (AES_set_decrypt_key((const byte*)this->value->c_str(), data->length() * 8, &aes_key) < 0)
+		THROW_OPENSSL("AES_set_encrypt_key");
+
+	// Key wrap's overhead is 8 bytes
+	size_t len = data->length();
+	len -= 8;
+	Handle<std::string> res(new std::string());
+	res->resize(len);
+
+	if (AES_unwrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), data->length()) < 0)
+		THROW_OPENSSL("AES_wrap_key");
+
+	return res;
 }
