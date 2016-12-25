@@ -15,23 +15,27 @@ describe("WebCrypto", function () {
         context("generate", () => {
 
             // key length
-            [128, 256, 512].forEach(length => {
+            [0, 128, 256, 512].forEach(length => {
                 // hash
                 ["SHA-1", "SHA-256", "SHA-384", "SHA-512"].forEach(hash => {
-                    let hmac = { key: null, name: `length:${length} hash:${hash}`, length: length };
+
+                    let hmac = { key: null, name: `length:${length ? length : "default"} hash:${hash}`, length: length };
                     keys.push(hmac);
 
-
                     it(`${hmac.name}`, done => {
-                        const alg = { name: "HMAC", length: length, hash: hash };
+                        const alg = { name: "HMAC", hash: hash };
+                        if (length)
+                            alg.length = length;
+                        else
+                            hmac.length = hash === "SHA-1" ? 160 : hash === "SHA-256" ? 256 : hash === "SHA-384" ? 384 : 512;
+
                         subtle.generateKey(alg, true, ["sign", "verify"])
                             .then(key => {
                                 assert(!!key, true);
                                 assert(!!key.native, true);
                                 hmac.key = key;
-                                done();
                             })
-                            .catch(done);
+                            .then(done, done);
                     });
                 });
             });

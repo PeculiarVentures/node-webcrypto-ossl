@@ -19,7 +19,7 @@ var deleteFolderRecursive = function (path) {
 describe("Key storage", function () {
 
     var TEST_MESSAGE = new Buffer("This is test message for crypto functions");
-    var KEYS = [{name: "private"}, {name: "public"}, {name: "secret"}];
+    var KEYS = [{ name: "private" }, { name: "public" }, { name: "secret" }];
 
     before((done) => {
         // Generate keys for storeKey
@@ -66,6 +66,12 @@ describe("Key storage", function () {
 
             var storeKey = webcrypto.keyStorage.getItem(key.key.type);
         })
+    });
+
+    it("read storage from folder", () => {
+        let WebCrypto = require("../buildjs/webcrypto");
+        let crypto = new WebCrypto({ directory: "test_storage" });
+        assert.equal(crypto.keyStorage.length, 2);
     });
 
     it("Remove key from storage", function (done) {

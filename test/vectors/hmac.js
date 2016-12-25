@@ -1,6 +1,6 @@
 "use strict";
 const assert = require('assert');
-const webcrypto = require('./config');
+const webcrypto = require('../config');
 const subtle = webcrypto.subtle;
 
 // Chrome vectors

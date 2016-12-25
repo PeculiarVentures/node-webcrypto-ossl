@@ -1,4 +1,4 @@
-let native = require("../build/Debug/nodessl.node");
+let native = require("../build/Release/nodessl.node");
 
 export declare enum EcNamedCurves {
     secp112r1 = 704,

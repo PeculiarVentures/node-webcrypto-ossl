@@ -19,7 +19,7 @@ export class HmacCrypto extends BaseCrypto {
     protected static getHashSize(hashName: string) {
         switch (hashName) {
             case AlgorithmNames.Sha1:
-                return 128;
+                return 160;
             case AlgorithmNames.Sha256:
                 return 256;
             case AlgorithmNames.Sha384:
@@ -33,7 +33,8 @@ export class HmacCrypto extends BaseCrypto {
 
     static generateKey(algorithm: HmacKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
         return new Promise((resolve, reject) => {
-            native.HmacKey.generate(algorithm.length || this.getHashSize((algorithm.hash as Algorithm).name), (err, key) => {
+            const length = algorithm.length || this.getHashSize((algorithm.hash as Algorithm).name);
+            native.HmacKey.generate(length, (err, key) => {
                 if (err) reject(err);
                 else
                     resolve(new CryptoKey(key, algorithm, "secret", extractable, keyUsages));
