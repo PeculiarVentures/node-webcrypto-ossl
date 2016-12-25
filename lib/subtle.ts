@@ -100,6 +100,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
+                    case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
                     case AlgorithmNames.EcDSA.toLowerCase():
@@ -187,6 +188,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
+                    case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
                     default:
@@ -210,6 +212,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
+                    case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
                     default:
@@ -224,6 +227,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             .then(() => {
                 return this.exportKey(format as any, key)
                     .then(exportedKey => {
+                        let _alg = webcrypto.PrepareAlgorithm(wrapAlgorithm);
                         let _data: Buffer;
                         if (!(exportedKey instanceof ArrayBuffer)) {
                             _data = new Buffer(JSON.stringify(exportedKey));
@@ -231,7 +235,14 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         else {
                             _data = new Buffer(exportedKey);
                         }
-                        return this.encrypt(wrapAlgorithm, wrappingKey, _data);
+                        let CryptoClass: typeof BaseCrypto | undefined;
+                        if (_alg.name.toUpperCase() === webcrypto.AlgorithmNames.AesKW)
+                            CryptoClass = aes.AesCrypto;
+
+                        if (CryptoClass)
+                            return CryptoClass.encrypt(_alg, wrappingKey, _data);
+                        else
+                            return this.encrypt(_alg, wrappingKey, _data);
                     });
             });
     }
@@ -241,7 +252,17 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
             .then(() => {
                 return Promise.resolve()
                     .then(() => {
-                        return this.decrypt(unwrapAlgorithm, unwrappingKey, wrappedKey);
+                        let _alg = webcrypto.PrepareAlgorithm(unwrapAlgorithm);
+                        let _data = PrepareData(wrappedKey);
+
+                        let CryptoClass: typeof BaseCrypto | undefined;
+                        if (_alg.name.toUpperCase() === webcrypto.AlgorithmNames.AesKW)
+                            CryptoClass = aes.AesCrypto;
+
+                        if (CryptoClass)
+                            return CryptoClass.decrypt(_alg, unwrappingKey, _data);
+                        else
+                            return this.decrypt(_alg, unwrappingKey, _data);
                     })
                     .then(decryptedKey => {
                         let keyData: JsonWebKey | Buffer;
@@ -312,6 +333,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
+                    case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
                     case AlgorithmNames.EcDSA.toLowerCase():
@@ -354,6 +376,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
+                    case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
                         break;
                     case AlgorithmNames.EcDSA.toLowerCase():

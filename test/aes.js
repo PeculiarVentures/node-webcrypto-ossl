@@ -19,6 +19,7 @@ describe("WebCrypto Aes", function () {
     var KEYS = [
         { alg: "AES-CBC", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
         { alg: "AES-GCM", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+        { alg: "AES-KW", usages: ["wrapKey", "unwrapKey"] },
     ];
 
     context("Generate key", () => {
@@ -169,6 +170,27 @@ describe("WebCrypto Aes", function () {
                                 assert.equal(!!wrappedKey, true, "Wrapped key is empty");
 
                                 return webcrypto.subtle.unwrapKey(format, wrappedKey, key.key, _alg, key.key.algorithm, true, ["encrypt", "decrypt"]);
+                            })
+                            .then(key => {
+                                assert.equal(!!key, true, "Unwrapped key is empty");
+                            })
+                            .then(done, done);
+                    })
+
+                });
+            });
+        });
+
+        context("AES-KW", () => {
+            keys.filter(key => /AES-KW/.test(key.name)).forEach(key => {
+                ["raw"].forEach(format => {
+                    it(`format:${format} ${key.name}`, done => {
+                        var _alg = { name: "AES-KW" }
+                        webcrypto.subtle.wrapKey(format, key.key, key.key, _alg)
+                            .then(wrappedKey => {
+                                assert.equal(!!wrappedKey, true, "Wrapped key is empty");
+
+                                return webcrypto.subtle.unwrapKey(format, wrappedKey, key.key, _alg, key.key.algorithm, true, ["wrapKey"]);
                             })
                             .then(key => {
                                 assert.equal(!!key, true, "Unwrapped key is empty");

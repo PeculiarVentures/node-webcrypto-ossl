@@ -1,10 +1,5 @@
 // Core
-import * as webcrypto from "webcrypto-core";
-const AlgorithmError = webcrypto.AlgorithmError;
-const WebCryptoError = webcrypto.WebCryptoError;
-const AlgorithmNames = webcrypto.AlgorithmNames;
-const BaseCrypto = webcrypto.BaseCrypto;
-const Base64Url = webcrypto.Base64Url;
+import { AlgorithmError, WebCryptoError, AlgorithmNames, BaseCrypto, Base64Url } from "webcrypto-core";
 
 // Local
 import { CryptoKey } from "../key";
@@ -133,11 +128,43 @@ export class AesCrypto extends BaseCrypto {
         });
     }
 
+    /**
+     * Wrap/Unwrap function for AES-KW
+     * 
+     * @protected
+     * @param {native.AesKey} key Native key
+     * @param {Buffer} data Incoming data
+     * @param {boolean} enc Type of operation. `true` - wrap, `false` - unwrap
+     * @returns
+     * 
+     * @memberOf AesCrypto
+     */
+    protected static WrapUnwrap(key: native.AesKey, data: Buffer, enc: boolean) {
+        return new Promise((resolve, reject) => {
+            let fn = enc ? key.wrapKey : key.unwrapKey;
+
+            fn.call(key, data, (err: Error, data: Buffer) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(data);
+            });
+        });
+    }
+
     static encrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        return this.EncryptDecrypt(algorithm, key, data, true);
+        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
+            return this.WrapUnwrap(key.native as native.AesKey, data, true);
+        }
+        else
+            return this.EncryptDecrypt(algorithm, key, data, true);
     }
 
     static decrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        return this.EncryptDecrypt(algorithm, key, data, false);
+        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
+            return this.WrapUnwrap(key.native as native.AesKey, data, false);
+        }
+        else
+            return this.EncryptDecrypt(algorithm, key, data, false);
     }
 }

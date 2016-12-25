@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require('assert');
-const crypto = require('./config');
+const crypto = require('../config');
 
 let subtle = crypto.subtle;
 const MSG = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);

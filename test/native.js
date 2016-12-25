@@ -346,16 +346,18 @@ describe("native", function () {
             });
         });
 
-        it("wrap/unwrap", done => {
-            let MSG = new Buffer("1234567890123456");
-            native.AesKey.generate(32, (err, key) => {
-                assert(!err, true, `generate: ${err}`);
-                key.wrapKey(MSG, (err, data) => {
-                    assert(!err, true, "Cannot wrap key");
-                    key.unwrapKey(data, (err, data) => {
-                        assert(!err, true, "Cannot unwrap key");
-                        assert(data.toString("hex"), MSG.toString("hex"), "Cannot unwrap key");
-                        done();
+        [128, 192, 256].forEach(length => {
+            it(`wrap/unwrap length:${length}`, done => {
+                let MSG = new Buffer(length / 8);
+                native.AesKey.generate(length / 8, (err, key) => {
+                    assert(!err, true, `generate: ${err}`);
+                    key.wrapKey(MSG, (err, data) => {
+                        assert(!err, true, "Cannot wrap key");
+                        key.unwrapKey(data, (err, data) => {
+                            assert(!err, true, "Cannot unwrap key");
+                            assert(data.toString("hex"), MSG.toString("hex"), "Cannot unwrap key");
+                            done();
+                        });
                     });
                 });
             });

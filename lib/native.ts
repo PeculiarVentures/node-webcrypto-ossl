@@ -1,4 +1,4 @@
-let native = require("../build/Release/nodessl.node");
+let native = require("../build/Debug/nodessl.node");
 
 export declare enum EcNamedCurves {
     secp112r1 = 704,
@@ -190,6 +190,8 @@ export declare class AesKey {
     decryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
     export(callback: (err: Error, raw: Buffer) => void): void;
     static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
+    wrapKey(data: Buffer, callback: (err: Error, data: Buffer) => void): void;
+    unwrapKey(data: Buffer, callback: (err: Error, data: Buffer) => void): void;
 }
 
 export declare class HmacKey {

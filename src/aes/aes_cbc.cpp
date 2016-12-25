@@ -103,24 +103,24 @@ Handle<std::string> ScopedAES::wrap(Handle<std::string> data) {
 	LOG_FUNC();
 
 	if (data->length() < 16)
-		THROW_ERROR("Data too small");
+		THROW_ERROR("The AES-KW input data length is invalid: not a multiple of 8 bytes: data too small");
 	if (data->length() % 8)
-		THROW_ERROR("Invalid AES-KW data length");
-	
+		THROW_ERROR("The AES-KW input data length is invalid: not a multiple of 8 bytes");
+
 	AES_KEY aes_key;
-	if (AES_set_encrypt_key((const byte*)this->value->c_str(), data->length() * 8, &aes_key) < 0)
+	if (AES_set_encrypt_key((const byte*)this->value->c_str(), (const int)(this->value->length() * 8), &aes_key) < 0)
 		THROW_OPENSSL("AES_set_encrypt_key");
 
 	// Key wrap's overhead is 8 bytes
 	size_t len = data->length();
 	len += 8;
 	if (len < data->length())
-		THROW_ERROR("Data too large");
+		THROW_ERROR("The AES-KW input data length is invalid: not a multiple of 8 bytes: data too large");
 
 	Handle<std::string> res(new std::string());
 	res->resize(len);
 
-	if (AES_wrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), data->length()) < 0)
+	if (AES_wrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), (unsigned int)data->length()) < 0)
 		THROW_OPENSSL("AES_wrap_key");
 
 	return res;
@@ -130,13 +130,13 @@ Handle<std::string> ScopedAES::unwrap(Handle<std::string> data) {
 	LOG_FUNC();
 
 	if (data->length() < 24)
-		THROW_ERROR("Data too small");
+		THROW_ERROR("The AES-KW input data length is invalid: not a multiple of 8 bytes: data too small");
 	if (data->length() % 8)
-		THROW_ERROR("Invalid AES-KW data length");
+		THROW_ERROR("The AES-KW input data length is invalid: not a multiple of 8 bytes");
 
 	AES_KEY aes_key;
-	if (AES_set_decrypt_key((const byte*)this->value->c_str(), data->length() * 8, &aes_key) < 0)
-		THROW_OPENSSL("AES_set_encrypt_key");
+	if (AES_set_decrypt_key((const byte*)this->value->c_str(), (const int)this->value->length() * 8, &aes_key) < 0)
+		THROW_OPENSSL("AES_set_decrypt_key");
 
 	// Key wrap's overhead is 8 bytes
 	size_t len = data->length();
@@ -144,8 +144,8 @@ Handle<std::string> ScopedAES::unwrap(Handle<std::string> data) {
 	Handle<std::string> res(new std::string());
 	res->resize(len);
 
-	if (AES_unwrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), data->length()) < 0)
-		THROW_OPENSSL("AES_wrap_key");
+	if (AES_unwrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), (unsigned int)data->length()) < 0)
+		THROW_OPENSSL("AES_set_decrypt_key");
 
 	return res;
 }
