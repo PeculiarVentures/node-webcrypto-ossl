@@ -224,6 +224,7 @@ export class EcCrypto extends BaseCrypto {
             switch (_derivedKeyType.name.toLowerCase()) {
                 case AlgorithmNames.AesCBC.toLowerCase():
                 case AlgorithmNames.AesGCM.toLowerCase():
+                case AlgorithmNames.AesKW.toLowerCase():
                     AesClass = aes.AesCrypto;
                     break;
                 default:

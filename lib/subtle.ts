@@ -13,6 +13,7 @@ import * as rsa from "./crypto/rsa";
 import * as aes from "./crypto/aes";
 import * as ec from "./crypto/ec";
 import * as hmac from "./crypto/hmac";
+import * as pbkdf2 from "./crypto/pbkdf2";
 
 /**
  * Prepare array of data before it's using 
@@ -289,6 +290,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.EcDH.toLowerCase():
                         AlgClass = ec.EcCrypto;
                         break;
+                    case AlgorithmNames.Pbkdf2.toLowerCase():
+                        AlgClass = pbkdf2.Pbkdf2Crypto;
+                        break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _algorithm.name);
                 }
@@ -306,6 +310,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                 switch (_algorithm.name.toLowerCase()) {
                     case AlgorithmNames.EcDH.toLowerCase():
                         AlgClass = ec.EcCrypto;
+                        break;
+                    case AlgorithmNames.Pbkdf2.toLowerCase():
+                        AlgClass = pbkdf2.Pbkdf2Crypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _algorithm.name);
@@ -385,6 +392,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.Hmac.toLowerCase():
                         AlgClass = hmac.HmacCrypto;
+                        break;
+                    case AlgorithmNames.Pbkdf2.toLowerCase():
+                        AlgClass = pbkdf2.Pbkdf2Crypto;
                         break;
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _alg.name);

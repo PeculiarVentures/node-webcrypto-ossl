@@ -5,18 +5,20 @@ export interface CryptoKeyPair extends NativeCryptoKeyPair {
     publicKey: CryptoKey;
 }
 
+export type NativeKey = native.AesKey | native.Key | native.Pbkdf2Key | native.HmacKey;
+
 export class CryptoKey implements NativeCryptoKey {
     type: string;
     extractable: boolean;
     algorithm: Algorithm;
     usages: string[] = [];
 
-    private native_: native.AesKey | native.Key;
-    get native(): native.AesKey | native.Key | native.HmacKey {
+    private native_: NativeKey;
+    get native() {
         return this.native_;
     }
 
-    constructor(key: native.AesKey | native.Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]) {
+    constructor(key: NativeKey, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]) {
         this.native_ = key;
 
         this.extractable = extractable;
