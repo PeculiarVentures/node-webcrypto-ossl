@@ -49,6 +49,25 @@ npm install
 mocha
 ```
 
+## Supported algorithms
+
+| Algorithm name    | generateKey | digest  | export/import | sign/verify | encrypt/decrypt | wrapKey/unwrapKey | derive  |
+|-------------------|-------------|---------|---------------|-------------|-----------------|-------------------|---------|
+| SHA-1             |             |    X    |               |             |                 |                   |         |
+| SHA-256           |             |    X    |               |             |                 |                   |         |
+| SHA-384           |             |    X    |               |             |                 |                   |         |
+| SHA-512           |             |    X    |               |             |                 |                   |         |
+| RSASSA-PKCS1-v1_5 |      X      |         |       X       |      X      |                 |                   |         |
+| RSA-PSS           |      X      |         |       X       |      X      |                 |                   |         |
+| RSA-OAEP          |      X      |         |       X       |             |        X        |         X         |         |
+| AES-CBC           |      X      |         |       X       |             |        X        |         X         |         |
+| AES-GCM           |      X      |         |       X       |             |        X        |         X         |         |
+| AES-KW            |      X      |         |       X       |             |                 |         X         |         |
+| ECDSA             |      X      |         |       X       |      X      |                 |                   |         |
+| ECDH              |      X      |         |       X       |             |                 |                   |    X    |
+| HMAC              |      X      |         |       X       |      X      |                 |                   |         |
+| PBKDF2            |             |         |       X       |             |                 |                   |    X    |
+
 ## KeyStorage
 
 To use KeyStorage you shoud init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`

@@ -29,7 +29,7 @@ context("WebCrypto", () => {
     context("deriveBits", () => {
         [8, 16, 128, 256, 512].forEach(length => {
             it(`lenght:${length}`, done => {
-                webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", true, ["deriveBits"])
+                webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", false, ["deriveBits"])
                     .then(key => {
                         assert.equal(!!key, true);
                         return webcrypto.subtle.deriveBits(
@@ -51,7 +51,7 @@ context("WebCrypto", () => {
             context(name, () => {
                 [128, 192, 256].forEach(length => {
                     it(`length:${length}`, done => {
-                        webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", true, ["deriveKey"])
+                        webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", false, ["deriveKey"])
                             .then(key => {
                                 assert.equal(!!key, true);
                                 return webcrypto.subtle.deriveKey(
