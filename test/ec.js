@@ -148,17 +148,24 @@ describe("WebCrypto EC", () => {
         // Keys
         keys.forEach(key => {
             // Format
-            ["jwk", "spki", "pkcs8"].forEach(format => {
+            ["jwk", "spki", "pkcs8", "raw"].forEach(format => {
                 it(`${format}\t${key.name}`, done => {
                     var promise = Promise.resolve();
                     // Check public and private keys
                     [key.privateKey, key.publicKey].forEach(_key => {
-                        if ((format === "spki" && _key.type === "public") || (format === "pkcs8" && _key.type === "private") || format === "jwk")
+                        if (
+                            (format === "raw" && _key.type === "public") || 
+                            (format === "spki" && _key.type === "public") || 
+                            (format === "pkcs8" && _key.type === "private") || 
+                            (format === "jwk")
+                          )
                             promise = promise.then(() => {
                                 return webcrypto.subtle.exportKey(format, _key)
                                     .then(jwk => {
                                         assert.equal(!!jwk, true, "Has no jwk value");
-                                        // TODO assert JWK params
+                                        if(format === "raw") {
+                                          // TODO assert JWK params
+                                        }
                                         return webcrypto.subtle.importKey(format, jwk, _key.algorithm, true, _key.usages);
                                     })
                             })
@@ -171,6 +178,40 @@ describe("WebCrypto EC", () => {
                 });
             });
         });
+    });
+
+    context("Combined test", () => {
+      ["jwk", "spki", "raw"].forEach(format => {
+       it(`${format}\tECDH generateKey + exportKey + importKey + deriveBits`, done => {
+
+          webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256"}, false, ["deriveKey", "deriveBits"])
+          .then(function(key1){
+            webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256"}, false, ["deriveKey", "deriveBits"])
+            .then(function(key2){
+              webcrypto.subtle.exportKey(format ,key1.publicKey)
+              .then(function(keydata1){
+                webcrypto.subtle.exportKey(format ,key2.publicKey)
+                .then(function(keydata2){
+                  webcrypto.subtle.importKey(format , keydata1, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                  .then(function(pub1){
+                    webcrypto.subtle.importKey(format , keydata2, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                    .then(function(pub2){
+                      webcrypto.subtle.deriveBits({ name: "ECDH", namedCurve: "P-256", public: pub1 }, key2.privateKey, 128)
+                      .then(function(bits1){
+                        webcrypto.subtle.deriveBits({ name: "ECDH", namedCurve: "P-256", public: pub2 }, key1.privateKey, 128)
+                        .then(function(bits2){
+                          assert.deepEqual(new Uint8Array(bits1), new Uint8Array(bits2), "derive Bits not equal");
+                        }).then(done, done);
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+
+        });   
+      });
     });
 
 });

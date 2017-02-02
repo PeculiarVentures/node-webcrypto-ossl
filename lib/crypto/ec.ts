@@ -72,16 +72,63 @@ export class EcCrypto extends BaseCrypto {
         return new Promise((resolve, reject) => {
             let _format = format.toLocaleLowerCase();
             const alg = algorithm as Algorithm;
+            const data: { [key: string]: Buffer } = {};            
+            let key_type = native.KeyType.PUBLIC;
             switch (_format) {
+                case "raw":
+                    if (!Buffer.isBuffer(keyData))
+                        throw new WebCryptoError("ImportKey: keyData is not a Buffer");
+
+                    let keyLength = 0;
+                    let crv = "";
+
+                    if(keyData.length === 65) {
+                        // P-256
+                        crv = "P-256";
+                        // Key length 32 Byte
+                        keyLength = 32;
+                    } else if(keyData.length === 97) {
+                        // P-384
+                        crv = "P-384";
+                        // Key length 48 Byte
+                        keyLength = 48;
+                    } else if(keyData.length === 133) {
+                        // P-521
+                        crv = "P-521";
+                        // Key length: 521/= 65,125 => 66 Byte
+                        keyLength = 66;
+                    }
+
+                    let x = keyData.slice(1, keyLength + 1);
+                    let y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
+
+                    data["kty"] =  new Buffer ("EC", "utf-8");
+                    data["crv"] = nc2ssl(crv);
+                    data["x"] = b64_decode(Base64Url.encode(buf_pad(x, keyLength)));
+                    data["y"] = b64_decode(Base64Url.encode(buf_pad(y, keyLength)));
+
+                    native.Key.importJwk(data, key_type, (err, key) => {
+                        try {
+                            if (err)
+                                reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
+                            else {
+                                let ec = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
+                                resolve(ec);
+                            }
+                        }
+                        catch (e) {
+                            reject(e);
+                        }
+                    });
+
+                  break
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
-                    const data: { [key: string]: Buffer } = {};
                     // prepare data
                     data["kty"] = jwk.kty as any;
                     data["crv"] = nc2ssl(jwk.crv);
                     data["x"] = b64_decode(jwk.x!);
                     data["y"] = b64_decode(jwk.y!);
-                    let key_type = native.KeyType.PUBLIC;
                     if (jwk.d) {
                         key_type = native.KeyType.PRIVATE;
                         data["d"] = b64_decode(jwk.d!);
@@ -180,6 +227,39 @@ export class EcCrypto extends BaseCrypto {
                             resolve(raw.buffer);
                     });
                     break;
+                case "raw":
+                    nkey.exportJwk(type, (err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            let padSize = 0;
+
+                            let crv = (key.algorithm as any).namedCurve;                            
+
+                            switch (crv) {
+                                case "P-256":
+                                    padSize = 32;
+                                    break;
+                                case "P-384":
+                                    padSize = 48;
+                                    break;
+                                case "P-521":
+                                    padSize = 66;
+                                    break;
+                            }
+
+                            let x = Base64Url.decode(Base64Url.encode(buf_pad(data.x, padSize)));
+                            let y = Base64Url.decode(Base64Url.encode(buf_pad(data.y, padSize)));
+
+                            var rawKey = new Uint8Array(1 + x.length + y.length);
+                            rawKey.set([4]);
+                            rawKey.set(x, 1);
+                            rawKey.set(y, 1 + x.length);
+
+                            resolve(rawKey.buffer);
+                        }
+                    });
+                    break
                 default:
                     throw new WebCryptoError(`ExportKey: Unknown export format '${format}'`);
             }
