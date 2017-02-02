@@ -72,7 +72,7 @@ export class EcCrypto extends BaseCrypto {
         return new Promise((resolve, reject) => {
             let _format = format.toLocaleLowerCase();
             const alg = algorithm as Algorithm;
-            const data: { [key: string]: Buffer } = {};            
+            const data: { [key: string]: Buffer } = {};
             let key_type = native.KeyType.PUBLIC;
             switch (_format) {
                 case "raw":
@@ -82,17 +82,17 @@ export class EcCrypto extends BaseCrypto {
                     let keyLength = 0;
                     let crv = "";
 
-                    if(keyData.length === 65) {
+                    if (keyData.length === 65) {
                         // P-256
                         crv = "P-256";
                         // Key length 32 Byte
                         keyLength = 32;
-                    } else if(keyData.length === 97) {
+                    } else if (keyData.length === 97) {
                         // P-384
                         crv = "P-384";
                         // Key length 48 Byte
                         keyLength = 48;
-                    } else if(keyData.length === 133) {
+                    } else if (keyData.length === 133) {
                         // P-521
                         crv = "P-521";
                         // Key length: 521/= 65,125 => 66 Byte
@@ -102,7 +102,7 @@ export class EcCrypto extends BaseCrypto {
                     let x = keyData.slice(1, keyLength + 1);
                     let y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
 
-                    data["kty"] =  new Buffer ("EC", "utf-8");
+                    data["kty"] = new Buffer("EC", "utf-8");
                     data["crv"] = nc2ssl(crv);
                     data["x"] = b64_decode(Base64Url.encode(buf_pad(x, keyLength)));
                     data["y"] = b64_decode(Base64Url.encode(buf_pad(y, keyLength)));
@@ -121,7 +121,7 @@ export class EcCrypto extends BaseCrypto {
                         }
                     });
 
-                  break
+                    break;
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
                     // prepare data
@@ -191,10 +191,12 @@ export class EcCrypto extends BaseCrypto {
                             // convert base64 -> base64url for all props
                             let padSize = 0;
                             switch (jwk.crv) {
-                                // case "P-251":
-                                // break;
-                                // case "P-384":
-                                // break;
+                                case "P-256":
+                                    padSize = 32;
+                                    break;
+                                case "P-384":
+                                    padSize = 48;
+                                    break;
                                 case "P-521":
                                     padSize = 66;
                                     break;
@@ -234,7 +236,7 @@ export class EcCrypto extends BaseCrypto {
                         } else {
                             let padSize = 0;
 
-                            let crv = (key.algorithm as any).namedCurve;                            
+                            let crv = (key.algorithm as any).namedCurve;
 
                             switch (crv) {
                                 case "P-256":
@@ -251,7 +253,7 @@ export class EcCrypto extends BaseCrypto {
                             let x = Base64Url.decode(Base64Url.encode(buf_pad(data.x, padSize)));
                             let y = Base64Url.decode(Base64Url.encode(buf_pad(data.y, padSize)));
 
-                            var rawKey = new Uint8Array(1 + x.length + y.length);
+                            let rawKey = new Uint8Array(1 + x.length + y.length);
                             rawKey.set([4]);
                             rawKey.set(x, 1);
                             rawKey.set(y, 1 + x.length);
@@ -259,7 +261,7 @@ export class EcCrypto extends BaseCrypto {
                             resolve(rawKey.buffer);
                         }
                     });
-                    break
+                    break;
                 default:
                     throw new WebCryptoError(`ExportKey: Unknown export format '${format}'`);
             }
