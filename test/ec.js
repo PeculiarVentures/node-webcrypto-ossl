@@ -180,4 +180,38 @@ describe("WebCrypto EC", () => {
         });
     });
 
+    context("Combined test", () => {
+      ["jwk", "spki", "raw"].forEach(format => {
+       it(`${format}\tECDH generateKey + exportKey + importKey + deriveBits`, done => {
+
+          webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256"}, false, ["deriveKey", "deriveBits"])
+          .then(function(key1){
+            webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256"}, false, ["deriveKey", "deriveBits"])
+            .then(function(key2){
+              webcrypto.subtle.exportKey(format ,key1.publicKey)
+              .then(function(keydata1){
+                webcrypto.subtle.exportKey(format ,key2.publicKey)
+                .then(function(keydata2){
+                  webcrypto.subtle.importKey(format , keydata1, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                  .then(function(pub1){
+                    webcrypto.subtle.importKey(format , keydata2, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                    .then(function(pub2){
+                      webcrypto.subtle.deriveBits({ name: "ECDH", namedCurve: "P-256", public: pub1 }, key2.privateKey, 128)
+                      .then(function(bits1){
+                        webcrypto.subtle.deriveBits({ name: "ECDH", namedCurve: "P-256", public: pub2 }, key1.privateKey, 128)
+                        .then(function(bits2){
+                          assert.deepEqual(new Uint8Array(bits1), new Uint8Array(bits2), "derive Bits not equal");
+                        }).then(done, done);
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+
+        });   
+      });
+    });
+
 });
