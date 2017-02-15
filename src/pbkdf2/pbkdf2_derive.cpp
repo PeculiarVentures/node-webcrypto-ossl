@@ -4,16 +4,16 @@ Handle<std::string> ScopedPbkdf2::deriveBits(Handle<std::string> salt, size_t it
 	LOG_FUNC();
 
 	if (!derived_bits_length)
-		THROW_ERROR("PKKDF2: Derive bits length not specified");
+		THROW_ERROR("PBKDF2: Derive bits length not specified");
 
 	if (derived_bits_length % 8)
-		THROW_ERROR("PKKDF2: Derive bits length not a multiple of 8 bytes");
+		THROW_ERROR("PBKDF2: Derive bits length not a multiple of 8 bytes");
 
 	if (!iterations)
-		THROW_ERROR("PKKDF2: Iterations can't be 0");
+		THROW_ERROR("PBKDF2: Iterations can't be 0");
 
 	if (!md)
-		THROW_ERROR("PKKDF2: Message digest agorithm is empty");
+		THROW_ERROR("PBKDF2: Message digest algorithm is empty");
 
 	Handle<std::string> res(new std::string());
 	int derived_bytes_length = static_cast<int>(derived_bits_length) >> 3;

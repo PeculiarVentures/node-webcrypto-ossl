@@ -14,42 +14,41 @@ function b64_decode(b64url: string): Buffer {
 
 export abstract class RsaCrypto extends BaseCrypto {
 
-    static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
+    public static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
-            let size = algorithm.modulusLength;
-            let exp = new Buffer(algorithm.publicExponent);
+            const size = algorithm.modulusLength;
+            const exp = new Buffer(algorithm.publicExponent);
             // convert exp
             let nExp: number = 0;
-            if (exp.length === 3)
+            if (exp.length === 3) {
                 nExp = 1;
+            }
             native.Key.generateRsa(size, nExp, (err, key) => {
                 try {
                     if (err) {
                         reject(new WebCryptoError(`Rsa: Can not generate new key\n${err.message}`));
-                    }
-                    else {
+                    } else {
                         const prvUsages = ["sign", "decrypt", "unwrapKey"]
-                            .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
+                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
                         const pubUsages = ["verify", "encrypt", "wrapKey"]
-                            .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
+                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
                         resolve({
                             privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
-                            publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages)
+                            publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages),
                         });
                     }
-                }
-                catch (e) {
+                } catch (e) {
                     reject(e);
                 }
             });
         });
     }
 
-    static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
-            let _format = format.toLocaleLowerCase();
+            const formatLC = format.toLocaleLowerCase();
             const alg = algorithm as Algorithm;
-            switch (_format) {
+            switch (formatLC) {
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
                     const data: { [key: string]: Buffer } = {};
@@ -57,9 +56,9 @@ export abstract class RsaCrypto extends BaseCrypto {
                     data["kty"] = jwk.kty as any;
                     data["n"] = b64_decode(jwk.n!);
                     data["e"] = b64_decode(jwk.e!);
-                    let key_type = native.KeyType.PUBLIC;
+                    let keyType = native.KeyType.PUBLIC;
                     if (jwk.d) {
-                        key_type = native.KeyType.PRIVATE;
+                        keyType = native.KeyType.PRIVATE;
                         data["d"] = b64_decode(jwk.d!);
                         data["p"] = b64_decode(jwk.p!);
                         data["q"] = b64_decode(jwk.q!);
@@ -67,37 +66,37 @@ export abstract class RsaCrypto extends BaseCrypto {
                         data["dq"] = b64_decode(jwk.dq!);
                         data["qi"] = b64_decode(jwk.qi!);
                     }
-                    native.Key.importJwk(data, key_type, (err, key) => {
+                    native.Key.importJwk(data, keyType, (err, key) => {
                         try {
-                            if (err)
+                            if (err) {
                                 reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
-                            else {
-                                let rsa = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
+                            } else {
+                                const rsa = new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
                                 resolve(rsa);
                             }
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
                     break;
                 case "pkcs8":
                 case "spki":
-                    if (!Buffer.isBuffer(keyData))
+                    if (!Buffer.isBuffer(keyData)) {
                         throw new WebCryptoError("ImportKey: keyData is not a Buffer");
+                    }
                     let importFunction = native.Key.importPkcs8;
-                    if (_format === "spki")
+                    if (formatLC === "spki") {
                         importFunction = native.Key.importSpki;
-                    importFunction(<Buffer>keyData, (err, key) => {
+                    }
+                    importFunction(<Buffer> keyData, (err, key) => {
                         try {
-                            if (err)
+                            if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
-                            else {
-                                let rsa = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
+                            } else {
+                                const rsa = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
                                 resolve(rsa);
                             }
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
@@ -108,15 +107,15 @@ export abstract class RsaCrypto extends BaseCrypto {
         });
     }
 
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let nkey = <native.Key>key.native;
-            let type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
+            const nativeKey = <native.Key> key.native;
+            const type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
-                    nkey.exportJwk(type, (err, data) => {
+                    nativeKey.exportJwk(type, (err, data) => {
                         try {
-                            let jwk: JsonWebKey = { kty: "RSA" };
+                            const jwk: JsonWebKey = { kty: "RSA" };
                             jwk.key_ops = key.usages;
 
                             // convert base64 -> base64url for all props
@@ -131,26 +130,27 @@ export abstract class RsaCrypto extends BaseCrypto {
                                 jwk.qi = Base64Url.encode(data.qi);
                             }
                             resolve(jwk);
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
                     break;
                 case "spki":
-                    nkey.exportSpki((err, raw) => {
-                        if (err)
+                    nativeKey.exportSpki((err, raw) => {
+                        if (err) {
                             reject(err);
-                        else
+                        } else {
                             resolve(raw.buffer);
+                        }
                     });
                     break;
                 case "pkcs8":
-                    nkey.exportPkcs8((err, raw) => {
-                        if (err)
+                    nativeKey.exportPkcs8((err, raw) => {
+                        if (err) {
                             reject(err);
-                        else
+                        } else {
                             resolve(raw.buffer);
+                        }
                     });
                     break;
                 default:
@@ -159,19 +159,19 @@ export abstract class RsaCrypto extends BaseCrypto {
         });
     }
 
-    static wc2ssl(alg: any) {
-        let _alg = alg.hash.name.toUpperCase().replace("-", "");
-        return _alg;
+    public static wc2ssl(algorithm: any) {
+        const alg = algorithm.hash.name.toUpperCase().replace("-", "");
+        return alg;
     }
 }
 
 export class RsaPKCS1 extends RsaCrypto {
 
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return super.exportKey(format, key)
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
-                    let reg = /(\d+)$/;
+                    const reg = /(\d+)$/;
                     jwk.alg = "RS" + reg.exec((key.algorithm as any).hash.name) ![1];
                     jwk.ext = true;
                     if (key.type === "public") {
@@ -182,31 +182,32 @@ export class RsaPKCS1 extends RsaCrypto {
             });
     }
 
-    static sign(algorithm: any, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+    public static sign(algorithm: any, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(key.algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(key.algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.sign(_alg, data, (err, signature) => {
-                if (err)
+            nativeKey.sign(alg, data, (err, signature) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else {
+                } else {
                     resolve(signature.buffer);
                 }
             });
         });
     }
 
-    static verify(algorithm: any, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
+    public static verify(algorithm: any, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(key.algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(key.algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.verify(_alg, data, signature, (err, res) => {
-                if (err)
+            nativeKey.verify(alg, data, signature, (err, res) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else
+                } else {
                     resolve(res);
+                }
             });
         });
     }
@@ -215,39 +216,41 @@ export class RsaPKCS1 extends RsaCrypto {
 
 export class RsaPSS extends RsaCrypto {
 
-    static sign(algorithm: RsaPSS, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+    public static sign(algorithm: RsaPSS, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(key.algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(key.algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.RsaPssSign(_alg, (algorithm as any).saltLength, data, (err, signature) => {
-                if (err)
+            nativeKey.RsaPssSign(alg, (algorithm as any).saltLength, data, (err, signature) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else
+                } else {
                     resolve(signature.buffer);
+                }
             });
         });
     }
 
-    static verify(algorithm: RsaPSS, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
+    public static verify(algorithm: RsaPSS, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(key.algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(key.algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.RsaPssVerify(_alg, (algorithm as any).saltLength, data, signature, (err, res) => {
-                if (err)
+            nativeKey.RsaPssVerify(alg, (algorithm as any).saltLength, data, signature, (err, res) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else
+                } else {
                     resolve(res);
+                }
             });
         });
     }
 
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return super.exportKey(format, key)
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
-                    let reg = /(\d+)$/;
+                    const reg = /(\d+)$/;
                     jwk.alg = "PS" + reg.exec((key.algorithm as any).hash.name) ![1];
                     jwk.ext = true;
                     if (key.type === "public") {
@@ -262,20 +265,19 @@ export class RsaPSS extends RsaCrypto {
 
 export class RsaOAEP extends RsaCrypto {
 
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return super.exportKey(format, key)
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
                     jwk.alg = "RSA-OAEP";
-                    let md_size = /(\d+)$/.exec((key.algorithm as any).hash.name) ![1];
-                    if (md_size !== "1") {
-                        jwk.alg += "-" + md_size;
+                    const mdSize = /(\d+)$/.exec((key.algorithm as any).hash.name) ![1];
+                    if (mdSize !== "1") {
+                        jwk.alg += "-" + mdSize;
                     }
                     jwk.ext = true;
                     if (key.type === "public") {
                         jwk.key_ops = ["encrypt", "wrapKey"];
-                    }
-                    else {
+                    } else {
                         jwk.key_ops = ["decrypt", "unwrapKey"];
                     }
                 }
@@ -283,31 +285,32 @@ export class RsaOAEP extends RsaCrypto {
             });
     }
 
+    public static encrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+        return this.EncryptDecrypt(algorithm, key, data, false);
+    }
+
+    public static decrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+        return this.EncryptDecrypt(algorithm, key, data, true);
+    }
+
     protected static EncryptDecrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer, type: boolean): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(key.algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(key.algorithm);
+            const nativeKey = key.native as native.Key;
 
             let label: Buffer | null = null;
             if (algorithm.label) {
                 label = new Buffer(algorithm.label as Uint8Array);
             }
 
-            nkey.RsaOaepEncDec(_alg, data, label, type, (err, res) => {
-                if (err)
+            nativeKey.RsaOaepEncDec(alg, data, label, type, (err, res) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err));
-                else
+                } else {
                     resolve(res.buffer);
+                }
             });
         });
-    }
-
-    static encrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        return this.EncryptDecrypt(algorithm, key, data, false);
-    }
-
-    static decrypt(algorithm: RsaOaepParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        return this.EncryptDecrypt(algorithm, key, data, true);
     }
 
 }

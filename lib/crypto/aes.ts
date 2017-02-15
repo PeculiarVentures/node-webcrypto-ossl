@@ -1,5 +1,5 @@
 // Core
-import { AlgorithmError, WebCryptoError, AlgorithmNames, BaseCrypto, Base64Url } from "webcrypto-core";
+import { AlgorithmError, AlgorithmNames, Base64Url, BaseCrypto, WebCryptoError } from "webcrypto-core";
 
 // Local
 import { CryptoKey } from "../key";
@@ -11,23 +11,24 @@ function b64_decode(b64url: string): Buffer {
 
 export class AesCrypto extends BaseCrypto {
 
-    static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
+    public static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
             native.AesKey.generate(algorithm.length / 8, (err, key) => {
-                if (err) reject(err);
-                else {
-                    let aes = new CryptoKey(key, algorithm, "secret", extractable, keyUsages);
+                if (err) {
+                    reject(err);
+                } else {
+                    const aes = new CryptoKey(key, algorithm, "secret", extractable, keyUsages);
                     resolve(aes);
                 }
             });
         });
     }
 
-    static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
-            let _format = format.toLocaleLowerCase();
+            const formatLC = format.toLocaleLowerCase();
             let raw: Buffer;
-            switch (_format) {
+            switch (formatLC) {
                 case "jwk":
                     raw = b64_decode((keyData as JsonWebKey).k!);
                     break;
@@ -39,43 +40,48 @@ export class AesCrypto extends BaseCrypto {
             }
             (algorithm as any).length = raw.byteLength * 8;
             native.AesKey.import(raw, (err, key) => {
-                if (err) reject(err);
-                else
+                if (err) {
+                    reject(err);
+                } else {
                     resolve(new CryptoKey(key, algorithm as Algorithm, "secret", extractable, keyUsages));
+                }
             });
         });
     }
 
-    static exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
-    static exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
+    public static exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let nkey = key.native as native.AesKey;
+            const nativeKey = key.native as native.AesKey;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
-                    let jwk: JsonWebKey = {
+                    const jwk: JsonWebKey = {
                         kty: "oct",
                         alg: "",
                         key_ops: ["encrypt", "decrypt", "wrapKey", "unwrapKey"],
                         k: "",
-                        ext: true
+                        ext: true,
                     };
                     // set alg
                     jwk.alg = "A" + (key.algorithm as any).length + /-(\w+)$/.exec(key.algorithm.name) ![1].toUpperCase();
-                    nkey.export((err, data) => {
-                        if (err) reject(err);
-                        else {
+                    nativeKey.export((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
                             jwk.k = Base64Url.encode(data);
                             resolve(jwk);
                         }
                     });
                     break;
                 case "raw":
-                    nkey.export((err, data) => {
-                        if (err) reject(err);
-                        else
+                    nativeKey.export((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
                             resolve(data.buffer);
+                        }
                     });
                     break;
                 default: throw new WebCryptoError(`ExportKey: Unknown export format '${format}'`);
@@ -83,45 +89,68 @@ export class AesCrypto extends BaseCrypto {
         });
     }
 
+    public static encrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
+            return this.WrapUnwrap(key.native as native.AesKey, data, true);
+        } else {
+            return this.EncryptDecrypt(algorithm, key, data, true);
+        }
+    }
+
+    public static decrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
+            return this.WrapUnwrap(key.native as native.AesKey, data, false);
+        } else {
+            return this.EncryptDecrypt(algorithm, key, data, false);
+        }
+    }
+
     protected static EncryptDecrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer, type: boolean): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let nkey = key.native as native.AesKey;
+            const nativeKey = key.native as native.AesKey;
             const iv = new Buffer(algorithm.iv as Uint8Array);
             switch (algorithm.name.toLowerCase()) {
                 case AlgorithmNames.AesGCM.toLowerCase():
-                    const _algGCM = algorithm as AesGcmParams;
-                    const aad = _algGCM.additionalData ? new Buffer(_algGCM.additionalData as Uint8Array) : new Buffer(0);
-                    const tagLength = _algGCM.tagLength || 128;
+                    const algGCM = algorithm as AesGcmParams;
+                    const aad = algGCM.additionalData ? new Buffer(algGCM.additionalData as Uint8Array) : new Buffer(0);
+                    const tagLength = algGCM.tagLength || 128;
                     if (type) {
-                        nkey.encryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data) => {
-                            if (err) reject(err);
-                            else
-                                resolve(data.buffer);
+                        nativeKey.encryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
                         });
-                    }
-                    else {
-                        nkey.decryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data) => {
-                            if (err) reject(err);
-                            else
-                                resolve(data.buffer);
+                    } else {
+                        nativeKey.decryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
                         });
                     }
                     break;
                 case AlgorithmNames.AesCBC.toLowerCase():
-                    const _algCBC = "CBC";
-                    if (type)
-                        nkey.encrypt(_algCBC, iv, data, (err, data) => {
-                            if (err) reject(err);
-                            else
-                                resolve(data.buffer);
+                    const algCBC = "CBC";
+                    if (type) {
+                        nativeKey.encrypt(algCBC, iv, data, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
                         });
-                    else
-                        nkey.decrypt(_algCBC, iv, data, (err, data) => {
-                            if (err) reject(err);
-                            else
-                                resolve(data.buffer);
+                    } else {
+                        nativeKey.decrypt(algCBC, iv, data, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
                         });
-
+                    }
                     break;
                 default: throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, algorithm.name);
             }
@@ -141,30 +170,16 @@ export class AesCrypto extends BaseCrypto {
      */
     protected static WrapUnwrap(key: native.AesKey, data: Buffer, enc: boolean) {
         return new Promise((resolve, reject) => {
-            let fn = enc ? key.wrapKey : key.unwrapKey;
+            const fn = enc ? key.wrapKey : key.unwrapKey;
 
-            fn.call(key, data, (err: Error, data: Buffer) => {
-                if (err)
+            fn.call(key, data, (err: Error, data2: Buffer) => {
+                if (err) {
                     reject(err);
-                else
-                    resolve(data);
+                } else {
+                    resolve(data2);
+                }
             });
         });
     }
 
-    static encrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
-            return this.WrapUnwrap(key.native as native.AesKey, data, true);
-        }
-        else
-            return this.EncryptDecrypt(algorithm, key, data, true);
-    }
-
-    static decrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
-        if (algorithm.name.toUpperCase() === AlgorithmNames.AesKW) {
-            return this.WrapUnwrap(key.native as native.AesKey, data, false);
-        }
-        else
-            return this.EncryptDecrypt(algorithm, key, data, false);
-    }
 }
