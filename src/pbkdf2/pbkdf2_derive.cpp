@@ -1,12 +1,12 @@
 #include "common.h"
 
-Handle<std::string> ScopedPbkdf2::deriveBits(Handle<std::string> salt, size_t iterations, const EVP_MD *md, size_t deriv_bits_length) {
+Handle<std::string> ScopedPbkdf2::deriveBits(Handle<std::string> salt, size_t iterations, const EVP_MD *md, size_t derived_bits_length) {
 	LOG_FUNC();
 
-	if (!deriv_bits_length)
+	if (!derived_bits_length)
 		THROW_ERROR("PKKDF2: Derive bits length not specified");
 
-	if (deriv_bits_length % 8)
+	if (derived_bits_length % 8)
 		THROW_ERROR("PKKDF2: Derive bits length not a multiple of 8 bytes");
 
 	if (!iterations)
@@ -16,13 +16,14 @@ Handle<std::string> ScopedPbkdf2::deriveBits(Handle<std::string> salt, size_t it
 		THROW_ERROR("PKKDF2: Message digest agorithm is empty");
 
 	Handle<std::string> res(new std::string());
-	res->resize(deriv_bits_length / 8);
+	int derived_bytes_length = static_cast<int>(derived_bits_length) >> 3;
+	res->resize(static_cast<size_t>(derived_bytes_length));
 
 	if (!PKCS5_PBKDF2_HMAC(
-		this->value->c_str(), this->value->length(),
-		(const byte*)salt->c_str(), salt->length(),
-		iterations, md,
-		(int)(deriv_bits_length / 8), (byte*)res->c_str())
+		this->value->c_str(), static_cast<int>(this->value->length()),
+		(const byte*)salt->c_str(), static_cast<int>(salt->length()),
+		static_cast<int>(iterations), md,
+		derived_bytes_length, (byte*)res->c_str())
 		) {
 		THROW_OPENSSL("PKCS5_PBKDF2_HMAC");
 	}
