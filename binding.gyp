@@ -61,7 +61,15 @@
                     'MACOSX_DEPLOYMENT_TARGET': '10.7',
                     'GCC_ENABLE_CPP_EXCEPTIONS': 'YES'
                   },
-                }]
+                },
+                'OS=="win"', {
+                    'msvs_settings': {
+                        'VCCLCompilerTool': {
+                            'ExceptionHandling': 1,
+                        }
+                    }
+                }
+                ]
             ]
         }
     ]
