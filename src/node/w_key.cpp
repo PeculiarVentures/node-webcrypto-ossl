@@ -136,7 +136,7 @@ NAN_METHOD(WKey::ExportJwk) {
 		};
 
 		if (!info[1]->IsUndefined()) {
-			info[1].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+			Nan::CallAsFunction(Nan::To<v8::Object>(info[1]).ToLocalChecked(), info.This(), 1, argv);
 			return;
 		}
 		else {
@@ -263,7 +263,7 @@ NAN_METHOD(WKey::ImportJwk) {
 		};
 
 		if (!info[2]->IsUndefined()) {
-			info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+			Nan::CallAsFunction(Nan::To<v8::Object>(info[2]).ToLocalChecked(), info.This(), 1, argv);
 			return;
 		}
 		else {
@@ -361,7 +361,7 @@ NAN_METHOD(WKey::Sign) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		Nan::CallAsFunction(Nan::To<v8::Object>(info[2]).ToLocalChecked(), info.This(), 1, argv);
 		return;
 	}
 
@@ -414,7 +414,7 @@ NAN_METHOD(WKey::Verify) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		Nan::CallAsFunction(Nan::To<v8::Object>(info[2]).ToLocalChecked(), info.This(), 1, argv);
 		return;
 	}
 
@@ -486,7 +486,7 @@ NAN_METHOD(WKey::RsaPssSign) {
 	}
 
 	LOG_INFO("saltLength");
-	int saltLength = info[1]->ToNumber()->Uint32Value();
+	int saltLength = Nan::To<int>(info[1]).FromJust();
 
 	LOG_INFO("data");
 	Handle<std::string> hData = v8Buffer_to_String(info[2]);
@@ -519,7 +519,7 @@ NAN_METHOD(WKey::RsaPssVerify) {
 	}
 
 	LOG_INFO("saltLength");
-	int saltLength = info[1]->ToNumber()->Uint32Value();
+	int saltLength = Nan::To<int>(info[1]).FromJust();
 
 	LOG_INFO("data");
 	Handle<std::string> hData = v8Buffer_to_String(info[2]);

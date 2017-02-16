@@ -109,7 +109,7 @@ NAN_METHOD(WHmac::Sign) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		Nan::CallAsFunction(Nan::To<v8::Object>(info[2]).ToLocalChecked(), info.This(), 1, argv);
 		return;
 	}
 
@@ -153,7 +153,7 @@ NAN_METHOD(WHmac::Verify) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[2].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		Nan::CallAsFunction(Nan::To<v8::Object>(info[2]).ToLocalChecked(), info.This(), 1, argv);
 		return;
 	}
 

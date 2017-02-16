@@ -167,7 +167,7 @@ NAN_METHOD(WAes::EncryptGcm) {
 	Handle<std::string> hAad = v8Buffer_to_String(info[2]);
 
 	LOG_INFO("tag");
-	int tag = info[3]->ToNumber()->Uint32Value();
+	int tag = Nan::To<int>(info[3]).FromJust();
 
 	LOG_INFO("this");
 	WAes *wAes = WAes::Unwrap<WAes>(info.This());
@@ -195,7 +195,7 @@ NAN_METHOD(WAes::DecryptGcm) {
 	Handle<std::string> hAad = v8Buffer_to_String(info[2]);
 
 	LOG_INFO("tag");
-	int tag = info[3]->ToNumber()->Uint32Value();
+	int tag = Nan::To<int>(info[3]).FromJust();
 
 	LOG_INFO("this");
 	WAes *wAes = WAes::Unwrap<WAes>(info.This());

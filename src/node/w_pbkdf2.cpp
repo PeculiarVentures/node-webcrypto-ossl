@@ -68,10 +68,10 @@ NAN_METHOD(WPbkdf2::DeriveBits) {
 	Handle<std::string> salt = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("iterations");
-	int iterations = info[2]->ToNumber()->Uint32Value();
+	int iterations = Nan::To<v8::Number>(info[2]).ToLocalChecked()->Uint32Value();
 
 	LOG_INFO("bits_length");
-	int bits_length= info[3]->ToNumber()->Uint32Value();
+	int bits_length= Nan::To<v8::Number>(info[3]).ToLocalChecked()->Uint32Value();
 
 	LOG_INFO("this->Key");
 	WPbkdf2 *that = WPbkdf2::Unwrap<WPbkdf2>(info.This());
@@ -85,7 +85,8 @@ NAN_METHOD(WPbkdf2::DeriveBits) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		info[4].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		// info[4].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
+		Nan::CallAsFunction(info[4]->ToObject(), info.This(), 1, argv);
 		return;
 	}
 

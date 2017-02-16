@@ -7,7 +7,7 @@
 
 [![NPM](https://nodei.co/npm-dl/node-webcrypto-ossl.png?months=2&height=2)](https://nodei.co/npm/node-webcrypto-ossl/)
 
-We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography availible in browser is [Web Crypto](http://caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfil for WebCrypto based on Openssl.
+We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography available in browser is [Web Crypto](http://caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfill for WebCrypto based on OpenSSL.
 
 ## Table Of Contents
 
@@ -29,6 +29,12 @@ We wanted to be able to write Javascript that used crypto on both the client and
 **At this time this solution should be considered suitable for research and experimentation, further code and security review is needed before utilization in a production application.**
 
 ## Installation
+
+### npm
+
+```
+npm install node-webcrypto-ossl;
+```
 
 ### Clone Repo
 
@@ -68,9 +74,17 @@ mocha
 | HMAC              |      X      |         |       X       |      X      |                 |                   |         |
 | PBKDF2            |             |         |       X       |             |                 |                   |    X    |
 
+## Using
+
+```javascript
+var WebCrypto = require("node-webcrypto-ossl");
+
+var webcrypto = new WebCrypto();
+```
+
 ## KeyStorage
 
-To use KeyStorage you shoud init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
+To use KeyStorage you should init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
 
 ```javascript
 var WebCrypto = require("node-webcrypto-ossl");

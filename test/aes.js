@@ -24,7 +24,7 @@ describe("WebCrypto Aes", function () {
 
     context("Generate key", () => {
 
-        // Algs
+        // Keys
         KEYS.forEach(key => {
             // length
             [128, 192, 256].forEach(length => {

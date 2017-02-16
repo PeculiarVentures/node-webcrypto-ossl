@@ -11,26 +11,25 @@ import { CryptoKey } from "../key";
 import * as native from "../native";
 import * as aes from "./aes";
 
-
 function nc2ssl(nc: any) {
-    let _namedCurve = "";
+    let namedCurve = "";
     switch (nc.toUpperCase()) {
         case "P-192":
-            _namedCurve = "secp192r1";
+            namedCurve = "secp192r1";
             break;
         case "P-256":
-            _namedCurve = "secp256r1";
+            namedCurve = "secp256r1";
             break;
         case "P-384":
-            _namedCurve = "secp384r1";
+            namedCurve = "secp384r1";
             break;
         case "P-521":
-            _namedCurve = "secp521r1";
+            namedCurve = "secp521r1";
             break;
         default:
             throw new WebCryptoError("Unsupported namedCurve in use");
     }
-    return (native.EcNamedCurves as any)[_namedCurve];
+    return (native.EcNamedCurves as any)[namedCurve];
 }
 
 function b64_decode(b64url: string): Buffer {
@@ -39,7 +38,7 @@ function b64_decode(b64url: string): Buffer {
 
 function buf_pad(buf: Buffer, padSize: number = 0) {
     if (padSize && Buffer.length < padSize) {
-        let pad = new Buffer(new Uint8Array(padSize - buf.length).map(v => 0));
+        const pad = new Buffer(new Uint8Array(padSize - buf.length).map((v) => 0));
         return Buffer.concat([pad, buf]);
     }
     return buf;
@@ -47,37 +46,39 @@ function buf_pad(buf: Buffer, padSize: number = 0) {
 
 export class EcCrypto extends BaseCrypto {
 
-    static generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
+    public static generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
         return new Promise((resolve, reject) => {
-            const _algorithm = algorithm as EcKeyGenParams;
-            let namedCurve = nc2ssl(_algorithm.namedCurve);
+            const alg = algorithm as EcKeyGenParams;
+            const namedCurve = nc2ssl(alg.namedCurve);
 
             native.Key.generateEc(namedCurve, (err, key) => {
-                if (err) reject(err);
-                else {
+                if (err) {
+                    reject(err);
+                } else {
                     const prvUsages = ["sign", "deriveKey", "deriveBits"]
-                        .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
+                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
                     const pubUsages = ["verify"]
-                        .filter(usage => keyUsages.some(keyUsage => keyUsage === usage));
+                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
                     resolve({
                         privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
-                        publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages)
+                        publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages),
                     });
                 }
             });
         });
     }
 
-    static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
-            let _format = format.toLocaleLowerCase();
+            const formatLC = format.toLocaleLowerCase();
             const alg = algorithm as Algorithm;
             const data: { [key: string]: Buffer } = {};
-            let key_type = native.KeyType.PUBLIC;
-            switch (_format) {
+            let keyType = native.KeyType.PUBLIC;
+            switch (formatLC) {
                 case "raw":
-                    if (!Buffer.isBuffer(keyData))
+                    if (!Buffer.isBuffer(keyData)) {
                         throw new WebCryptoError("ImportKey: keyData is not a Buffer");
+                    }
 
                     let keyLength = 0;
                     let crv = "";
@@ -99,24 +100,23 @@ export class EcCrypto extends BaseCrypto {
                         keyLength = 66;
                     }
 
-                    let x = keyData.slice(1, keyLength + 1);
-                    let y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
+                    const x = keyData.slice(1, keyLength + 1);
+                    const y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
 
                     data["kty"] = new Buffer("EC", "utf-8");
                     data["crv"] = nc2ssl(crv);
                     data["x"] = b64_decode(Base64Url.encode(buf_pad(x, keyLength)));
                     data["y"] = b64_decode(Base64Url.encode(buf_pad(y, keyLength)));
 
-                    native.Key.importJwk(data, key_type, (err, key) => {
+                    native.Key.importJwk(data, keyType, (err, key) => {
                         try {
-                            if (err)
+                            if (err) {
                                 reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
-                            else {
-                                let ec = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
+                            } else {
+                                const ec = new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
                                 resolve(ec);
                             }
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
@@ -130,40 +130,40 @@ export class EcCrypto extends BaseCrypto {
                     data["x"] = b64_decode(jwk.x!);
                     data["y"] = b64_decode(jwk.y!);
                     if (jwk.d) {
-                        key_type = native.KeyType.PRIVATE;
+                        keyType = native.KeyType.PRIVATE;
                         data["d"] = b64_decode(jwk.d!);
                     }
-                    native.Key.importJwk(data, key_type, (err, key) => {
+                    native.Key.importJwk(data, keyType, (err, key) => {
                         try {
-                            if (err)
+                            if (err) {
                                 reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
-                            else {
-                                let ec = new CryptoKey(key, alg, key_type ? "private" : "public", extractable, keyUsages);
+                            } else {
+                                const ec = new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
                                 resolve(ec);
                             }
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
                     break;
                 case "pkcs8":
                 case "spki":
-                    if (!Buffer.isBuffer(keyData))
+                    if (!Buffer.isBuffer(keyData)) {
                         throw new WebCryptoError("ImportKey: keyData is not a Buffer");
+                    }
                     let importFunction = native.Key.importPkcs8;
-                    if (_format === "spki")
+                    if (formatLC === "spki") {
                         importFunction = native.Key.importSpki;
-                    importFunction(<Buffer>keyData, (err, key) => {
+                    }
+                    importFunction(keyData as Buffer, (err, key) => {
                         try {
-                            if (err)
+                            if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
-                            else {
-                                let ec = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
+                            } else {
+                                const ec = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
                                 resolve(ec);
                             }
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
@@ -174,18 +174,18 @@ export class EcCrypto extends BaseCrypto {
         });
     }
 
-    static exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
-    static exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
-    static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
+    public static exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
+    public static exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
+    public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let nkey = <native.Key>key.native;
-            let type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
+            const nativeKey = key.native as native.Key;
+            const type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
-                    nkey.exportJwk(type, (err, data) => {
+                    nativeKey.exportJwk(type, (err, data) => {
                         try {
-                            let jwk: JsonWebKey = { kty: "EC" };
+                            const jwk: JsonWebKey = { kty: "EC" };
                             jwk.crv = (key.algorithm as any).namedCurve;
                             jwk.key_ops = key.usages;
                             // convert base64 -> base64url for all props
@@ -200,6 +200,8 @@ export class EcCrypto extends BaseCrypto {
                                 case "P-521":
                                     padSize = 66;
                                     break;
+                                default:
+                                    throw new Error(`Unsupported named curve '${jwk.crv}'`);
                             }
                             jwk.x = Base64Url.encode(buf_pad(data.x, padSize));
                             jwk.y = Base64Url.encode(buf_pad(data.y, padSize));
@@ -207,36 +209,37 @@ export class EcCrypto extends BaseCrypto {
                                 jwk.d = Base64Url.encode(buf_pad(data.d, padSize));
                             }
                             resolve(jwk);
-                        }
-                        catch (e) {
+                        } catch (e) {
                             reject(e);
                         }
                     });
                     break;
                 case "spki":
-                    nkey.exportSpki((err, raw) => {
-                        if (err)
+                    nativeKey.exportSpki((err, raw) => {
+                        if (err) {
                             reject(err);
-                        else
+                        } else {
                             resolve(raw.buffer);
+                        }
                     });
                     break;
                 case "pkcs8":
-                    nkey.exportPkcs8((err, raw) => {
-                        if (err)
+                    nativeKey.exportPkcs8((err, raw) => {
+                        if (err) {
                             reject(err);
-                        else
+                        } else {
                             resolve(raw.buffer);
+                        }
                     });
                     break;
                 case "raw":
-                    nkey.exportJwk(type, (err, data) => {
+                    nativeKey.exportJwk(type, (err, data) => {
                         if (err) {
                             reject(err);
                         } else {
                             let padSize = 0;
 
-                            let crv = (key.algorithm as any).namedCurve;
+                            const crv = (key.algorithm as any).namedCurve;
 
                             switch (crv) {
                                 case "P-256":
@@ -248,12 +251,14 @@ export class EcCrypto extends BaseCrypto {
                                 case "P-521":
                                     padSize = 66;
                                     break;
+                                default:
+                                    throw new Error(`Unsupported named curve '${crv}'`);
                             }
 
-                            let x = Base64Url.decode(Base64Url.encode(buf_pad(data.x, padSize)));
-                            let y = Base64Url.decode(Base64Url.encode(buf_pad(data.y, padSize)));
+                            const x = Base64Url.decode(Base64Url.encode(buf_pad(data.x, padSize)));
+                            const y = Base64Url.decode(Base64Url.encode(buf_pad(data.y, padSize)));
 
-                            let rawKey = new Uint8Array(1 + x.length + y.length);
+                            const rawKey = new Uint8Array(1 + x.length + y.length);
                             rawKey.set([4]);
                             rawKey.set(x, 1);
                             rawKey.set(y, 1 + x.length);
@@ -268,76 +273,81 @@ export class EcCrypto extends BaseCrypto {
         });
     }
 
-    static sign(algorithm: EcdsaParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
+    public static sign(algorithm: EcdsaParams, key: CryptoKey, data: Buffer): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.sign(_alg, data, (err, signature) => {
-                if (err)
+            nativeKey.sign(alg, data, (err, signature) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else {
+                } else {
                     resolve(signature.buffer);
                 }
             });
         });
     }
 
-    static verify(algorithm: EcdsaParams, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
+    public static verify(algorithm: EcdsaParams, key: CryptoKey, signature: Buffer, data: Buffer): PromiseLike<boolean> {
         return new Promise((resolve, reject) => {
-            let _alg = this.wc2ssl(algorithm);
-            let nkey = key.native as native.Key;
+            const alg = this.wc2ssl(algorithm);
+            const nativeKey = key.native as native.Key;
 
-            nkey.verify(_alg, data, signature, (err, res) => {
-                if (err)
+            nativeKey.verify(alg, data, signature, (err, res) => {
+                if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
-                else
+                } else {
                     resolve(res);
+                }
             });
         });
     }
 
-    static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
-            const _derivedKeyType = derivedKeyType as AesDerivedKeyParams;
-            const _algorithm = algorithm as EcdhKeyDeriveParams;
+            const algDerivedKeyType = derivedKeyType as AesDerivedKeyParams;
+            const alg = algorithm as EcdhKeyDeriveParams;
 
             let AesClass: typeof aes.AesCrypto;
-            switch (_derivedKeyType.name.toLowerCase()) {
+            switch (algDerivedKeyType.name.toLowerCase()) {
                 case AlgorithmNames.AesCBC.toLowerCase():
                 case AlgorithmNames.AesGCM.toLowerCase():
                 case AlgorithmNames.AesKW.toLowerCase():
                     AesClass = aes.AesCrypto;
                     break;
                 default:
-                    throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, _derivedKeyType.name);
+                    throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, algDerivedKeyType.name);
             }
 
             // derive key
-            (baseKey.native as native.Key).EcdhDeriveKey((_algorithm.public as any).native, _derivedKeyType.length / 8, (err, raw) => {
-                if (err) reject(err);
-                else {
-                    AesClass.importKey("raw", raw, _derivedKeyType, extractable, keyUsages)
+            (baseKey.native as native.Key).EcdhDeriveKey((alg.public as any).native, algDerivedKeyType.length / 8, (err, raw) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    AesClass.importKey("raw", raw, algDerivedKeyType, extractable, keyUsages)
                         .then(resolve, reject);
                 }
             });
         });
     }
 
-    static deriveBits(algorithm: Algorithm, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer> {
+    public static deriveBits(algorithm: Algorithm, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            const _algorithm = algorithm as EcdhKeyDeriveParams;
+            const alg = algorithm as EcdhKeyDeriveParams;
+            const nativeKey = baseKey.native as native.Key;
             // derive bits
-            (<native.Key>baseKey.native).EcdhDeriveBits((_algorithm.public as any).native, length, (err, raw) => {
-                if (err) reject(err);
-                else
+            nativeKey.EcdhDeriveBits((alg.public as any).native, length, (err, raw) => {
+                if (err) {
+                    reject(err);
+                } else {
                     resolve(raw.buffer);
+                }
             });
         });
     }
 
-    static wc2ssl(alg: EcdsaParams) {
-        let _alg = (alg.hash as Algorithm).name.toUpperCase().replace("-", "");
-        return _alg;
+    public static wc2ssl(algorithm: EcdsaParams) {
+        const alg = (algorithm.hash as Algorithm).name.toUpperCase().replace("-", "");
+        return alg;
     }
 }

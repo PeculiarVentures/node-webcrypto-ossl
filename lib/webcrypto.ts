@@ -1,16 +1,15 @@
 // Core
+import * as crypto from "crypto";
 import * as webcrypto from "webcrypto-core";
 
 // Local
+import { KeyStorage } from "./key_storage";
 import * as subtle from "./subtle";
-import * as crypto from "crypto";
-import {KeyStorage} from "./key_storage";
 
 // Fix btoa and atob for NodeJS
-let _global = global as any;
-_global.btoa = (data: string) => new Buffer(data, "binary").toString("base64");
-_global.atob = (data: string) => new Buffer(data, "base64").toString("binary");
-
+const g = global as any;
+g.btoa = (data: string) => new Buffer(data, "binary").toString("base64");
+g.atob = (data: string) => new Buffer(data, "base64").toString("binary");
 
 const ERR_RANDOM_VALUE_LENGTH = "Failed to execute 'getRandomValues' on 'Crypto': The ArrayBufferView's byte length (%1) exceeds the number of bytes of entropy available via this API (65536).";
 
@@ -21,37 +20,40 @@ export interface WebCryptoOptions {
 /**
  * OpenSSL with WebCrypto Interface
  */
-class WebCrypto implements NativeCrypto  {
+class WebCrypto implements NativeCrypto {
 
-    keyStorage: KeyStorage;
+    public keyStorage: KeyStorage;
 
-    subtle: SubtleCrypto;
-
-    /**
-     * Generates cryptographically random values
-     * @param array Initialize array
-     */
-    // Based on: https://github.com/KenanY/get-random-values
-    getRandomValues(array: NodeBufferSource): NodeBufferSource;
-    getRandomValues(array: ArrayBufferView): ArrayBufferView;
-    getRandomValues(array: NodeBufferSource): NodeBufferSource {
-        if (array.byteLength > 65536) {
-            let error = new webcrypto.WebCryptoError(ERR_RANDOM_VALUE_LENGTH, array.byteLength);
-            error.code = 22;
-            throw error;
-        }
-        let bytes = crypto.randomBytes(array.byteLength);
-        (array as Uint8Array).set(bytes);
-        return array;
-    }
+    public subtle: SubtleCrypto;
 
     /**
      * Constructor
      */
     constructor(options?: WebCryptoOptions) {
         this.subtle = new subtle.SubtleCrypto();
-        if (options && options.directory)
+        if (options && options.directory) {
             this.keyStorage = new KeyStorage(options.directory);
+        }
     }
+
+    /**
+     * Generates cryptographically random values
+     * @param array Initialize array
+     */
+    // Based on: https://github.com/KenanY/get-random-values
+    public getRandomValues(array: NodeBufferSource): NodeBufferSource;
+    public getRandomValues(array: ArrayBufferView): ArrayBufferView;
+    public getRandomValues(array: NodeBufferSource): NodeBufferSource {
+        if (array.byteLength > 65536) {
+            const error = new webcrypto.WebCryptoError(ERR_RANDOM_VALUE_LENGTH, array.byteLength);
+            error.code = 22;
+            throw error;
+        }
+        const bytes = crypto.randomBytes(array.byteLength);
+        (array as Uint8Array).set(bytes);
+        return array;
+    }
+
 }
+
 module.exports = WebCrypto;

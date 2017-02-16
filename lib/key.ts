@@ -8,12 +8,14 @@ export interface CryptoKeyPair extends NativeCryptoKeyPair {
 export type NativeKey = native.AesKey | native.Key | native.Pbkdf2Key | native.HmacKey;
 
 export class CryptoKey implements NativeCryptoKey {
-    type: string;
-    extractable: boolean;
-    algorithm: Algorithm;
-    usages: string[] = [];
+    public type: string;
+    public extractable: boolean;
+    public algorithm: Algorithm;
+    public usages: string[] = [];
 
+    // tslint:disable-next-line:variable-name
     private native_: NativeKey;
+
     get native() {
         return this.native_;
     }

@@ -47,7 +47,7 @@ describe("WebCrypto RSA", () => {
                 .then(done, done);
         });
 
-        // Algs
+        // Keys
         KEYS.forEach(key => {
             // Digest
             DIGEST.forEach(digest => {
@@ -73,7 +73,7 @@ describe("WebCrypto RSA", () => {
                             webcrypto.subtle.generateKey(alg, true, key.usages)
                                 .then(keyPair => {
                                     assert.equal(!!(keyPair.privateKey || keyPair.publicKey), true, "KeyPair is empty");
-                                    // save  keays for next tests
+                                    // save  keys for next tests
                                     keyTemplate.privateKey = keyPair.privateKey;
                                     keyTemplate.publicKey = keyPair.publicKey;
 
@@ -93,11 +93,11 @@ describe("WebCrypto RSA", () => {
             .forEach(key => {
                 it(key.name, done => {
                     // TODO: Add label
-                    webcrypto.subtle.sign({ name: key.privateKey.algorithm.name }, key.privateKey, TEST_MESSAGE)
+                    webcrypto.subtle.sign({ name: key.privateKey.algorithm.name, saltLength: 8 }, key.privateKey, TEST_MESSAGE)
                         .then(sig => {
                             assert.equal(!!sig, true, "Has no signature value");
                             assert.notEqual(sig.length, 0, "Has empty signature value");
-                            return webcrypto.subtle.verify({ name: key.publicKey.algorithm.name }, key.publicKey, sig, TEST_MESSAGE)
+                            return webcrypto.subtle.verify({ name: key.publicKey.algorithm.name, saltLength: 8 }, key.publicKey, sig, TEST_MESSAGE)
                         })
                         .then(v => assert.equal(v, true, "Signature is not valid"))
                         .then(done, done);
@@ -119,7 +119,7 @@ describe("WebCrypto RSA", () => {
                                 return Promise.reject(e);
                             })
                             .then(enc => {
-                                assert.equal(!!enc, true, "Has no encrpted value");
+                                assert.equal(!!enc, true, "Has no encrypted value");
                                 assert.notEqual(enc.length, 0, "Has empty encrypted value");
                                 return webcrypto.subtle.decrypt({ name: key.publicKey.algorithm.name, label: label }, key.privateKey, enc)
                             })
@@ -170,7 +170,7 @@ describe("WebCrypto RSA", () => {
             var promise = Promise.resolve();
             [128, 192, 256].forEach((length, index) => {
                 var keyTemplate = aesKeys[index];
-                promise.then(() => {
+                promise = promise.then(() => {
                     return webcrypto.subtle.generateKey({ name: "AES-CBC", length: length }, true, ["encrypt", "decrypt"])
                         .then(key => {
                             keyTemplate.key = key;

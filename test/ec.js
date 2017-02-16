@@ -31,17 +31,17 @@ describe("WebCrypto EC", () => {
                     assert.equal(pkey.extractable, false);
                     assert.equal(pkey.usages.toString(), "sign");
 
-                    let pubkey = keyPair.publicKey;
-                    assert.equal(pubkey.type, "public");
-                    assert.equal(pubkey.algorithm.name, "ECDSA");
-                    assert.equal(pubkey.algorithm.namedCurve, "P-256");
-                    assert.equal(pubkey.extractable, true);
-                    assert.equal(pubkey.usages.toString(), "");
+                    let pubKey = keyPair.publicKey;
+                    assert.equal(pubKey.type, "public");
+                    assert.equal(pubKey.algorithm.name, "ECDSA");
+                    assert.equal(pubKey.algorithm.namedCurve, "P-256");
+                    assert.equal(pubKey.extractable, true);
+                    assert.equal(pubKey.usages.toString(), "");
                 })
                 .then(done, done);
         });
 
-        // Algs
+        // Keys
         KEYS.forEach(key => {
             // namedCurve
             NAMED_CURVES.forEach(namedCurve => {
@@ -61,7 +61,7 @@ describe("WebCrypto EC", () => {
                     webcrypto.subtle.generateKey(alg, true, key.usages)
                         .then(keyPair => {
                             assert.equal(!!(keyPair.privateKey || keyPair.publicKey), true, "KeyPair is empty");
-                            // save  keays for next tests
+                            // save  keys for next tests
                             keyTemplate.privateKey = keyPair.privateKey;
                             keyTemplate.publicKey = keyPair.publicKey;
 
@@ -189,12 +189,12 @@ describe("WebCrypto EC", () => {
             webcrypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256"}, false, ["deriveKey", "deriveBits"])
             .then(function(key2){
               webcrypto.subtle.exportKey(format ,key1.publicKey)
-              .then(function(keydata1){
+              .then(function(keyData1){
                 webcrypto.subtle.exportKey(format ,key2.publicKey)
-                .then(function(keydata2){
-                  webcrypto.subtle.importKey(format , keydata1, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                .then(function(keyData2){
+                  webcrypto.subtle.importKey(format , keyData1, { name: "ECDH", namedCurve: "P-256" }, true, [])
                   .then(function(pub1){
-                    webcrypto.subtle.importKey(format , keydata2, { name: "ECDH", namedCurve: "P-256" }, true, [])
+                    webcrypto.subtle.importKey(format , keyData2, { name: "ECDH", namedCurve: "P-256" }, true, [])
                     .then(function(pub2){
                       webcrypto.subtle.deriveBits({ name: "ECDH", namedCurve: "P-256", public: pub1 }, key2.privateKey, 128)
                       .then(function(bits1){

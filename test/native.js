@@ -87,7 +87,7 @@ describe("native", function () {
         })
     })
 
-    it("pksc8 RSA", function (done) {
+    it("pkcs8 RSA", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             test_export(key, false, done);
         })
@@ -125,11 +125,11 @@ describe("native", function () {
         })
     }
 
-    it("encypt RSA OAEP without label", function (done) {
+    it("encrypt RSA OAEP without label", function (done) {
         test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), null, done);
     })
 
-    it("encypt RSA OAEP with label", function (done) {
+    it("encrypt RSA OAEP with label", function (done) {
         test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), new Buffer("1234567890"), done);
     })
 
@@ -227,7 +227,7 @@ describe("native", function () {
         })
     })
 
-    it("pksc8 EC", function (done) {
+    it("pkcs8 EC", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             test_export(key, false, done);
         })
@@ -296,7 +296,7 @@ describe("native", function () {
                     assert(!err, true, `import: ${err}`);
                     key.export(function (err, r) {
                         assert(!err, true, `export: ${err}`);
-                        assert.equal(Buffer.compare(raw, r) == 0, true, "exported datas are not equal");
+                        assert.equal(Buffer.compare(raw, r) == 0, true, "exported data is not equal");
                         done();
                     });
                 });
@@ -396,10 +396,10 @@ describe("native", function () {
         test_encrypt_gcm(32, new Buffer(""), 13, done);
     })
 
-    function test_digest(md, mdlen, done) {
+    function test_digest(md, mdLen, done) {
         native.Core.digest(md, TEST_MESSAGE, function (err, digest) {
             assert.equal(!err, true, err);
-            assert.equal(digest.length, mdlen, "Wrong digest length");
+            assert.equal(digest.length, mdLen, "Wrong digest length");
             done()
         });
     }
