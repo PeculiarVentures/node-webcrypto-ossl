@@ -47,6 +47,7 @@
     "mkdirp": "^0.5.1",
     "nan": "^2.5.1",
     "tslib": "^1.5.0",
+    "typescript": "^2",
     "webcrypto-core": "^0"
   },
   "devDependencies": {
@@ -54,7 +55,6 @@
     "mocha": "^3",
     "npm-run-all": "^3",
     "nyc": "^10.1.2",
-    "typescript": "^2",
     "watch": "^1.0.1"
   }
 }
