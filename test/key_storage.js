@@ -8,7 +8,7 @@ var deleteFolderRecursive = function (path) {
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach(function (file, index) {
             var curPath = path + "/" + file;
-            if (fs.lstatSync(curPath).isDirectory()) { // recurse
+            if (fs.lstatSync(curPath).isDirectory()) { // recursion
                 deleteFolderRecursive(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
@@ -69,6 +69,24 @@ describe("Key storage", function () {
             var storeKey = webcrypto.keyStorage.getItem(key.key.type);
         })
     });
+
+    it("Set secret key", () => {
+        const key = { type: "secret" };
+        assert.throws(() => {
+            webcrypto.keyStorage.setItem("secret_key", key)
+        });
+    })
+
+    it("Set unknown key type", () => {
+        const key = { type: "wrong type" };
+        assert.throws(() => {
+            webcrypto.keyStorage.setItem("secret_key", key)
+        });
+    })
+
+    it("Get non-existent item, must be null", () => {
+        assert.equal(webcrypto.keyStorage.getItem("null"), null);
+    })
 
     it("read storage from folder", () => {
         let WebCrypto = require("../buildjs/webcrypto");

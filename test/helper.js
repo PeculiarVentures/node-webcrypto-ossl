@@ -10,6 +10,7 @@ function checkAlgorithms(alg1, alg2) {
             assert.equal(alg1[i], alg2[i]);
     }
 }
+
 exports.checkAlgorithms = checkAlgorithms;
 
 function checkBuffers(buf1, buf2) {
@@ -17,9 +18,28 @@ function checkBuffers(buf1, buf2) {
     let _buf2 = new Uint8Array(buf2);
 
     assert.equal(_buf1.length, _buf2.length);
-    // ceck values
+    // check values
     _buf1.forEach((v, i) => {
         assert.equal(v, _buf2[i], "Buffers have different values");
     });
 }
+
 exports.checkBuffers = checkBuffers;
+
+function PromiseThrows(promise, done) {
+    promise
+        .then(() => {
+            return true;
+        })
+        .catch((e) => {
+            assert.equal(!!e, true);
+            return false;
+        })
+        .then((error) => {
+            if (error)
+                throw new Error("Must be error");
+        })
+        .then(done, done);
+}
+
+exports.PromiseThrows = PromiseThrows;

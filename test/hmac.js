@@ -44,7 +44,7 @@ describe("WebCrypto", function () {
 
         context("export/import", () => {
             keys.forEach(hmac => {
-                // fromat
+                // format
                 ["jwk", "raw"].forEach(format => {
                     it(`${hmac.name} format:${format}`, done => {
                         subtle.exportKey(format, hmac.key)
