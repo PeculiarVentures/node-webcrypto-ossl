@@ -45,9 +45,10 @@ export abstract class RsaCrypto extends BaseCrypto {
     }
 
     public static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+        let keyType = native.KeyType.PUBLIC;
+        const alg: any = algorithm;
         return new Promise((resolve, reject) => {
             const formatLC = format.toLocaleLowerCase();
-            const alg = algorithm as Algorithm;
             switch (formatLC) {
                 case "jwk":
                     const jwk = keyData as JsonWebKey;
@@ -56,7 +57,6 @@ export abstract class RsaCrypto extends BaseCrypto {
                     data["kty"] = jwk.kty as any;
                     data["n"] = b64_decode(jwk.n!);
                     data["e"] = b64_decode(jwk.e!);
-                    let keyType = native.KeyType.PUBLIC;
                     if (jwk.d) {
                         keyType = native.KeyType.PRIVATE;
                         data["d"] = b64_decode(jwk.d!);
@@ -71,8 +71,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                             if (err) {
                                 reject(new WebCryptoError(`ImportKey: Cannot import key from JWK\n${err}`));
                             } else {
-                                const rsa = new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
-                                resolve(rsa);
+                                resolve(key);
                             }
                         } catch (e) {
                             reject(e);
@@ -84,17 +83,17 @@ export abstract class RsaCrypto extends BaseCrypto {
                     if (!Buffer.isBuffer(keyData)) {
                         throw new WebCryptoError("ImportKey: keyData is not a Buffer");
                     }
-                    let importFunction = native.Key.importPkcs8;
-                    if (formatLC === "spki") {
-                        importFunction = native.Key.importSpki;
+                    let importFunction = native.Key.importSpki;
+                    if (formatLC === "pkcs8") {
+                        keyType = native.KeyType.PRIVATE;
+                        importFunction = native.Key.importPkcs8;
                     }
                     importFunction(<Buffer> keyData, (err, key) => {
                         try {
                             if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
                             } else {
-                                const rsa = new CryptoKey(key, alg, format.toLocaleLowerCase() === "spki" ? "public" : "private", extractable, keyUsages);
-                                resolve(rsa);
+                                resolve(key);
                             }
                         } catch (e) {
                             reject(e);
@@ -104,6 +103,11 @@ export abstract class RsaCrypto extends BaseCrypto {
                 default:
                     throw new WebCryptoError(`ImportKey: Wrong format value '${format}'`);
             }
+        })
+        .then((key: native.Key) => {
+            alg.modulusLength = key.modulusLength() << 3;
+            alg.publicExponent = new Uint8Array(key.publicExponent());
+            return new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
         });
     }
 

@@ -212,5 +212,30 @@ describe("WebCrypto RSA", () => {
             });
     });
 
+    context("Algorithm parameters", () => {
 
-})
+        it("modulusLength/publicExponent for imported key", (done) => {
+            webcrypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-1", publicExponent: new Uint8Array([1, 0, 1]), modulusLength: 2048 }, true, ["sign", "verify"])
+                .then((keyPair) => {
+                    const key = keyPair.privateKey;
+                    assert.equal(ArrayBuffer.isView(key.algorithm.publicExponent), true);
+                    assert.equal(key.algorithm.publicExponent.length === 3, true);
+                    assert.equal(key.algorithm.modulusLength === 2048, true);
+                    assert.equal(key.type === "private", true);
+                    return webcrypto.subtle.exportKey("pkcs8", key);
+                })
+                .then((raw) => {
+                    return webcrypto.subtle.importKey("pkcs8", raw, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+                })
+                .then((key) => {
+                    assert.equal(ArrayBuffer.isView(key.algorithm.publicExponent), true);
+                    assert.equal(key.algorithm.publicExponent.length === 3, true);
+                    assert.equal(key.algorithm.modulusLength === 2048, true);
+                    assert.equal(key.type === "private", true);
+                })
+                .then(done, done);
+        });
+
+    });
+
+});
