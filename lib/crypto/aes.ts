@@ -65,7 +65,7 @@ export class AesCrypto extends BaseCrypto {
                         ext: true,
                     };
                     // set alg
-                    jwk.alg = "A" + (key.algorithm as any).length + /-(\w+)$/.exec(key.algorithm.name) ![1].toUpperCase();
+                    jwk.alg = "A" + (key.algorithm as any).length + /-(\w+)$/.exec(key.algorithm.name)![1].toUpperCase();
                     nativeKey.export((err, data) => {
                         if (err) {
                             reject(err);
@@ -108,10 +108,10 @@ export class AesCrypto extends BaseCrypto {
     protected static EncryptDecrypt(algorithm: AesCbcParams | AesGcmParams, key: CryptoKey, data: Buffer, type: boolean): PromiseLike<ArrayBuffer> {
         return new Promise((resolve, reject) => {
             const nativeKey = key.native as native.AesKey;
-            const iv = new Buffer(algorithm.iv as Uint8Array);
             switch (algorithm.name.toLowerCase()) {
-                case AlgorithmNames.AesGCM.toLowerCase():
+                case AlgorithmNames.AesGCM.toLowerCase(): {
                     const algGCM = algorithm as AesGcmParams;
+                    const iv = new Buffer(algorithm.iv as Uint8Array);
                     const aad = algGCM.additionalData ? new Buffer(algGCM.additionalData as Uint8Array) : new Buffer(0);
                     const tagLength = algGCM.tagLength || 128;
                     if (type) {
@@ -132,8 +132,10 @@ export class AesCrypto extends BaseCrypto {
                         });
                     }
                     break;
-                case AlgorithmNames.AesCBC.toLowerCase():
+                }
+                case AlgorithmNames.AesCBC.toLowerCase(): {
                     const algCBC = "CBC";
+                    const iv = new Buffer(algorithm.iv as Uint8Array);
                     if (type) {
                         nativeKey.encrypt(algCBC, iv, data, (err, data2) => {
                             if (err) {
@@ -152,6 +154,27 @@ export class AesCrypto extends BaseCrypto {
                         });
                     }
                     break;
+                }
+                case AlgorithmNames.AesECB.toLowerCase(): {
+                    if (type) {
+                        nativeKey.encryptEcb(data, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
+                        });
+                    } else {
+                        nativeKey.decryptEcb(data, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
+                        });
+                    }
+                    break;
+                }
                 default: throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, algorithm.name);
             }
         });

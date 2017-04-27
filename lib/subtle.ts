@@ -99,6 +99,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
@@ -187,6 +188,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
@@ -211,6 +213,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
@@ -340,6 +343,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
@@ -383,6 +387,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     case AlgorithmNames.RsaOAEP.toLowerCase():
                         AlgClass = rsa.RsaOAEP;
                         break;
+                    case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():

@@ -189,8 +189,10 @@ export declare class AesKey {
 
     public encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     public encryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
+    public encryptEcb(input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     public decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     public decryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
+    public decryptEcb(input: Buffer, callback: (err: Error, data: Buffer) => void): void;
     public export(callback: (err: Error, raw: Buffer) => void): void;
     public wrapKey(data: Buffer, callback: (err: Error, data: Buffer) => void): void;
     public unwrapKey(data: Buffer, callback: (err: Error, data: Buffer) => void): void;

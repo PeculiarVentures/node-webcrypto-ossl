@@ -12,6 +12,8 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "decrypt", Decrypt);
 	SetPrototypeMethod(tpl, "wrapKey", WrapKey);
 	SetPrototypeMethod(tpl, "unwrapKey", UnwrapKey);
+	SetPrototypeMethod(tpl, "encryptEcb", EncryptEcb);
+	SetPrototypeMethod(tpl, "decryptEcb", DecryptEcb);
 	SetPrototypeMethod(tpl, "encryptGcm", EncryptGcm);
 	SetPrototypeMethod(tpl, "decryptGcm", DecryptGcm);
 	SetPrototypeMethod(tpl, "export", Export);
@@ -119,6 +121,41 @@ NAN_METHOD(WAes::Decrypt) {
 		};
 		callback->Call(info.This(), 1, argv);
 	}
+}
+
+/**
+* cipher: string
+* input: Buffer
+*/
+NAN_METHOD(WAes::EncryptEcb) {
+	LOG_FUNC();
+
+	LOG_INFO("input");
+	Handle<std::string> hInput = v8Buffer_to_String(info[0]);
+
+	LOG_INFO("this");
+	WAes *wAes = WAes::Unwrap<WAes>(info.This());
+
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncAesEncryptECB(callback, wAes->data, hInput, true));
+}
+
+/**
+* input: Buffer
+*/
+NAN_METHOD(WAes::DecryptEcb) {
+	LOG_FUNC();
+
+	LOG_INFO("input");
+	Handle<std::string> hInput = v8Buffer_to_String(info[0]);
+
+	LOG_INFO("this");
+	WAes *wAes = WAes::Unwrap<WAes>(info.This());
+
+	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
+
+	Nan::AsyncQueueWorker(new AsyncAesEncryptECB(callback, wAes->data, hInput, false));
 }
 
 /**
