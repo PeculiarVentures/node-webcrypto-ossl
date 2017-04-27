@@ -17,6 +17,8 @@ public:
 
 	static Handle<ScopedAES> generate(int &keySize);
 	
+	Handle<std::string> encryptEcb(Handle<std::string> hMsg);
+	Handle<std::string> decryptEcb(Handle<std::string> hMsg);
 	Handle<std::string> encryptCbc(Handle<std::string> hMsg, Handle<std::string> hIv);
 	Handle<std::string> decryptCbc(Handle<std::string> hMsg, Handle<std::string> hIv);
 	Handle<std::string> encryptGcm(Handle<std::string> hMsg, Handle<std::string> hIv, Handle<std::string> hAad, int tagSize);

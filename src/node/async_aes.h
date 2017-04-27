@@ -44,6 +44,27 @@ protected:
 	Handle<std::string> hOutput;
 };
 
+class AsyncAesEncryptECB : public Nan::AsyncWorker {
+public:
+	AsyncAesEncryptECB(
+		Nan::Callback *callback,
+		Handle<ScopedAES> hKey,
+		Handle<std::string> hInput,
+		bool encrypt
+	) : AsyncWorker(callback), encrypt(encrypt), hInput(hInput), hKey(hKey) {}
+	~AsyncAesEncryptECB() {}
+
+	void Execute();
+	void HandleOKCallback();
+
+protected:
+	bool encrypt;
+	Handle<std::string> hInput;
+	Handle<ScopedAES> hKey;
+	// Result
+	Handle<std::string> hOutput;
+};
+
 class AsyncAesExport : public Nan::AsyncWorker {
 public:
 	AsyncAesExport(

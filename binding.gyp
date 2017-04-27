@@ -31,6 +31,7 @@
                  "src/aes/common.h",
                  "src/aes/aes_def.h",
                  "src/aes/aes_gen.cpp",
+                 "src/aes/aes_ecb.cpp",
                  "src/aes/aes_cbc.cpp",
                  "src/aes/aes_gcm.cpp",
                  "src/hmac/common.h",

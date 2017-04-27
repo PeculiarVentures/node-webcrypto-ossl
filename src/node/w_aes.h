@@ -31,6 +31,8 @@ public:
 	static NAN_METHOD(Import);
 	static NAN_METHOD(EncryptGcm);
 	static NAN_METHOD(DecryptGcm);
+	static NAN_METHOD(EncryptEcb);
+	static NAN_METHOD(DecryptEcb);
 
 	Handle<ScopedAES> data;
 
