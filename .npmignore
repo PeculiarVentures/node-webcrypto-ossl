@@ -9,3 +9,5 @@ build
 buildjs
 .gitignore
 libeay32.dll
+
+test*.js

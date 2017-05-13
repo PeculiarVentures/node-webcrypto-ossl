@@ -5,3 +5,5 @@
 /.nyc_output/
 /coverage/
 libeay32.dll
+
+test*.js
