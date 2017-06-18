@@ -19,6 +19,7 @@ describe("WebCrypto Aes", function () {
     var KEYS = [
         { alg: "AES-ECB", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
         { alg: "AES-CBC", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+        { alg: "AES-CTR", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
         { alg: "AES-GCM", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
         { alg: "AES-KW", usages: ["wrapKey", "unwrapKey"] },
     ];
@@ -100,6 +101,30 @@ describe("WebCrypto Aes", function () {
                     )
                 });
         });
+        
+        context("AES-CTR", () => {
+
+            // Filter CBC
+            keys.filter(key => /AES-CTR/.test(key.name))
+                .forEach(key => {
+                    messages.forEach(message =>
+                        [webcrypto.getRandomValues(new Uint8Array(16))].forEach(iv => {
+                            it(`${message.name} message counter:${iv.length}\t${key.name}`, done => {
+                                var alg = { name: "AES-CTR", counter: iv, length: 64 };
+                                webcrypto.subtle.encrypt(alg, key.key, new Buffer(message.data))
+                                    .then(enc => {
+                                        assert(!!enc, true, "Encrypted message is empty");
+                                        return webcrypto.subtle.decrypt(alg, key.key, enc);
+                                    })
+                                    .then(dec => {
+                                        assert(new Buffer(dec).toString(), message.data, "Decrypted message is wrong");
+                                    })
+                                    .then(done, done);
+                            });
+                        })
+                    )
+                });
+        });
 
         context("AES-GCM", () => {
             // Filter GCM
@@ -167,6 +192,27 @@ describe("WebCrypto Aes", function () {
                 ["jwk", "raw"].forEach(format => {
                     it(`format:${format} ${key.name}`, done => {
                         var _alg = { name: "AES-CBC", iv: new Uint8Array(16) }
+                        webcrypto.subtle.wrapKey(format, key.key, key.key, _alg)
+                            .then(wrappedKey => {
+                                assert.equal(!!wrappedKey, true, "Wrapped key is empty");
+
+                                return webcrypto.subtle.unwrapKey(format, wrappedKey, key.key, _alg, key.key.algorithm, true, ["encrypt", "decrypt"]);
+                            })
+                            .then(key => {
+                                assert.equal(!!key, true, "Unwrapped key is empty");
+                            })
+                            .then(done, done);
+                    })
+
+                });
+            });
+        });
+        context("AES-CTR", () => {
+            // AES keys
+            keys.filter(key => /AES-CTR/.test(key.name)).forEach(key => {
+                ["jwk", "raw"].forEach(format => {
+                    it(`format:${format} ${key.name}`, done => {
+                        var _alg = { name: "AES-CTR", counter: new Uint8Array(16), length: 64 }
                         webcrypto.subtle.wrapKey(format, key.key, key.key, _alg)
                             .then(wrappedKey => {
                                 assert.equal(!!wrappedKey, true, "Wrapped key is empty");

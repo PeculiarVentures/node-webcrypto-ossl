@@ -101,6 +101,8 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
@@ -190,6 +192,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
@@ -215,6 +218,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
@@ -345,6 +349,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;
@@ -389,6 +394,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         break;
                     case AlgorithmNames.AesECB.toLowerCase():
                     case AlgorithmNames.AesCBC.toLowerCase():
+                    case AlgorithmNames.AesCTR.toLowerCase():
                     case AlgorithmNames.AesGCM.toLowerCase():
                     case AlgorithmNames.AesKW.toLowerCase():
                         AlgClass = aes.AesCrypto;

@@ -147,4 +147,30 @@ protected:
 	Handle<std::string> hOutput;
 };
 
+class AsyncAesEncryptCTR : public Nan::AsyncWorker {
+public:
+    AsyncAesEncryptCTR(
+                       Nan::Callback *callback,
+                       Handle<ScopedAES> hKey,
+                       Handle<std::string> hInput,
+                       Handle<std::string> hCounter,
+                       int length,
+                       bool encrypt
+                       ) : AsyncWorker(callback), hKey(hKey), hInput(hInput), hCounter(hCounter), length(length), encrypt(encrypt) {}
+    ~AsyncAesEncryptCTR() {}
+    
+    void Execute();
+    void HandleOKCallback();
+    
+protected:
+    Handle<ScopedAES> hKey;
+    Handle<std::string> hInput;
+    Handle<std::string> hCounter;
+    int length;
+    bool encrypt;
+    // Result
+    Handle<std::string> hOutput;
+};
+
+
 #endif // OSSL_NODE_ASYNC_AES_H_INCLUDE
