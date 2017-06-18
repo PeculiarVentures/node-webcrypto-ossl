@@ -23,6 +23,8 @@ public:
 	Handle<std::string> decryptCbc(Handle<std::string> hMsg, Handle<std::string> hIv);
 	Handle<std::string> encryptGcm(Handle<std::string> hMsg, Handle<std::string> hIv, Handle<std::string> hAad, int tagSize);
 	Handle<std::string> decryptGcm(Handle<std::string> hMsg, Handle<std::string> hIv, Handle<std::string> hAad, int tagSize);
+	Handle<std::string> encryptCtr(Handle<std::string> hMsg, Handle<std::string> counter, int length);
+	Handle<std::string> decryptCtr(Handle<std::string> hMsg, Handle<std::string> counter, int length);
 
 	Handle<std::string> wrap(Handle<std::string> data);
 	Handle<std::string> unwrap(Handle<std::string> encKey);

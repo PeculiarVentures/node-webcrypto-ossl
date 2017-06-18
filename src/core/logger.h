@@ -16,7 +16,7 @@ protected:
 
 #ifdef V8_DEBUG
 #define LOG_INFO(name, ...) \
-	fprintf(stdout, name, __VA_ARGS__); puts("");
+fprintf(stdout, name, ##__VA_ARGS__); puts("");
 
 #define LOG_FUNC() \
 	FunctionLog __v8_func(__FUNCTION__);

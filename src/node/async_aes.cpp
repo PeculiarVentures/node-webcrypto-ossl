@@ -168,3 +168,28 @@ void AsyncAesWrapKey::HandleOKCallback() {
 
 	callback->Call(2, argv);
 }
+
+void AsyncAesEncryptCTR::Execute() {
+    try {
+        if (encrypt) {
+            hOutput = hKey->encryptCtr(hInput, hCounter, length);
+        }
+        else {
+            hOutput = hKey->decryptCtr(hInput, hCounter, length);
+        }
+    }
+    catch (std::exception& e) {
+        this->SetErrorMessage(e.what());
+    }
+}
+
+void AsyncAesEncryptCTR::HandleOKCallback() {
+    Nan::HandleScope scope;
+    
+    v8::Local<v8::Value> argv[] = {
+        Nan::Null(),
+        String_to_v8Buffer(hOutput)
+    };
+    
+    callback->Call(2, argv);
+}

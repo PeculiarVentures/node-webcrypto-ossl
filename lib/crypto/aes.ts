@@ -155,6 +155,28 @@ export class AesCrypto extends BaseCrypto {
                     }
                     break;
                 }
+                case AlgorithmNames.AesCTR.toLowerCase(): {
+                    const alg: AesCtrParams = algorithm as any;
+                    const counter = new Buffer(alg.counter as Uint8Array);
+                    if (type) {
+                        nativeKey.encryptCtr(data, counter, alg.length, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
+                        });
+                    } else {
+                        nativeKey.decryptCtr(data, counter, alg.length, (err, data2) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(data2.buffer);
+                            }
+                        });
+                    }
+                    break;
+                }
                 case AlgorithmNames.AesECB.toLowerCase(): {
                     if (type) {
                         nativeKey.encryptEcb(data, (err, data2) => {

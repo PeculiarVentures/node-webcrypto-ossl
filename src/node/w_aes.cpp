@@ -16,6 +16,8 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	SetPrototypeMethod(tpl, "decryptEcb", DecryptEcb);
 	SetPrototypeMethod(tpl, "encryptGcm", EncryptGcm);
 	SetPrototypeMethod(tpl, "decryptGcm", DecryptGcm);
+	SetPrototypeMethod(tpl, "encryptCtr", EncryptCtr);
+	SetPrototypeMethod(tpl, "decryptCtr", DecryptCtr);
 	SetPrototypeMethod(tpl, "export", Export);
 
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
@@ -273,4 +275,58 @@ NAN_METHOD(WAes::UnwrapKey) {
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 	Nan::AsyncQueueWorker(new AsyncAesWrapKey(callback, wAes->data, hInput, false));
+}
+
+/**
+ * input: Buffer
+ * counter: Buffer,
+ * length: int
+ */
+NAN_METHOD(WAes::EncryptCtr) {
+    LOG_FUNC();
+    
+    LOG_INFO("input");
+    Handle<std::string> hInput = v8Buffer_to_String(info[0]);
+    
+    LOG_INFO("counter");
+    Handle<std::string> hCounter = v8Buffer_to_String(info[1]);
+    if (hCounter->length() != 16) {
+        THROW_ERROR("Wrong size of 'counter'. Must be 16 bytes.");
+    }
+    
+    LOG_INFO("length");
+    int length = Nan::To<int>(info[2]).FromJust();
+    
+    LOG_INFO("this");
+    WAes *wAes = WAes::Unwrap<WAes>(info.This());
+    
+    Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+    Nan::AsyncQueueWorker(new AsyncAesEncryptCTR(callback, wAes->data, hInput, hCounter, length, true));
+}
+
+/**
+ * input: Buffer
+ * counter: Buffer,
+ * length: int
+ */
+NAN_METHOD(WAes::DecryptCtr) {
+    LOG_FUNC();
+    
+    LOG_INFO("input");
+    Handle<std::string> hInput = v8Buffer_to_String(info[0]);
+    
+    LOG_INFO("counter");
+    Handle<std::string> hCounter = v8Buffer_to_String(info[1]);
+    if (hCounter->length() != 16) {
+        THROW_ERROR("Wrong size of 'counter'. Must be 16 bytes.");
+    }
+    
+    LOG_INFO("length");
+    int length = Nan::To<int>(info[2]).FromJust();
+    
+    LOG_INFO("this");
+    WAes *wAes = WAes::Unwrap<WAes>(info.This());
+    
+    Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
+    Nan::AsyncQueueWorker(new AsyncAesEncryptCTR(callback, wAes->data, hInput, hCounter, length, false));
 }

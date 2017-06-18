@@ -38,6 +38,7 @@
                 "src/aes/aes_ecb.cpp",
                 "src/aes/aes_cbc.cpp",
                 "src/aes/aes_gcm.cpp",
+                "src/aes/aes_ctr.cpp",
                 "src/hmac/common.h",
                 "src/hmac/hmac_gen.cpp",
                 "src/hmac/hmac_sign.cpp",

@@ -7,3 +7,6 @@
 libeay32.dll
 
 test*.js
+
+# OSX
+.DS_Store

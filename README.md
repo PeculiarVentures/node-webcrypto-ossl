@@ -67,6 +67,7 @@ mocha
 | RSA-PSS           |      X      |         |       X       |      X      |                 |                   |         |
 | RSA-OAEP          |      X      |         |       X       |             |        X        |         X         |         |
 | AES-CBC           |      X      |         |       X       |             |        X        |         X         |         |
+| AES-CTR           |      X      |         |       X       |             |        X        |         X         |         |
 | AES-ECB <sub>2</sub> |      X      |         |       X       |             |        X        |         X         |         |
 | AES-GCM           |      X      |         |       X       |             |        X        |         X         |         |
 | AES-KW            |      X      |         |       X       |             |                 |         X         |         |

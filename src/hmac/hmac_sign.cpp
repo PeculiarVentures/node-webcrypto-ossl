@@ -15,7 +15,7 @@ Handle<std::string> ScopedHMAC::sign(Handle<std::string> hMsg, const EVP_MD *md)
 	unsigned int outLen;
 	if (!HMAC(md, this->value->c_str(), (int)this->value->length(), (unsigned char*)hMsg->c_str(),
 		(size_t)hMsg->length(), (unsigned char*)res->c_str(), &outLen)) {
-		THROW_OPENSSL(HMAC);
+		THROW_OPENSSL("HMAC");
 	}
 
 	if (outLen != resLen)
