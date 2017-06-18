@@ -75,7 +75,7 @@ mocha
 | HMAC              |      X      |         |       X       |      X      |                 |                   |         |
 | PBKDF2            |             |         |       X       |             |                 |                   |    X    |
 
-<sub>2 ECB support is not defined by the WebCrypto specifications. Use of EBC in a safe way is hard, it was added for the purpose of enabling interoperability with an existing system. We recommend against its use unless needed for interoperability.</sub>
+<sub>2 ECB support is not defined by the WebCrypto specifications. Use of ECB in a safe way is hard, it was added for the purpose of enabling interoperability with an existing system. We recommend against its use unless needed for interoperability.</sub>
 
 ## Using
 
