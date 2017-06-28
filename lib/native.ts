@@ -150,7 +150,7 @@ export declare class Key {
     /**
      * encrypt/decrypt operation for RSA OAEP key
      * @param digestName name of digest algorithm
-     * @param data incoming data 
+     * @param data incoming data
      * @param label label for operation. Can be NULL
      * @param decrypt type of operation
      * @param callback callback function (err: Error, raw: Buffer)
@@ -230,7 +230,7 @@ export declare class HmacKey {
 
 /**
  * PBKDF2 crypto key
- * 
+ *
  * @export
  * @class Pbkdf2Key
  */
@@ -238,24 +238,24 @@ export declare class Pbkdf2Key {
 
     /**
      * Creates Pbkdf2Key from raw
-     * 
+     *
      * @static
      * @param {Buffer} raw Raw of data
      * @param {(error: Error, data: Pbkdf2Key) => void} cb
-     * 
+     *
      * @memberOf Pbkdf2Key
      */
     public static importKey(raw: Buffer, cb: (error: Error, data: Pbkdf2Key) => void): void;
 
     /**
      * Derives bits
-     * 
+     *
      * @param {string} digestName   SHA digest name. SHA-1, SHA-256, SHA-384, SHA-512
      * @param {number} salt         Salt
      * @param {number} iterations   Iterations
      * @param {number} bitsLength   Size of derived buffer in bits
      * @param {(error: Error, data: Buffer) => void} cb Callback
-     * 
+     *
      * @memberOf Pbkdf2Key
      */
     public deriveBits(digestName: string, salt: Buffer, iterations: number, bitsLength: number, cb: (error: Error, data: Buffer) => void): void;

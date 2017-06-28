@@ -16,7 +16,7 @@ function b64_decode(b64url: string): Buffer {
 
 export class HmacCrypto extends BaseCrypto {
 
-    public static generateKey(algorithm: HmacKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
+    public static generateKey(algorithm: HmacKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const length = algorithm.length || this.getHashSize((algorithm.hash as Algorithm).name);
             native.HmacKey.generate(length, (err, key) => {

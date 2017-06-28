@@ -204,17 +204,17 @@ export class AesCrypto extends BaseCrypto {
 
     /**
      * Wrap/Unwrap function for AES-KW
-     * 
+     *
      * @protected
      * @param {native.AesKey} key Native key
      * @param {Buffer} data Incoming data
      * @param {boolean} enc Type of operation. `true` - wrap, `false` - unwrap
      * @returns
-     * 
+     *
      * @memberOf AesCrypto
      */
     protected static WrapUnwrap(key: native.AesKey, data: Buffer, enc: boolean) {
-        return new Promise((resolve, reject) => {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
             const fn = enc ? key.wrapKey : key.unwrapKey;
 
             fn.call(key, data, (err: Error, data2: Buffer) => {

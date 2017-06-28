@@ -40,7 +40,7 @@ export class Pbkdf2Crypto extends Core.BaseCrypto {
         });
     }
 
-    public static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]) {
         return Promise.resolve()
             .then(() => {
                 return this.deriveBits(algorithm, baseKey, (derivedKeyType as any).length);
