@@ -1,13 +1,13 @@
 /.vscode
-/.nyc_output/
-/coverage/
+/.nyc_output
+/coverage
 /node_modules
 *.log
 .travis.yml
 .waiting.html
 build
-buildjs
-.gitignore
-libeay32.dll
 
 test*.js
+
+lib
+ts*.json

@@ -11,8 +11,7 @@
   "scripts": {
     "clean": "rm -rf build/ buildjs/ coverage/ .nyc_output/ npm-debug.log npm-debug.log.*",
     "prepublish": "npm run build",
-    "postinstall": "npm run build",
-    "pretest": "npm run build:source",
+    "prepare": "npm run build",
     "test": "mocha",
     "build": "npm run build:es5",
     "build:es5": "tsc",
