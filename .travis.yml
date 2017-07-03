@@ -39,7 +39,7 @@ install:
   - npm install --only=dev
 
 script:
-  - npm build:source
+  - npm run build:source
   - npm run coverage
 
 after_success:
