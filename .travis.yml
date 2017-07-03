@@ -35,7 +35,11 @@ before_install:
   - gcc --version
   - npm install coveralls
 
+install:
+  - npm install --only=dev
+
 script:
+  - npm run build:source
   - npm run coverage
 
 after_success:
