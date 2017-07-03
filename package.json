@@ -41,19 +41,19 @@
     "polyfill"
   ],
   "dependencies": {
-    "@types/mkdirp": "^0.3.29",
-    "@types/node": "^6.0.78",
     "mkdirp": "^0.5.1",
     "nan": "^2.5.1",
     "tslib": "^1.7.1",
-    "typescript": "^2.4.1",
     "webcrypto-core": "^0.1.16"
   },
   "devDependencies": {
+    "@types/mkdirp": "^0.3.29",
+    "@types/node": "^6.0.78",
     "live-server": "^1",
     "mocha": "^3.4.2",
     "npm-run-all": "^3",
     "nyc": "^10.1.2",
+    "typescript": "^2.4.1",
     "watch": "^1.0.1"
   }
 }
