@@ -41,13 +41,13 @@
     "polyfill"
   ],
   "dependencies": {
-    "@types/node": "^6",
     "mkdirp": "^0.5.1",
     "nan": "^2.5.1",
     "tslib": "^1.7.1",
     "webcrypto-core": "^0.1.16"
   },
   "devDependencies": {
+    "@types/node": "^6",
     "@types/mkdirp": "^0.3.29",
     "live-server": "^1",
     "mocha": "^3.4.2",
