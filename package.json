@@ -10,7 +10,6 @@
   "types": "index.d.ts",
   "scripts": {
     "clean": "rm -rf build/ buildjs/ coverage/ .nyc_output/ npm-debug.log npm-debug.log.*",
-    "prepublish": "npm run build",
     "prepare": "npm run build",
     "test": "mocha",
     "build": "npm run build:es5",
@@ -22,10 +21,7 @@
     "coverage": "nyc npm test",
     "precoveragehtml": "npm run coverage",
     "coveragehtml": "nyc report -r html",
-    "watch": "watch 'npm run coveragehtml' lib/ src/ test/",
-    "live": "live-server -q --port=4005 --ignorePattern='(js|css|png)$' coverage",
     "predev": "if [ ! -f coverage/index.html ]; then mkdir coverage; cp .waiting.html coverage/index.html; fi",
-    "dev": "npm-run-all -p --silent watch live",
     "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "author": "PeculiarVentures",
@@ -41,19 +37,17 @@
     "polyfill"
   ],
   "dependencies": {
-    "@types/node": "^6",
     "mkdirp": "^0.5.1",
-    "nan": "^2.5.1",
+    "nan": "^2.7.0",
     "tslib": "^1.7.1",
-    "webcrypto-core": "^0.1.16"
+    "webcrypto-core": "^0.1.17"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
-    "live-server": "^1",
+    "@types/node": "^8",
+    "coveralls": "^2.13.1",
     "mocha": "^3.4.2",
-    "npm-run-all": "^3",
     "nyc": "^10.1.2",
-    "typescript": "^2.4.1",
-    "watch": "^1.0.1"
+    "typescript": "^2.5.2"
   }
 }
