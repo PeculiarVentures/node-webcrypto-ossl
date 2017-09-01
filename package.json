@@ -43,6 +43,7 @@
     "webcrypto-core": "^0.1.17"
   },
   "devDependencies": {
+    "@types/node": "^6",
     "@types/mkdirp": "^0.3.29",
     "@types/node": "^8",
     "coveralls": "^2.13.1",
