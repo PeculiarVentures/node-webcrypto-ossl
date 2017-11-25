@@ -27,7 +27,13 @@ function PrepareData(data: NodeBufferSource): Buffer {
  * @param ab ArrayBuffer value which must be converted to Buffer
  */
 function ab2b(ab: NodeBufferSource) {
-    return new Buffer(ab as any);
+    if (Buffer.isBuffer(ab)) {
+        return ab;
+    } else if (ArrayBuffer.isView(ab)) {
+        return new Buffer(ab.buffer);
+    } else {
+        return new Buffer(ab);
+    }
 }
 
 /**
