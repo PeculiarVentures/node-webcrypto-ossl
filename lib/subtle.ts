@@ -30,7 +30,8 @@ function ab2b(ab: NodeBufferSource) {
     if (Buffer.isBuffer(ab)) {
         return ab;
     } else if (ArrayBuffer.isView(ab)) {
-        return new Buffer(ab.buffer);
+        // NOTE: ab.buffer can have another size than view after ArrayBufferView.subarray
+        return new Buffer(ab.buffer.slice(0, ab.byteLength));
     } else {
         return new Buffer(ab);
     }
