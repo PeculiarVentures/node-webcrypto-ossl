@@ -159,25 +159,28 @@ declare namespace NodeWebcryptoOpenSSL {
     /**
      * OpenSSL with WebCrypto Interface
      */
-    class WebCrypto implements NativeCrypto {
+    export class WebCrypto implements NativeCrypto {
 
-        keyStorage: KeyStorage;
-        subtle: SubtleCrypto;
-
-        /**
-         * Generates cryptographically random values
-         * @param array Initialize array
-         */
-        getRandomValues(array: NodeBufferSource): NodeBufferSource;
-        getRandomValues(array: ArrayBufferView): ArrayBufferView;
+        public keyStorage: KeyStorage;
+        public subtle: SubtleCrypto;
 
         /**
          * Constructor
          */
         constructor(options?: WebCryptoOptions);
+
+        /**
+         * Generates cryptographically random values
+         * @param array Initialize array
+         */
+        public getRandomValues(array: NodeBufferSource): NodeBufferSource;
+        public getRandomValues(array: ArrayBufferView): ArrayBufferView;
+
     }
 }
 
+declare const NodeWebCrypto: typeof NodeWebcryptoOpenSSL.WebCrypto;
+
 declare module "node-webcrypto-ossl" {
-    export = NodeWebcryptoOpenSSL.WebCrypto;
+    export = NodeWebCrypto;
 }
