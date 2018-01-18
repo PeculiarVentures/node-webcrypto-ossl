@@ -6,11 +6,6 @@ import * as webcrypto from "webcrypto-core";
 import { KeyStorage } from "./key_storage";
 import * as subtle from "./subtle";
 
-// Fix btoa and atob for NodeJS
-const g = global as any;
-g.btoa = (data: string) => new Buffer(data, "binary").toString("base64");
-g.atob = (data: string) => new Buffer(data, "base64").toString("binary");
-
 const ERR_RANDOM_VALUE_LENGTH = "Failed to execute 'getRandomValues' on 'Crypto': The ArrayBufferView's byte length (%1) exceeds the number of bytes of entropy available via this API (65536).";
 
 export interface WebCryptoOptions {
