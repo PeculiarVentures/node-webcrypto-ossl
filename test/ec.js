@@ -11,7 +11,7 @@ describe("WebCrypto EC", () => {
         { alg: "ECDH", usages: ["deriveKey", "deriveBits"] },
     ];
     var DIGEST = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
-    var NAMED_CURVES = ["P-256", "P-384", "P-521"];
+    var NAMED_CURVES = ["P-256", "P-384", "P-521", "K-256"];
 
     var keys = [];
 
