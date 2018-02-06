@@ -86,6 +86,12 @@ var WebCrypto = require("node-webcrypto-ossl");
 var webcrypto = new WebCrypto();
 ```
 
+## Elliptic curve secp256k1
+
+`secp256k1` curve is not defined by the WebCrypto specifications. This module implements `K-256` curve for ECDSA algorithm.
+
+[K-256 curve examples](https://github.com/PeculiarVentures/webcrypto-core/blob/master/spec/EC_K_256.md)
+
 ## KeyStorage
 
 To use KeyStorage you should init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
