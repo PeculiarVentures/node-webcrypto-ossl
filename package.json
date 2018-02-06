@@ -34,13 +34,14 @@
     "aes",
     "ec",
     "jwk",
-    "polyfill"
+    "polyfill",
+    "secp256k1"
   ],
   "dependencies": {
     "mkdirp": "^0.5.1",
     "nan": "^2.8.0",
     "tslib": "^1.8.1",
-    "webcrypto-core": "^0.1.18"
+    "webcrypto-core": "^0.1.19"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
@@ -48,6 +49,7 @@
     "coveralls": "^2.13.3",
     "mocha": "^3.5.3",
     "nyc": "^10.1.2",
+    "pvtsutils": "^1.0.2",
     "typescript": "^2.6.2"
   }
 }
