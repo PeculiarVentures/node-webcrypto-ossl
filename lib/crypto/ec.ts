@@ -26,6 +26,9 @@ function nc2ssl(nc: any) {
         case "P-521":
             namedCurve = "secp521r1";
             break;
+        case "K-256":
+            namedCurve = "secp256k1";
+            break;
         default:
             throw new WebCryptoError("Unsupported namedCurve in use");
     }
@@ -71,7 +74,7 @@ export class EcCrypto extends BaseCrypto {
     public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const formatLC = format.toLocaleLowerCase();
-            const alg = algorithm as Algorithm;
+            const alg = algorithm as EcKeyImportParams;
             const data: { [key: string]: Buffer } = {};
             let keyType = native.KeyType.PUBLIC;
             switch (formatLC) {
@@ -79,23 +82,22 @@ export class EcCrypto extends BaseCrypto {
                     if (!Buffer.isBuffer(keyData)) {
                         throw new WebCryptoError("ImportKey: keyData is not a Buffer");
                     }
+                    if (!alg.namedCurve) {
+                        throw new WebCryptoError("ImportKey: namedCurve property of algorithm parameter is required");
+                    }
 
                     let keyLength = 0;
-                    let crv = "";
 
                     if (keyData.length === 65) {
                         // P-256
-                        crv = "P-256";
                         // Key length 32 Byte
                         keyLength = 32;
                     } else if (keyData.length === 97) {
                         // P-384
-                        crv = "P-384";
                         // Key length 48 Byte
                         keyLength = 48;
                     } else if (keyData.length === 133) {
                         // P-521
-                        crv = "P-521";
                         // Key length: 521/= 65,125 => 66 Byte
                         keyLength = 66;
                     }
@@ -104,7 +106,7 @@ export class EcCrypto extends BaseCrypto {
                     const y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
 
                     data["kty"] = new Buffer("EC", "utf-8");
-                    data["crv"] = nc2ssl(crv);
+                    data["crv"] = nc2ssl(alg.namedCurve.toUpperCase());
                     data["x"] = b64_decode(Base64Url.encode(buf_pad(x, keyLength)));
                     data["y"] = b64_decode(Base64Url.encode(buf_pad(y, keyLength)));
 
@@ -192,6 +194,7 @@ export class EcCrypto extends BaseCrypto {
                             let padSize = 0;
                             switch (jwk.crv) {
                                 case "P-256":
+                                case "K-256":
                                     padSize = 32;
                                     break;
                                 case "P-384":
@@ -243,6 +246,7 @@ export class EcCrypto extends BaseCrypto {
 
                             switch (crv) {
                                 case "P-256":
+                                case "K-256":
                                     padSize = 32;
                                     break;
                                 case "P-384":
