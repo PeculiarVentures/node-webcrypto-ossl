@@ -41,5 +41,30 @@ describe("WebCrypto digest", function () {
                 }
             });
         });
+
+        context("Array", () => {
+
+            it("subarray", (done) => {
+                const data = new Uint8Array([116, 101, 115, 116, 1, 2, 3, 4, 5])
+
+                webcrypto.subtle.digest("SHA-256", data.subarray(0, 4))
+                    .then(function (hash) {
+                        assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
+                    })
+                    .then(done, done);
+            });
+
+            it("slice", (done) => {
+                const data = new Uint8Array([116, 101, 115, 116, 1, 2, 3, 4, 5])
+
+                webcrypto.subtle.digest("SHA-256", data.slice(0, 4))
+                    .then(function (hash) {
+                        assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
+                    })
+                    .then(done, done);
+            });
+
+        });
+
     });
 });
