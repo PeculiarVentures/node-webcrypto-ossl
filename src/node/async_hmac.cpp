@@ -22,7 +22,7 @@ void AsyncHmacGenerateKey::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncHmacExport::Execute() {
@@ -42,7 +42,7 @@ void AsyncHmacExport::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncHmacImport::Execute() {
@@ -66,7 +66,7 @@ void AsyncHmacImport::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncHmacSign::Execute() {
@@ -88,7 +88,7 @@ void AsyncHmacSign::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncHmacVerify::Execute() {
@@ -108,5 +108,5 @@ void AsyncHmacVerify::HandleOKCallback() {
 		Nan::New<v8::Boolean>(res)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }

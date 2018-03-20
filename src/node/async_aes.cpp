@@ -22,7 +22,7 @@ void AsyncAesGenerateKey::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesEncryptCBC::Execute() {
@@ -47,7 +47,7 @@ void AsyncAesEncryptCBC::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesEncryptECB::Execute() {
@@ -72,7 +72,7 @@ void AsyncAesEncryptECB::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesExport::Execute() {
@@ -92,7 +92,7 @@ void AsyncAesExport::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesImport::Execute() {
@@ -116,7 +116,7 @@ void AsyncAesImport::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesEncryptGCM::Execute() {
@@ -141,7 +141,7 @@ void AsyncAesEncryptGCM::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesWrapKey::Execute() {
@@ -166,7 +166,7 @@ void AsyncAesWrapKey::HandleOKCallback() {
 		String_to_v8Buffer(hOutput)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncAesEncryptCTR::Execute() {
@@ -191,5 +191,5 @@ void AsyncAesEncryptCTR::HandleOKCallback() {
         String_to_v8Buffer(hOutput)
     };
     
-    callback->Call(2, argv);
+    callback->Call(2, argv, async_resource);
 }

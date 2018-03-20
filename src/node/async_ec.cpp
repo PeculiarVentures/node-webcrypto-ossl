@@ -22,7 +22,7 @@ void AsyncEcGenerateKey::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcdhDeriveKey::Execute() {
@@ -42,7 +42,7 @@ void AsyncEcdhDeriveKey::HandleOKCallback() {
 		String_to_v8Buffer(dkey)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcExportJwk::Execute() {
@@ -75,7 +75,7 @@ void AsyncEcExportJwk::HandleOKCallback() {
 		v8Jwk
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcImportJwk::Execute() {
@@ -99,7 +99,7 @@ void AsyncEcImportJwk::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcdsaSign::Execute() {
@@ -121,7 +121,7 @@ void AsyncEcdsaSign::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcdsaVerify::Execute() {
@@ -141,7 +141,7 @@ void AsyncEcdsaVerify::HandleOKCallback() {
 		Nan::New<v8::Boolean>(res)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncEcdhDeriveBits::Execute() {
@@ -161,5 +161,5 @@ void AsyncEcdhDeriveBits::HandleOKCallback() {
 		String_to_v8Buffer(this->dbits)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }

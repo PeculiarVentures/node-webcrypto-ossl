@@ -22,7 +22,7 @@ void AsyncPbkdf2Import::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncPbkdf2DeriveBits::Execute() {
@@ -42,5 +42,5 @@ void AsyncPbkdf2DeriveBits::HandleOKCallback() {
 		String_to_v8Buffer(res)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }

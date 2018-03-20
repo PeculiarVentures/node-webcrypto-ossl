@@ -17,7 +17,7 @@ void AsyncEncrypDecryptRsaOAEP::HandleOKCallback() {
 		String_to_v8Buffer(hResult)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncRsaGenerateKey::Execute() {
@@ -41,7 +41,7 @@ void AsyncRsaGenerateKey::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 
@@ -79,7 +79,7 @@ void AsyncExportJwkRsa::HandleOKCallback() {
 		v8Jwk
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncExportSpki::Execute() {
@@ -101,7 +101,7 @@ void AsyncExportSpki::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncExportPkcs8::Execute() {
@@ -124,7 +124,7 @@ void AsyncExportPkcs8::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 
@@ -149,7 +149,7 @@ void AsyncImportPkcs8::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 
@@ -174,7 +174,7 @@ void AsyncImportSpki::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 
@@ -200,7 +200,7 @@ void AsyncImportJwkRsa::HandleOKCallback() {
 		v8Key
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 
@@ -223,7 +223,7 @@ void AsyncSignRsa::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncVerifyRsa::Execute() {
@@ -243,7 +243,7 @@ void AsyncVerifyRsa::HandleOKCallback() {
 		Nan::New<v8::Boolean>(res)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncSignRsaPSS::Execute() {
@@ -265,7 +265,7 @@ void AsyncSignRsaPSS::HandleOKCallback() {
 		v8Buffer
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }
 
 void AsyncVerifyRsaPSS::Execute() {
@@ -285,5 +285,5 @@ void AsyncVerifyRsaPSS::HandleOKCallback() {
 		Nan::New<v8::Boolean>(res)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }

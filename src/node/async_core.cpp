@@ -21,5 +21,5 @@ void AsyncDigest::HandleOKCallback() {
 		String_to_v8Buffer(hDigest)
 	};
 
-	callback->Call(2, argv);
+	callback->Call(2, argv, async_resource);
 }

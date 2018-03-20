@@ -88,7 +88,7 @@ NAN_METHOD(WAes::Encrypt) {
 		v8::Local<v8::Value> argv[] = {
 			Nan::New("Unknown cipher name").ToLocalChecked()
 		};
-		callback->Call(info.This(), 1, argv);
+        Nan::Call(Nan::To<v8::Function>(info[3]).ToLocalChecked(), Nan::GetCurrentContext()->Global(), 1, argv);
 	}
 }
 
@@ -121,7 +121,7 @@ NAN_METHOD(WAes::Decrypt) {
 		v8::Local<v8::Value> argv[] = {
 			Nan::New("Unknown cipher name").ToLocalChecked()
 		};
-		callback->Call(info.This(), 1, argv);
+		Nan::Call(Nan::To<v8::Function>(info[3]).ToLocalChecked(), Nan::GetCurrentContext()->Global(), 1, argv);
 	}
 }
 
