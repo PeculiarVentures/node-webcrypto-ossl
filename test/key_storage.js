@@ -86,8 +86,8 @@ describe("Key storage", function () {
     })
 
     it("read storage from folder", () => {
-        let WebCrypto = require("../buildjs/webcrypto");
-        let crypto = new WebCrypto({ directory: "test_storage" });
+        let { Crypto } = require("../");
+        let crypto = new Crypto({ directory: "test_storage" });
         assert.equal(crypto.keyStorage.length, 2);
     });
 
