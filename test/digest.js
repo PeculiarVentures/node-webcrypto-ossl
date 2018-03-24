@@ -1,10 +1,9 @@
-"use strict";
-var assert = require('assert');
-var webcrypto = require('./config');
+const assert = require('assert');
+const webcrypto = require('./config');
 
-describe("WebCrypto digest", function () {
+describe("Crypto digest", function () {
 
-    context("Sha", function () {
+    context("SHA", function () {
 
         var vector = {
             data: new Uint8Array([116, 101, 115, 116]), // "test"
@@ -18,50 +17,39 @@ describe("WebCrypto digest", function () {
 
         var dataList = {
             ArrayBuffer: vector.data.buffer,
-            Buffer: new Buffer(vector.data),
+            Buffer: Buffer.from(vector.data),
             Uint8Array: vector.data,
             Uint16Array: new Uint16Array(vector.data.buffer),
             Uint32Array: new Uint32Array(vector.data.buffer),
         };
 
-        ["SHA-1", "SHA-256", "SHA-384", "SHA-512"].forEach(digestAlg => {
+        ["SHA-1", "SHA-256", "SHA-384", "SHA-512"].forEach((digestAlg) => {
             context(digestAlg, () => {
                 for (const type in dataList) {
-                    (() => {
-                        const data = dataList[type];
+                    const data = dataList[type];
 
-                        it(type, done => {
-                            webcrypto.subtle.digest(digestAlg, data)
-                                .then(function (hash) {
-                                    assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs[digestAlg]);
-                                })
-                                .then(done, done);
-                        });
-                    })();
+                    it(type, async () => {
+                        const hash = await webcrypto.subtle.digest(digestAlg, data);
+                        assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs[digestAlg]);
+                    });
                 }
             });
         });
 
         context("Array", () => {
 
-            it("subarray", (done) => {
+            it("subarray", async () => {
                 const data = new Uint8Array([116, 101, 115, 116, 1, 2, 3, 4, 5])
 
-                webcrypto.subtle.digest("SHA-256", data.subarray(0, 4))
-                    .then(function (hash) {
-                        assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
-                    })
-                    .then(done, done);
+                const hash = await webcrypto.subtle.digest("SHA-256", data.subarray(0, 4))
+                assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
             });
 
-            it("slice", (done) => {
+            it("slice", async () => {
                 const data = new Uint8Array([116, 101, 115, 116, 1, 2, 3, 4, 5])
 
-                webcrypto.subtle.digest("SHA-256", data.slice(0, 4))
-                    .then(function (hash) {
-                        assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
-                    })
-                    .then(done, done);
+                const hash = await webcrypto.subtle.digest("SHA-256", data.slice(0, 4))
+                assert.equal(Buffer.from(hash).toString("hex").toLowerCase(), vector.algs["SHA-256"]);
             });
 
         });

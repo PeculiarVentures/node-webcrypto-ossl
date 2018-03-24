@@ -1,11 +1,10 @@
-"use strict";
-var assert = require('assert');
-var native = require("../buildjs/native");
+const assert = require('assert');
+const native = require("../buildjs/native");
 
 describe("native", function () {
 
-    var TEST_MESSAGE = new Buffer("Hello world");
-    var TEST_MESSAGE_WRONG = new Buffer("Hello world!!!");
+    var TEST_MESSAGE = Buffer.from("Hello world");
+    var TEST_MESSAGE_WRONG = Buffer.from("Hello world!!!");
 
     context("HMAC", () => {
 
@@ -18,7 +17,7 @@ describe("native", function () {
             }
             if (length)
                 keys.push(hmac)
-            it(`generate length:${length}`, done => {
+            it(`generate length:${length}`, (done) => {
                 native.HmacKey.generate(length, (err, data) => {
                     assert.equal(!!err, !length, err);
                     assert.equal(!!data, !!length, "Data is empty");

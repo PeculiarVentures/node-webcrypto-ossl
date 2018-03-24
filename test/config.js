@@ -1,4 +1,3 @@
-"use strict";
-var WebCrypto = require("../buildjs/webcrypto.js");     
+const { Crypto } = require("../buildjs/index.js");     
     
-module.exports = new WebCrypto({directory: "test_storage"}) 
+module.exports = new Crypto({directory: "test_storage"}) 

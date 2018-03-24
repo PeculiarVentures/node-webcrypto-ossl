@@ -1,10 +1,8 @@
-"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const webcrypto = require("./config");
 
-var assert = require("assert");
-var fs = require("fs");
-var webcrypto = require("./config");
-
-var deleteFolderRecursive = function (path) {
+function deleteFolderRecursive(path) {
     if (fs.existsSync(path)) {
         fs.readdirSync(path).forEach(function (file, index) {
             var curPath = path + "/" + file;
@@ -20,12 +18,12 @@ var deleteFolderRecursive = function (path) {
 
 describe("Key storage", function () {
 
-    var TEST_MESSAGE = new Buffer("This is test message for crypto functions");
+    var TEST_MESSAGE = Buffer.from("This is test message for crypto functions");
     var KEYS = [{ name: "private" }, { name: "public" }, { name: "secret" }];
 
-    before((done) => {
+    before(async () => {
         // Generate keys for storeKey
-        webcrypto.subtle.generateKey({
+        const keyPair = await webcrypto.subtle.generateKey({
             name: "RSASSA-PKCS1-v1_5",
             modulusLength: 1024,
             publicExponent: new Uint8Array([1, 0, 1]),
@@ -35,39 +33,38 @@ describe("Key storage", function () {
         },
             true,
             ["sign", "verify"]
-        )
-            .then((keyPair) => {
-                KEYS[0].key = keyPair.privateKey;
-                KEYS[1].key = keyPair.publicKey;
+        );
 
-                return webcrypto.subtle.generateKey({
-                    name: "AES-CBC",
-                    length: 128,
-                },
-                    true,
-                    ["encrypt", "decrypt"]
-                )
-            })
-            .then((key) => {
-                KEYS[2].key = key;
-            })
-            .then(done, done);
+        KEYS[0].key = keyPair.privateKey;
+        KEYS[1].key = keyPair.publicKey;
+
+        const key = webcrypto.subtle.generateKey({
+            name: "AES-CBC",
+            length: 128,
+        },
+            true,
+            ["encrypt", "decrypt"]
+        )
+        KEYS[2].key = key;
+
     });
 
     after(function () {
         deleteFolderRecursive("test_storage");
     })
 
-    KEYS.forEach(key => {
-        it(`Set/get key from storage ${key.name}`, () => {
-            if (key.name === "secret")
-                return console.log(`Not implemented test`);
-            webcrypto.keyStorage.setItem(key.key.type, key.key);
-            var exists = fs.existsSync(webcrypto.keyStorage.directory + `/${key.key.type}.json`);
-            assert.equal(exists, true, "File with key is not created");
+    KEYS.forEach((key) => {
+        if (key.name === "secret") {
+            it(`Set/get key from storage ${key.name}`);
+        } else {
+            it(`Set/get key from storage ${key.name}`, () => {
+                webcrypto.keyStorage.setItem(key.key.type, key.key);
+                var exists = fs.existsSync(webcrypto.keyStorage.directory + `/${key.key.type}.json`);
+                assert.equal(exists, true, "File with key is not created");
 
-            var storeKey = webcrypto.keyStorage.getItem(key.key.type);
-        })
+                var storeKey = webcrypto.keyStorage.getItem(key.key.type);
+            });
+        }
     });
 
     it("Set secret key", () => {
@@ -94,9 +91,9 @@ describe("Key storage", function () {
         assert.equal(crypto.keyStorage.length, 2);
     });
 
-    it("Remove key from storage", function (done) {
+    it("Remove key from storage", async () => {
         var key = null;
-        webcrypto.subtle.generateKey({
+        const keyPair = await webcrypto.subtle.generateKey({
             name: "RSASSA-PKCS1-v1_5",
             modulusLength: 1024,
             publicExponent: new Uint8Array([1, 0, 1]),
@@ -106,20 +103,17 @@ describe("Key storage", function () {
         },
             true,
             ["sign", "verify"]
-        )
-            .then(function (keyPair) {
-                webcrypto.keyStorage.setItem("remove_key", keyPair.privateKey);
-                var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
-                assert.equal(exists, true, "File with key is not created");
-                assert.equal(webcrypto.keyStorage.length, 3);
+        );
 
-                webcrypto.keyStorage.removeItem("remove_key");
-                var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
-                assert.equal(exists, false, "File with key is not removed");
-                assert.equal(webcrypto.keyStorage.length, 2);
-                return Promise.resolve();
-            })
-            .then(done, done);
+        webcrypto.keyStorage.setItem("remove_key", keyPair.privateKey);
+        var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
+        assert.equal(exists, true, "File with key is not created");
+        assert.equal(webcrypto.keyStorage.length, 3);
+
+        webcrypto.keyStorage.removeItem("remove_key");
+        var exists = fs.existsSync(webcrypto.keyStorage.directory + "/remove_key.json");
+        assert.equal(exists, false, "File with key is not removed");
+        assert.equal(webcrypto.keyStorage.length, 2);
     });
 
     it("Clear key storage", function () {

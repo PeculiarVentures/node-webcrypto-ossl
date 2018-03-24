@@ -25,21 +25,3 @@ function checkBuffers(buf1, buf2) {
 }
 
 exports.checkBuffers = checkBuffers;
-
-function PromiseThrows(promise, done) {
-    promise
-        .then(() => {
-            return true;
-        })
-        .catch((e) => {
-            assert.equal(!!e, true);
-            return false;
-        })
-        .then((error) => {
-            if (error)
-                throw new Error("Must be error");
-        })
-        .then(done, done);
-}
-
-exports.PromiseThrows = PromiseThrows;
