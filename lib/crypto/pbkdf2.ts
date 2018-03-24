@@ -74,7 +74,7 @@ export class Pbkdf2Crypto extends Core.BaseCrypto {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(raw.buffer);
+                    resolve(raw.buffer as ArrayBuffer);
                 }
             });
         });

@@ -84,7 +84,7 @@ export class HmacCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(data.buffer);
+                            resolve(data.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -102,7 +102,7 @@ export class HmacCrypto extends BaseCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });

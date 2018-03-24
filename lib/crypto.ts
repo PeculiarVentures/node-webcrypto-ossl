@@ -15,7 +15,7 @@ export interface WebCryptoOptions {
 /**
  * OpenSSL with WebCrypto Interface
  */
-class WebCrypto implements NativeCrypto {
+export class Crypto implements NativeCrypto {
 
     public keyStorage: KeyStorage;
 
@@ -45,10 +45,8 @@ class WebCrypto implements NativeCrypto {
             throw error;
         }
         const bytes = crypto.randomBytes(array.byteLength);
-        (array as Uint8Array).set(new (<typeof Uint8Array>array.constructor)(bytes.buffer));
+        (array as Uint8Array).set(new (array.constructor as typeof Uint8Array)(bytes.buffer));
         return array;
     }
 
 }
-
-module.exports = WebCrypto;

@@ -15,7 +15,7 @@ import { CryptoKey, CryptoKeyPair } from "./key";
 import * as native from "./native";
 
 /**
- * Prepare array of data before it's using 
+ * Prepare array of data before it's using
  * @param data Array which must be prepared
  */
 function PrepareData(data: NodeBufferSource): Buffer {
@@ -31,32 +31,24 @@ function ab2b(ab: NodeBufferSource) {
         return ab;
     } else if (ArrayBuffer.isView(ab)) {
         // NOTE: ab.buffer can have another size than view after ArrayBufferView.subarray
-        return Buffer.from(ab.buffer, ab.byteOffset, ab.byteLength);
+        return Buffer.from(ab.buffer as ArrayBuffer, ab.byteOffset, ab.byteLength);
     } else {
         return Buffer.from(ab);
     }
 }
 
-/**
- * Converts Buffer to ArrayBuffer
- * @param b Buffer value which must be converted to ArrayBuffer
- */
-// function b2ab(b: Buffer): ArrayBuffer {
-//     return b.buffer;
-// }
-
 export class SubtleCrypto extends webcrypto.SubtleCrypto {
     /**
      * Computes a digest
-     * 
+     *
      * > Note: Has difference from W3 WebCrypto API
      * > - Supports Buffer
-     * > - Supports SHA-1, SHA-224, SAH-256, SHA-384, SHA-512 algorithms 
-     * 
+     * > - Supports SHA-1, SHA-224, SAH-256, SHA-384, SHA-512 algorithms
+     *
      * @param {AlgorithmIdentifier} algorithm
      * @param {NodeSourceBuffer} data
      * @returns {PromiseLike<ArrayBuffer>}
-     * 
+     *
      * @memberOf SubtleCrypto
      */
     public digest(algorithm: AlgorithmIdentifier, data: NodeBufferSource): PromiseLike<ArrayBuffer> {

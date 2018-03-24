@@ -88,7 +88,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         keyType = native.KeyType.PRIVATE;
                         importFunction = native.Key.importPkcs8;
                     }
-                    importFunction(<Buffer> keyData, (err, key) => {
+                    importFunction(keyData, (err, key) => {
                         try {
                             if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
@@ -113,7 +113,7 @@ export abstract class RsaCrypto extends BaseCrypto {
 
     public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            const nativeKey = <native.Key> key.native;
+            const nativeKey = key.native as native.Key;
             const type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
@@ -144,7 +144,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -153,7 +153,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -195,7 +195,7 @@ export class RsaPKCS1 extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });
@@ -229,7 +229,7 @@ export class RsaPSS extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });
@@ -311,7 +311,7 @@ export class RsaOAEP extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err));
                 } else {
-                    resolve(res.buffer);
+                    resolve(res.buffer as ArrayBuffer);
                 }
             });
         });
