@@ -281,7 +281,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         } else {
                             keyData = new Buffer(decryptedKey);
                         }
-                        return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm, extractable, keyUsages);
+                        return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm as string, extractable, keyUsages);
                     });
             });
     }

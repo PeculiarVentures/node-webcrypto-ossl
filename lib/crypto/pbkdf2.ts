@@ -13,7 +13,7 @@ function b64_decode(b64url: string): Buffer {
 
 export class Pbkdf2Crypto extends Core.BaseCrypto {
 
-    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const formatLC = format.toLocaleLowerCase();
             const alg = algorithm as any;
@@ -68,7 +68,7 @@ export class Pbkdf2Crypto extends Core.BaseCrypto {
             const alg = algorithm as Pbkdf2Params;
             const nativeKey = baseKey.native as native.Pbkdf2Key;
             const hash = Core.PrepareAlgorithm(alg.hash);
-            const salt = new Buffer(Core.PrepareData(alg.salt, "salt"));
+            const salt = new Buffer(Core.PrepareData(alg.salt!, "salt"));
             // derive bits
             nativeKey.deriveBits(this.wc2ssl(hash), salt, alg.iterations, length, (err, raw) => {
                 if (err) {
