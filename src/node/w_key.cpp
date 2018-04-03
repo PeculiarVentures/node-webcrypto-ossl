@@ -305,15 +305,16 @@ NAN_METHOD(WKey::ImportJwk) {
 	else {
 		Handle<JwkEc> jwk(new JwkEc());
 
-		LOG_INFO("set public key");
-		v8Object_get_BN(v8Jwk, x, jwk, x);
-		v8Object_get_BN(v8Jwk, y, jwk, y);
 		jwk->crv = Nan::To<int>(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_CRV).ToLocalChecked()).ToLocalChecked()).FromJust();
 
 		if (key_type == NODESSL_KT_PRIVATE) {
 			LOG_INFO("set private key");
 			v8Object_get_BN(v8Jwk, d, jwk, d);
-		}
+        } else {
+            LOG_INFO("set public key");
+            v8Object_get_BN(v8Jwk, x, jwk, x);
+            v8Object_get_BN(v8Jwk, y, jwk, y);
+        }
 
 		if (callback)
 			Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type));

@@ -156,6 +156,33 @@ describe("Crypto EC", () => {
                 });
             });
         });
+
+        it("import jwk private key with d value only", async () => {
+            const alg = { name: "ECDSA", namedCurve: "P-256" };
+            const key = await webcrypto.subtle.importKey("jwk", { crv: "P-256", kty: "EC", d: "3BVP-DHyzDs1o0AFLS9PNBRUVLAFw8cMmY7w1VFgkGY" }, { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+            
+            // check export jwk
+            const jwk = await webcrypto.subtle.exportKey("jwk", key);
+            assert.equal(jwk.d, "3BVP-DHyzDs1o0AFLS9PNBRUVLAFw8cMmY7w1VFgkGY")
+            assert.equal(jwk.x, "uvb9RKQidedxY-szyDrk7K-AbHcohIhE0P-TPZnGadY")
+            assert.equal(jwk.y, "rDs3paDXqaXWNxWebJrFCVnRFaCuH2mCfPCreKytAv8")
+
+            // check export pkcs8
+            const pkcs8 = await webcrypto.subtle.exportKey("pkcs8", key);
+            assert.equal(Buffer.from(pkcs8).toString("base64"), "MIIBeQIBADCCAQMGByqGSM49AgEwgfcCAQEwLAYHKoZIzj0BAQIhAP////8AAAABAAAAAAAAAAAAAAAA////////////////MFsEIP////8AAAABAAAAAAAAAAAAAAAA///////////////8BCBaxjXYqjqT57PrvVV2mIa8ZR0GsMxTsPY7zjw+J9JgSwMVAMSdNgiG5wSTamZ44ROdJreBn36QBEEEaxfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpZP40Li/hp/m47n60p8D54WK84zV2sxXs7LtkBoN79R9QIhAP////8AAAAA//////////+85vqtpxeehPO5ysL8YyVRAgEBBG0wawIBAQQg3BVP+DHyzDs1o0AFLS9PNBRUVLAFw8cMmY7w1VFgkGahRANCAAS69v1EpCJ153Fj6zPIOuTsr4BsdyiEiETQ/5M9mcZp1qw7N6Wg16ml1jcVnmyaxQlZ0RWgrh9pgnzwq3isrQL/");
+            
+            // create public key
+            delete jwk.d;
+            const publicKey = await webcrypto.subtle.importKey("jwk", jwk, alg, true, ["verify"]);
+
+            // check signing
+            const signingAlg = Object.assign({ hash: "SHA-256" }, alg);
+            const data = Buffer.from("Test data");
+            const signature = await webcrypto.subtle.sign(signingAlg, key, data);
+            const ok = await webcrypto.subtle.verify(signingAlg, publicKey, signature, data);
+            assert.equal(ok, true);
+        });
+
     });
 
     context("Combined test", () => {

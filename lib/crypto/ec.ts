@@ -131,20 +131,21 @@ export class EcCrypto extends BaseCrypto {
                     // prepare data
                     data["kty"] = jwk.kty as any;
                     data["crv"] = nc2ssl(jwk.crv);
-                    if (!jwk.x) {
-                        throw new WebCryptoError(ERROR_JWK_MEMBER_MISSING, "x");
-                    }
-                    data["x"] = b64_decode(jwk.x!);
-                    if (!jwk.y) {
-                        throw new WebCryptoError(ERROR_JWK_MEMBER_MISSING, "y");
-                    }
-                    data["y"] = b64_decode(jwk.y!);
                     if (jwk.d) {
                         keyType = native.KeyType.PRIVATE;
                         if (!jwk.d) {
                             throw new WebCryptoError(ERROR_JWK_MEMBER_MISSING, "d");
                         }
                         data["d"] = b64_decode(jwk.d!);
+                    } else {
+                        if (!jwk.x) {
+                            throw new WebCryptoError(ERROR_JWK_MEMBER_MISSING, "x");
+                        }
+                        data["x"] = b64_decode(jwk.x!);
+                        if (!jwk.y) {
+                            throw new WebCryptoError(ERROR_JWK_MEMBER_MISSING, "y");
+                        }
+                        data["y"] = b64_decode(jwk.y!);
                     }
                     native.Key.importJwk(data, keyType, (err, key) => {
                         try {
