@@ -58,7 +58,7 @@ NAN_GETTER(WKey::Type) {
 	LOG_FUNC();
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
-	info.GetReturnValue().Set(Nan::New<v8::Number>(wkey->data->Get()->type));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(EVP_PKEY_base_id(wkey->data->Get())));
 }
 
 NAN_METHOD(WKey::ModulusLength) {
@@ -66,7 +66,7 @@ NAN_METHOD(WKey::ModulusLength) {
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 
-	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+    if (EVP_PKEY_base_id(wkey->data->Get()) != EVP_PKEY_RSA)
 		Nan::ThrowError("Key is not RSA");
 	else {
 		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
@@ -81,13 +81,15 @@ NAN_METHOD(WKey::PublicExponent) {
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 
-	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+    if (EVP_PKEY_base_id(wkey->data->Get()) != EVP_PKEY_RSA)
 		Nan::ThrowError("Key is not RSA");
 	else {
-		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
+        RSA *rsa = EVP_PKEY_get1_RSA(wkey->data->Get());
 
-		BIGNUM *public_exponent = rsa.Get()->e;
-		v8::Local<v8::Object> v8Buffer = bn2buf(public_exponent);
+        const BIGNUM *e;
+    	RSA_get0_key(rsa, NULL, &e, NULL);
+
+        v8::Local<v8::Object> v8Buffer = bn2buf2(e);
 		info.GetReturnValue().Set(v8Buffer);
 	}
 }
@@ -126,7 +128,7 @@ NAN_METHOD(WKey::ExportJwk) {
 
 	int key_type = Nan::To<int>(info[0]).FromJust();
 
-	switch (wkey->data->Get()->type) {
+    switch (EVP_PKEY_base_id(wkey->data->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -147,7 +149,7 @@ NAN_METHOD(WKey::ExportJwk) {
 
 	Nan::Callback *callback = !info[1]->IsUndefined() ? new Nan::Callback(info[1].As<v8::Function>()) : NULL;
 
-	switch (wkey->data->Get()->type) {
+    switch (EVP_PKEY_base_id(wkey->data->Get())) {
 	case EVP_PKEY_RSA: {
 		if (callback)
 			Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
@@ -352,7 +354,7 @@ NAN_METHOD(WKey::Sign) {
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
 	LOG_INFO("Check key RSA, EC");
-	switch (pkey->Get()->type) {
+    switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -366,7 +368,7 @@ NAN_METHOD(WKey::Sign) {
 	}
 
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
-	switch (pkey->Get()->type) {
+    switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 		Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
 		break;
@@ -404,7 +406,7 @@ NAN_METHOD(WKey::Verify) {
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
 	LOG_INFO("Check key RSA, EC");
-	switch (pkey->Get()->type) {
+	switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -419,7 +421,7 @@ NAN_METHOD(WKey::Verify) {
 	}
 
 	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
-	switch (pkey->Get()->type) {
+	switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 		Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
 		break;

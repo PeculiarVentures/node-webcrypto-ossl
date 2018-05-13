@@ -14,7 +14,6 @@
                 "src/main.cpp",
                 "src/core/common.h",
                 "src/core/define.h",
-                "src/core/bn.cpp",
                 "src/core/key_exp.cpp",
                 "src/core/scoped_ssl.h",
                 "src/core/scoped_ssl.cpp",
