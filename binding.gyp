@@ -20,6 +20,7 @@
                 "src/core/logger.cpp",
                 "src/core/excep.cpp",
                 "src/core/digest.cpp",
+                "src/core/bn.cpp",
                 "src/rsa/common.h",
                 "src/rsa/rsa_gen.cpp",
                 "src/rsa/rsa_jwk.cpp",
