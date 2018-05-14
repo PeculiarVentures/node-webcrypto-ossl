@@ -41,15 +41,15 @@
     "mkdirp": "^0.5.1",
     "nan": "^2.10.0",
     "tslib": "^1.9.0",
-    "webcrypto-core": "^0.1.19"
+    "webcrypto-core": "^0.1.22"
   },
   "devDependencies": {
-    "@types/mkdirp": "^0.3.29",
-    "@types/node": "^8.9.5",
-    "coveralls": "^2.13.3",
-    "mocha": "^3.5.3",
-    "nyc": "^10.1.2",
+    "@types/mkdirp": "^0.5.2",
+    "@types/node": "^10.0.8",
+    "coveralls": "^3.0.1",
+    "mocha": "^5.1.1",
+    "nyc": "^11.7.3",
     "pvtsutils": "^1.0.2",
-    "typescript": "^2.7.2"
+    "typescript": "^2.8.3"
   }
 }
