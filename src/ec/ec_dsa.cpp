@@ -46,14 +46,28 @@ static Handle<std::string> ConvertWebCryptoSignatureToDerSignature(
 	if (ecdsa_sig.isEmpty())
 		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: ECDSA_SIG_new");
 
+
+#if NODE_MODULE_VERSION < 60
+    
+    if (!BN_bin2bn(signature, order_size_bytes, ecdsa_sig.Get()->r) ||
+        !BN_bin2bn(signature + order_size_bytes, order_size_bytes, ecdsa_sig.Get()->s)) {
+        THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: BN_bin2bn");
+    }
+    
+#else
+    
+    // NODE v10
+    
     BIGNUM *r, *s;
-
-	if (!(r = BN_bin2bn(signature, order_size_bytes, NULL)) ||
-		!(s = BN_bin2bn(signature + order_size_bytes, order_size_bytes, NULL))) {
-		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: BN_bin2bn");
-	}
-
+    
+    if (!(r = BN_bin2bn(signature, order_size_bytes, NULL)) ||
+        !(s = BN_bin2bn(signature + order_size_bytes, order_size_bytes, NULL))) {
+        THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: BN_bin2bn");
+    }
+    
     ECDSA_SIG_set0(ecdsa_sig.Get(), r, s);
+    
+#endif
 
 	LOG_INFO("DER-encode the signature");
 	byte* der = nullptr;
@@ -89,15 +103,31 @@ static Handle<std::string> ConvertDerSignatureToWebCryptoSignature(
 	hSignature->resize(order_size_bytes * 2);
 	byte *pSignature = (byte*)hSignature->c_str();
 
+#if NODE_MODULE_VERSION < 60
+    
+    if (!BN_bn2bin_padded(pSignature, order_size_bytes, ecdsa_sig.Get()->r)) {
+        THROW_OPENSSL("BN_bn2bin_padded");
+    }
+    if (!BN_bn2bin_padded(pSignature + order_size_bytes, order_size_bytes, ecdsa_sig.Get()->s)) {
+        THROW_OPENSSL("BN_bn2bin_padded");
+    }
+    
+#else
+    
+    // NODE v10
+    
     const BIGNUM *pr;
     const BIGNUM *ps;
     ECDSA_SIG_get0(ecdsa_sig.Get(), &pr, &ps);
     if (!BN_bn2binpad(pr, pSignature, order_size_bytes)) {
-		THROW_OPENSSL("BN_bn2bin_padded");
-	}
+        THROW_OPENSSL("BN_bn2bin_padded");
+    }
     if (!BN_bn2binpad(ps, pSignature + order_size_bytes, order_size_bytes)) {
-		THROW_OPENSSL("BN_bn2bin_padded");
-	}
+        THROW_OPENSSL("BN_bn2bin_padded");
+    }
+    
+#endif
+    
 
 	return hSignature;
 }

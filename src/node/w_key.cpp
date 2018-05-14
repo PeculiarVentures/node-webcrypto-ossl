@@ -84,10 +84,20 @@ NAN_METHOD(WKey::PublicExponent) {
     if (EVP_PKEY_base_id(wkey->data->Get()) != EVP_PKEY_RSA)
 		Nan::ThrowError("Key is not RSA");
 	else {
-        RSA *rsa = EVP_PKEY_get1_RSA(wkey->data->Get());
+        ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
 
+#if NODE_MODULE_VERSION < 60
+        
+        BIGNUM *e = rsa.Get()->e;
+        
+#else
+        
+        // NODE v10
+        
         const BIGNUM *e;
-    	RSA_get0_key(rsa, NULL, &e, NULL);
+        RSA_get0_key(rsa, NULL, &e, NULL);
+
+#endif
 
         v8::Local<v8::Object> v8Buffer = bn2buf2(e);
 		info.GetReturnValue().Set(v8Buffer);
