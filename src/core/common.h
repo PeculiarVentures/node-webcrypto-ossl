@@ -9,5 +9,6 @@
 #include "key_exp.h"
 #include "digest.h"
 #include "bn.h"
+#include <openssl/bn.h>
 
 #endif // OSSL_CORE_COMMON_H_INCLUDE

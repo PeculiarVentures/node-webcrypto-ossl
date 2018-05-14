@@ -44,3 +44,17 @@ v8::Local<v8::Object> bn2buf(BIGNUM* bn) {
 
 	return v8Buf;
 }
+
+v8::Local<v8::Object> bn2buf2(const BIGNUM* bn) {
+	LOG_FUNC();
+
+	int n = BN_num_bytes(bn);
+
+	v8::Local<v8::Object> v8Buf = Nan::NewBuffer(n).ToLocalChecked();
+	unsigned char* buf = (unsigned char*)node::Buffer::Data(v8Buf);
+	if (!BN_bn2bin(bn, buf)) {
+		THROW_OPENSSL("BN_bn2bin");
+	}
+
+	return v8Buf;
+}

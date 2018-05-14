@@ -31,7 +31,7 @@ function ab2b(ab: NodeBufferSource) {
         return ab;
     } else if (ArrayBuffer.isView(ab)) {
         // NOTE: ab.buffer can have another size than view after ArrayBufferView.subarray
-        return Buffer.from(ab.buffer, ab.byteOffset, ab.byteLength);
+        return Buffer.from(ab.buffer as ArrayBuffer, ab.byteOffset, ab.byteLength);
     } else {
         return Buffer.from(ab);
     }
@@ -289,7 +289,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         } else {
                             keyData = new Buffer(decryptedKey);
                         }
-                        return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm, extractable, keyUsages);
+                        return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm as string, extractable, keyUsages);
                     });
             });
     }
@@ -419,7 +419,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                     default:
                         throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, alg.name);
                 }
-                return AlgClass.importKey(format, dataAny, alg, extractable, keyUsages);
+                return AlgClass.importKey(format, dataAny as Buffer, alg as any, extractable, keyUsages);
             });
     }
 

@@ -8,6 +8,7 @@
 #include "../pbkdf2/common.h"
 
 v8::Local<v8::Object> bn2buf(BIGNUM* bn);
+v8::Local<v8::Object> bn2buf2(const BIGNUM* bn);
 Handle<std::string> v8Buffer_to_String(v8::Local<v8::Value> v8Buffer);
 Handle<std::string> v8Buffer_to_String(v8::Local<v8::Object> v8Buffer);
 v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer);

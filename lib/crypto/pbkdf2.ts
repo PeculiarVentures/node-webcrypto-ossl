@@ -59,7 +59,7 @@ export class Pbkdf2Crypto extends Core.BaseCrypto {
                     default:
                         throw new Core.AlgorithmError(Core.AlgorithmError.UNSUPPORTED_ALGORITHM, algorithm.name);
                 }
-                return CryptoClass.importKey("raw", new Buffer(raw), derivedKeyType, extractable, keyUsages);
+                return CryptoClass.importKey("raw", new Buffer(raw), derivedKeyType as any, extractable, keyUsages);
             });
     }
 
@@ -68,13 +68,13 @@ export class Pbkdf2Crypto extends Core.BaseCrypto {
             const alg = algorithm as Pbkdf2Params;
             const nativeKey = baseKey.native as native.Pbkdf2Key;
             const hash = Core.PrepareAlgorithm(alg.hash);
-            const salt = new Buffer(Core.PrepareData(alg.salt, "salt"));
+            const salt = new Buffer(Core.PrepareData(alg.salt!, "salt"));
             // derive bits
             nativeKey.deriveBits(this.wc2ssl(hash), salt, alg.iterations, length, (err, raw) => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(raw.buffer);
+                    resolve(raw.buffer as ArrayBuffer);
                 }
             });
         });

@@ -58,7 +58,7 @@ NAN_GETTER(WKey::Type) {
 	LOG_FUNC();
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
-	info.GetReturnValue().Set(Nan::New<v8::Number>(wkey->data->Get()->type));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(EVP_PKEY_base_id(wkey->data->Get())));
 }
 
 NAN_METHOD(WKey::ModulusLength) {
@@ -66,7 +66,7 @@ NAN_METHOD(WKey::ModulusLength) {
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 
-	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+    if (EVP_PKEY_base_id(wkey->data->Get()) != EVP_PKEY_RSA)
 		Nan::ThrowError("Key is not RSA");
 	else {
 		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
@@ -81,13 +81,25 @@ NAN_METHOD(WKey::PublicExponent) {
 
 	WKey *wkey = WKey::Unwrap<WKey>(info.This());
 
-	if (wkey->data->Get()->type != EVP_PKEY_RSA)
+    if (EVP_PKEY_base_id(wkey->data->Get()) != EVP_PKEY_RSA)
 		Nan::ThrowError("Key is not RSA");
 	else {
-		ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
+        ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
 
-		BIGNUM *public_exponent = rsa.Get()->e;
-		v8::Local<v8::Object> v8Buffer = bn2buf(public_exponent);
+#if NODE_MODULE_VERSION < 60
+        
+        BIGNUM *e = rsa.Get()->e;
+        
+#else
+        
+        // NODE v10
+        
+        const BIGNUM *e;
+        RSA_get0_key(rsa.Get(), NULL, &e, NULL);
+
+#endif
+
+        v8::Local<v8::Object> v8Buffer = bn2buf2(e);
 		info.GetReturnValue().Set(v8Buffer);
 	}
 }
@@ -126,7 +138,7 @@ NAN_METHOD(WKey::ExportJwk) {
 
 	int key_type = Nan::To<int>(info[0]).FromJust();
 
-	switch (wkey->data->Get()->type) {
+    switch (EVP_PKEY_base_id(wkey->data->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -147,7 +159,7 @@ NAN_METHOD(WKey::ExportJwk) {
 
 	Nan::Callback *callback = !info[1]->IsUndefined() ? new Nan::Callback(info[1].As<v8::Function>()) : NULL;
 
-	switch (wkey->data->Get()->type) {
+    switch (EVP_PKEY_base_id(wkey->data->Get())) {
 	case EVP_PKEY_RSA: {
 		if (callback)
 			Nan::AsyncQueueWorker(new AsyncExportJwkRsa(callback, key_type, wkey->data));
@@ -255,7 +267,7 @@ NAN_METHOD(WKey::ImportJwk) {
 	int key_type = Nan::To<int>(info[1]).FromJust();
 
 	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
-	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
+	Nan::Utf8String v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
 
 	if (!(strcmp(*v8Kty, JWK_KTY_RSA) == 0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)) {
 		v8::Local<v8::Value> argv[] = {
@@ -337,7 +349,7 @@ NAN_METHOD(WKey::Sign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -352,7 +364,7 @@ NAN_METHOD(WKey::Sign) {
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
 	LOG_INFO("Check key RSA, EC");
-	switch (pkey->Get()->type) {
+    switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -366,7 +378,7 @@ NAN_METHOD(WKey::Sign) {
 	}
 
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
-	switch (pkey->Get()->type) {
+    switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 		Nan::AsyncQueueWorker(new AsyncSignRsa(callback, md, pkey, hBio));
 		break;
@@ -386,7 +398,7 @@ NAN_METHOD(WKey::Verify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -404,7 +416,7 @@ NAN_METHOD(WKey::Verify) {
 	Handle<ScopedEVP_PKEY> pkey = wkey->data;
 
 	LOG_INFO("Check key RSA, EC");
-	switch (pkey->Get()->type) {
+	switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 	case EVP_PKEY_EC:
 		break;
@@ -419,7 +431,7 @@ NAN_METHOD(WKey::Verify) {
 	}
 
 	Nan::Callback *callback = new Nan::Callback(info[3].As<v8::Function>());
-	switch (pkey->Get()->type) {
+	switch (EVP_PKEY_base_id(pkey->Get())) {
 	case EVP_PKEY_RSA:
 		Nan::AsyncQueueWorker(new AsyncVerifyRsa(callback, md, pkey, data, sig));
 		break;
@@ -440,7 +452,7 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -478,7 +490,7 @@ NAN_METHOD(WKey::RsaPssSign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -511,7 +523,7 @@ NAN_METHOD(WKey::RsaPssVerify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");

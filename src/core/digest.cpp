@@ -13,7 +13,7 @@ Handle<std::string> digest(const EVP_MD *md, Handle<std::string> hBuffer) {
 	int buflen = (int)hBuffer->length();
 
 	Handle<std::string> hDigest(new std::string());
-	hDigest->resize(md->md_size);
+	hDigest->resize(EVP_MD_size(md));
 	byte* digest = (byte*)hDigest->c_str();
 
 	if (!EVP_Digest(buf, buflen, digest, NULL, md, NULL)) {

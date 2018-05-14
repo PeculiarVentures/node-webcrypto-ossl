@@ -1,5 +1,8 @@
 #include "bn.h"
 #include <string.h>
+#include <node.h>
+
+#if NODE_MODULE_VERSION < 60
 
 /* OpenSSL does not currently have BN_bn2bin_padded for
  * now we will use this copy of that function.
@@ -71,3 +74,13 @@ int BN_bn2bin_padded(uint8_t *out, size_t len, const BIGNUM *in) {
 }
 
 /*  End Block of BoringSSL Code  */
+
+#else
+
+// NODE v10
+
+int BN_bn2bin_padded(uint8_t *out, size_t len, const BIGNUM *in) {
+    return 0;
+}
+
+#endif

@@ -1,4 +1,5 @@
 #include "aes_def.h"
+#include <openssl/modes.h>
 
 // code from stackoverflow
 // https://stackoverflow.com/questions/3141860/aes-ctr-256-encryption-mode-of-operation-on-openssl
@@ -77,7 +78,7 @@ Handle<std::string> AES_CTR_encrypt
 	hOutput->resize(datalen);
 	unsigned char *output = (unsigned char*)hOutput->c_str();
 
-    AES_ctr128_encrypt(data, output, datalen, &aesKey, state.ivec, state.ecount, &state.num);
+    CRYPTO_ctr128_encrypt(data, output, datalen, &aesKey, state.ivec, state.ecount, &state.num, (block128_f) AES_encrypt);
 
 	LOG_INFO("Resize output");
 

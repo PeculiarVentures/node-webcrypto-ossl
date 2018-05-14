@@ -52,42 +52,42 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 
     class Key {
-        type: number;
-        modulusLength(): number;
-        publicExponent(): Buffer;
-        exportJwk(keyType: KeyType, callback: (err: Error, jwk: any) => void): void;
-        exportJwk(keyType: KeyType): any;
-        exportSpki(callback: (err: Error, raw: Buffer) => void): void;
-        exportPkcs8(callback: (err: Error, raw: Buffer) => void): void;
-        sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void;
-        verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void;
-        RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer | null, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
-        RsaPssSign(digestName: string, saltLength: number, data: Buffer, cb: (err: Error, signature: Buffer) => void): void;
-        RsaPssVerify(digestName: string, saltLength: number, data: Buffer, signature: Buffer, cb: (err: Error, verified: boolean) => void): void;
-        EcdhDeriveKey(pubkey: Key, derivedLen: number, callback: (err: Error, raw: Buffer) => void): void;
-        EcdhDeriveBits(pubkey: Key, lengthBits: number, callback: (err: Error, raw: Buffer) => void): void;
-        static generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: Key) => void): void;
-        static generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: Key) => void): void;
-        static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
-        static importJwk(jwk: {
-            [key: string]: Buffer;
-        }, keyType: KeyType): any;
-        static importSpki(raw: Buffer, callback: (err: Error, key: Key) => void): void;
-        static importPkcs8(raw: Buffer, callback: (err: Error, key: Key) => void): void;
+        public static generateRsa(modulus: number, publicExponent: RsaPublicExponent, callback: (err: Error, key: Key) => void): void;
+        public static generateEc(namedCurve: EcNamedCurves, callback: (err: Error, key: Key) => void): void;
+        public static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
+        public static importJwk(jwk: { [key: string]: Buffer; }, keyType: KeyType): any;
+        public static importSpki(raw: Buffer, callback: (err: Error, key: Key) => void): void;
+        public static importPkcs8(raw: Buffer, callback: (err: Error, key: Key) => void): void;
+
+        public type: number;
+
+        public modulusLength(): number;
+        public publicExponent(): Buffer;
+        public exportJwk(keyType: KeyType, callback: (err: Error, jwk: any) => void): void;
+        public exportJwk(keyType: KeyType): any;
+        public exportSpki(callback: (err: Error, raw: Buffer) => void): void;
+        public exportPkcs8(callback: (err: Error, raw: Buffer) => void): void;
+        public sign(digestName: string, message: Buffer, callback: (err: Error, signature: Buffer) => void): void;
+        public verify(digestName: string, message: Buffer, signature: Buffer, callback: (err: Error, valid: boolean) => void): void;
+        public RsaOaepEncDec(digestName: string, data: Buffer, label: Buffer | null, decrypt: boolean, callback: (err: Error, raw: Buffer) => void): void;
+        public RsaPssSign(digestName: string, saltLength: number, data: Buffer, cb: (err: Error, signature: Buffer) => void): void;
+        public RsaPssVerify(digestName: string, saltLength: number, data: Buffer, signature: Buffer, cb: (err: Error, verified: boolean) => void): void;
+        public EcdhDeriveKey(pubkey: Key, derivedLen: number, callback: (err: Error, raw: Buffer) => void): void;
+        public EcdhDeriveBits(pubkey: Key, lengthBits: number, callback: (err: Error, raw: Buffer) => void): void;
     }
 
     class AesKey {
-        static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
-        encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
-        encryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
-        decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
-        decryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
-        export(callback: (err: Error, raw: Buffer) => void): void;
-        static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
+        public static generate(keySize: number, callback: (err: Error, key: AesKey) => void): void;
+        public static import(raw: Buffer, callback: (err: Error, key: AesKey) => void): void;
+        public encrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
+        public encryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
+        public decrypt(cipher: string, iv: Buffer, input: Buffer, callback: (err: Error, data: Buffer) => void): void;
+        public decryptGcm(iv: Buffer, input: Buffer, aad: Buffer | undefined, tag: number, callback: (err: Error, data: Buffer) => void): void;
+        public export(callback: (err: Error, raw: Buffer) => void): void;
     }
 
     class Core {
-        static digest(digestName: string, messgae: Buffer, callback: (err: Error, digest: Buffer) => void): void;
+        public static digest(digestName: string, messgae: Buffer, callback: (err: Error, digest: Buffer) => void): void;
     }
 
     interface CryptoKeyPair extends NativeCryptoKeyPair {
@@ -96,12 +96,12 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 
     class CryptoKey implements NativeCryptoKey {
-        type: string;
-        extractable: boolean;
-        algorithm: Algorithm;
-        usages: string[];
+        public type: string;
+        public extractable: boolean;
+        public algorithm: Algorithm;
+        public usages: string[];
+        public readonly native: AesKey | Key;
         private native_: AesKey | Key;
-        readonly native: AesKey | Key;
         constructor(key: AesKey | Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
     }
 
@@ -112,23 +112,23 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 
     class KeyStorage {
+        public readonly length: number;
         protected directory: string;
         protected keys: {
             [key: string]: IKeyStorageItem;
         };
         constructor(directory: string);
+        public clear(): void;
+        public getItem(key: string): CryptoKey | null;
+        public key(index: number): string;
+        public removeItem(key: string): void;
+        public setItem(key: string, data: CryptoKey): void;
+        protected getItemById(id: string): IKeyStorageItem;
         protected createDirectory(directory: string, flags?: any): void;
         protected readFile(file: string): IKeyStorageItem | null;
         protected readDirectory(): void;
         protected saveFile(key: IKeyStorageItem): void;
         protected removeFile(key: IKeyStorageItem): void;
-        readonly length: number;
-        clear(): void;
-        protected getItemById(id: string): IKeyStorageItem;
-        getItem(key: string): CryptoKey | null;
-        key(index: number): string;
-        removeItem(key: string): void;
-        setItem(key: string, data: CryptoKey): void;
     }
 
     interface WebCryptoOptions {
@@ -136,24 +136,24 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 
     class SubtleCrypto extends WebcryptoCore.SubtleCrypto {
-        digest(algorithm: AlgorithmIdentifier, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
-        generateKey(algorithm: string, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair | CryptoKey>;
-        generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams | DhKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair>;
-        generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-        sign(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
-        verify(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean>;
-        encrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
-        decrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
-        wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier): PromiseLike<ArrayBuffer>;
-        unwrapKey(format: string, wrappedKey: NodeBufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-        deriveKey(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: string | AesDerivedKeyParams | HmacImportParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-        deriveBits(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer>;
-        exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
-        exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
-        exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
-        importKey(format: "jwk", keyData: JsonWebKey, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-        importKey(format: "raw" | "pkcs8" | "spki", keyData: NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
-        importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public digest(algorithm: AlgorithmIdentifier, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+        public generateKey(algorithm: string, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair | CryptoKey>;
+        public generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams | DhKeyGenParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair>;
+        public generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public sign(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+        public verify(algorithm: string | RsaPssParams | EcdsaParams | AesCmacParams, key: CryptoKey, signature: NodeBufferSource, data: NodeBufferSource): PromiseLike<boolean>;
+        public encrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+        public decrypt(algorithm: string | RsaOaepParams | AesCtrParams | AesCbcParams | AesCmacParams | AesGcmParams | AesCfbParams, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer>;
+        public wrapKey(format: string, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier): PromiseLike<ArrayBuffer>;
+        public unwrapKey(format: string, wrappedKey: NodeBufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier, unwrappedKeyAlgorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public deriveKey(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: string | AesDerivedKeyParams | HmacImportParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public deriveBits(algorithm: string | EcdhKeyDeriveParams | DhKeyDeriveParams | ConcatParams | HkdfCtrParams | Pbkdf2Params, baseKey: CryptoKey, length: number): PromiseLike<ArrayBuffer>;
+        public exportKey(format: "jwk", key: CryptoKey): PromiseLike<JsonWebKey>;
+        public exportKey(format: "raw" | "pkcs8" | "spki", key: CryptoKey): PromiseLike<ArrayBuffer>;
+        public exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer>;
+        public importKey(format: "jwk", keyData: JsonWebKey, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public importKey(format: "raw" | "pkcs8" | "spki", keyData: NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
+        public importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey>;
     }
 
     /**
@@ -173,8 +173,7 @@ declare namespace NodeWebcryptoOpenSSL {
          * Generates cryptographically random values
          * @param array Initialize array
          */
-        public getRandomValues(array: NodeBufferSource): NodeBufferSource;
-        public getRandomValues(array: ArrayBufferView): ArrayBufferView;
+        public getRandomValues(array: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null): Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null;
 
     }
 }

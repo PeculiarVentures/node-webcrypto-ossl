@@ -80,7 +80,7 @@ export class AesCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(data.buffer);
+                            resolve(data.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -119,7 +119,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     } else {
@@ -127,7 +127,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     }
@@ -141,7 +141,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     } else {
@@ -149,7 +149,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     }
@@ -163,7 +163,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     } else {
@@ -171,7 +171,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     }
@@ -183,7 +183,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     } else {
@@ -191,7 +191,7 @@ export class AesCrypto extends BaseCrypto {
                             if (err) {
                                 reject(err);
                             } else {
-                                resolve(data2.buffer);
+                                resolve(data2.buffer as ArrayBuffer);
                             }
                         });
                     }
@@ -221,7 +221,7 @@ export class AesCrypto extends BaseCrypto {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(data2);
+                    resolve(new Uint8Array(data2).buffer as ArrayBuffer);
                 }
             });
         });

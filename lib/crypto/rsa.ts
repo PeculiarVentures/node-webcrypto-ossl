@@ -1,8 +1,5 @@
 // Core
-import * as webcrypto from "webcrypto-core";
-const WebCryptoError = webcrypto.WebCryptoError;
-const BaseCrypto = webcrypto.BaseCrypto;
-const Base64Url = webcrypto.Base64Url;
+import { Base64Url, BaseCrypto, WebCryptoError } from "webcrypto-core";
 
 // Local
 import { CryptoKey } from "../key";
@@ -44,7 +41,7 @@ export abstract class RsaCrypto extends BaseCrypto {
         });
     }
 
-    public static importKey(format: string, keyData: JsonWebKey | BufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
         let keyType = native.KeyType.PUBLIC;
         const alg: any = algorithm;
         return new Promise((resolve, reject) => {
@@ -88,7 +85,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         keyType = native.KeyType.PRIVATE;
                         importFunction = native.Key.importPkcs8;
                     }
-                    importFunction(<Buffer> keyData, (err, key) => {
+                    importFunction(<Buffer>keyData, (err, key) => {
                         try {
                             if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
@@ -104,16 +101,16 @@ export abstract class RsaCrypto extends BaseCrypto {
                     throw new WebCryptoError(`ImportKey: Wrong format value '${format}'`);
             }
         })
-        .then((key: native.Key) => {
-            alg.modulusLength = key.modulusLength() << 3;
-            alg.publicExponent = new Uint8Array(key.publicExponent());
-            return new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
-        });
+            .then((key: native.Key) => {
+                alg.modulusLength = key.modulusLength() << 3;
+                alg.publicExponent = new Uint8Array(key.publicExponent());
+                return new CryptoKey(key, alg, keyType ? "private" : "public", extractable, keyUsages);
+            });
     }
 
     public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            const nativeKey = <native.Key> key.native;
+            const nativeKey = <native.Key>key.native;
             const type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":
@@ -144,7 +141,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -153,7 +150,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -176,7 +173,7 @@ export class RsaPKCS1 extends RsaCrypto {
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
                     const reg = /(\d+)$/;
-                    jwk.alg = "RS" + reg.exec((key.algorithm as any).hash.name) ![1];
+                    jwk.alg = "RS" + reg.exec((key.algorithm as any).hash.name)![1];
                     jwk.ext = true;
                     if (key.type === "public") {
                         jwk.key_ops = ["verify"];
@@ -195,7 +192,7 @@ export class RsaPKCS1 extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });
@@ -229,7 +226,7 @@ export class RsaPSS extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });
@@ -255,7 +252,7 @@ export class RsaPSS extends RsaCrypto {
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
                     const reg = /(\d+)$/;
-                    jwk.alg = "PS" + reg.exec((key.algorithm as any).hash.name) ![1];
+                    jwk.alg = "PS" + reg.exec((key.algorithm as any).hash.name)![1];
                     jwk.ext = true;
                     if (key.type === "public") {
                         jwk.key_ops = ["verify"];
@@ -274,7 +271,7 @@ export class RsaOAEP extends RsaCrypto {
             .then((jwk: JsonWebKey) => {
                 if (format === "jwk") {
                     jwk.alg = "RSA-OAEP";
-                    const mdSize = /(\d+)$/.exec((key.algorithm as any).hash.name) ![1];
+                    const mdSize = /(\d+)$/.exec((key.algorithm as any).hash.name)![1];
                     if (mdSize !== "1") {
                         jwk.alg += "-" + mdSize;
                     }
@@ -311,7 +308,7 @@ export class RsaOAEP extends RsaCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err));
                 } else {
-                    resolve(res.buffer);
+                    resolve(res.buffer as ArrayBuffer);
                 }
             });
         });

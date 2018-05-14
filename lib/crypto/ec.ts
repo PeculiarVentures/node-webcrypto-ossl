@@ -222,7 +222,7 @@ export class EcCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -231,7 +231,7 @@ export class EcCrypto extends BaseCrypto {
                         if (err) {
                             reject(err);
                         } else {
-                            resolve(raw.buffer);
+                            resolve(raw.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -267,7 +267,7 @@ export class EcCrypto extends BaseCrypto {
                             rawKey.set(x, 1);
                             rawKey.set(y, 1 + x.length);
 
-                            resolve(rawKey.buffer);
+                            resolve(rawKey.buffer as ArrayBuffer);
                         }
                     });
                     break;
@@ -286,7 +286,7 @@ export class EcCrypto extends BaseCrypto {
                 if (err) {
                     reject(new WebCryptoError("NativeError: " + err.message));
                 } else {
-                    resolve(signature.buffer);
+                    resolve(signature.buffer as ArrayBuffer);
                 }
             });
         });
@@ -328,7 +328,7 @@ export class EcCrypto extends BaseCrypto {
                 if (err) {
                     reject(err);
                 } else {
-                    AesClass.importKey("raw", raw, algDerivedKeyType, extractable, keyUsages)
+                    AesClass.importKey("raw", raw, algDerivedKeyType as any, extractable, keyUsages)
                         .then(resolve, reject);
                 }
             });
@@ -344,7 +344,7 @@ export class EcCrypto extends BaseCrypto {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(raw.buffer);
+                    resolve(raw.buffer as ArrayBuffer);
                 }
             });
         });
