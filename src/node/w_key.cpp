@@ -257,7 +257,7 @@ NAN_METHOD(WKey::ImportJwk) {
 	int key_type = Nan::To<int>(info[1]).FromJust();
 
 	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
-	v8::String::Utf8Value v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
+	Nan::Utf8String v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
 
 	if (!(strcmp(*v8Kty, JWK_KTY_RSA) == 0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)) {
 		v8::Local<v8::Value> argv[] = {
@@ -339,7 +339,7 @@ NAN_METHOD(WKey::Sign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -388,7 +388,7 @@ NAN_METHOD(WKey::Verify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -442,7 +442,7 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -480,7 +480,7 @@ NAN_METHOD(WKey::RsaPssSign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -513,7 +513,7 @@ NAN_METHOD(WKey::RsaPssVerify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
