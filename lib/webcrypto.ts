@@ -36,17 +36,18 @@ class WebCrypto implements NativeCrypto {
      * @param array Initialize array
      */
     // Based on: https://github.com/KenanY/get-random-values
-    public getRandomValues(array: NodeBufferSource): NodeBufferSource;
-    public getRandomValues(array: ArrayBufferView): ArrayBufferView;
-    public getRandomValues(array: NodeBufferSource): NodeBufferSource {
-        if (array.byteLength > 65536) {
-            const error = new webcrypto.WebCryptoError(ERR_RANDOM_VALUE_LENGTH, array.byteLength);
-            error.code = 22;
-            throw error;
+    public getRandomValues(array: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null): Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null {
+        if (array) {
+            if (array.byteLength > 65536) {
+                const error = new webcrypto.WebCryptoError(ERR_RANDOM_VALUE_LENGTH, array.byteLength);
+                error.code = 22;
+                throw error;
+            }
+            const bytes = crypto.randomBytes(array.byteLength);
+            (array as Uint8Array).set(new (<typeof Uint8Array>array.constructor)(bytes.buffer));
+            return array;
         }
-        const bytes = crypto.randomBytes(array.byteLength);
-        (array as Uint8Array).set(new (<typeof Uint8Array>array.constructor)(bytes.buffer));
-        return array;
+        return null;
     }
 
 }
