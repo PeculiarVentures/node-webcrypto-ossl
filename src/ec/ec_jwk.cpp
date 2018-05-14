@@ -12,7 +12,7 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	if (pkey == nullptr) {
 		THROW_ERROR("Key value is nullptr");
 	}
-	if (pkey->Get()->type != EVP_PKEY_EC) {
+    if (EVP_PKEY_base_id(pkey->Get()) != EVP_PKEY_EC) {
 		THROW_ERROR("Key is not EC type");
 	}
 
@@ -26,7 +26,7 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	const EC_GROUP *group = nullptr;
 
 	LOG_INFO("Convert EC to JWK");
-	ec = pkey->Get()->pkey.ec;
+    ec = EVP_PKEY_get1_EC_KEY(pkey->Get());
 
 	point = EC_KEY_get0_public_key(const_cast<const EC_KEY*>(ec));
 	group = EC_KEY_get0_group(ec);

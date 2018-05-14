@@ -43,7 +43,7 @@ NAN_METHOD(WCore::Digest) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	Handle<std::string> hDigestName(new std::string(*v8DigestName));
 
 	LOG_INFO("message");

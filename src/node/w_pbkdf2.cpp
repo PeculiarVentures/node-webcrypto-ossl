@@ -61,7 +61,7 @@ NAN_METHOD(WPbkdf2::DeriveBits) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 
 	LOG_INFO("salt");

@@ -87,7 +87,7 @@ NAN_METHOD(WHmac::Sign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -127,7 +127,7 @@ NAN_METHOD(WHmac::Verify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	v8::String::Utf8Value v8DigestName(info[0]->ToString());
+	Nan::Utf8String v8DigestName(info[0]->ToString());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");

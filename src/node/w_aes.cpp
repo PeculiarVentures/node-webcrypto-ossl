@@ -68,7 +68,7 @@ NAN_METHOD(WAes::Encrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("cipher");
-	v8::String::Utf8Value v8Cipher(info[0]->ToString());
+	Nan::Utf8String v8Cipher(info[0]->ToString());
 
 	LOG_INFO("iv");
 	Handle<std::string> hIv = v8Buffer_to_String(info[1]);
@@ -101,7 +101,7 @@ NAN_METHOD(WAes::Decrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("cipher");
-	v8::String::Utf8Value v8Cipher(info[0]->ToString());
+	Nan::Utf8String v8Cipher(info[0]->ToString());
 
 	LOG_INFO("iv");
 	Handle<std::string> hIv = v8Buffer_to_String(info[1]);

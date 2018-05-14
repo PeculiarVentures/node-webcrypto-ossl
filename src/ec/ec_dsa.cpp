@@ -6,7 +6,7 @@ static size_t GetEcGroupOrderSize(EVP_PKEY* pkey) {
 	if (!pkey)
 		THROW_ERROR("GetEcGroupOrderSize: Key is nullptr");
 
-	EC_KEY *ec = pkey->pkey.ec;
+	EC_KEY *ec = EVP_PKEY_get1_EC_KEY(pkey);
 	if (!ec)
 		THROW_ERROR("GetEcGroupOrderSize: Key is not EC");
 
@@ -46,11 +46,14 @@ static Handle<std::string> ConvertWebCryptoSignatureToDerSignature(
 	if (ecdsa_sig.isEmpty())
 		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: ECDSA_SIG_new");
 
-	if (!BN_bin2bn(signature, order_size_bytes, ecdsa_sig.Get()->r) ||
-		!BN_bin2bn(signature + order_size_bytes, order_size_bytes,
-			ecdsa_sig.Get()->s)) {
+    BIGNUM *r, *s;
+
+	if (!(r = BN_bin2bn(signature, order_size_bytes, NULL)) ||
+		!(s = BN_bin2bn(signature + order_size_bytes, order_size_bytes, NULL))) {
 		THROW_OPENSSL("ConvertWebCryptoSignatureToDerSignature: BN_bin2bn");
 	}
+
+    ECDSA_SIG_set0(ecdsa_sig.Get(), r, s);
 
 	LOG_INFO("DER-encode the signature");
 	byte* der = nullptr;
@@ -86,10 +89,13 @@ static Handle<std::string> ConvertDerSignatureToWebCryptoSignature(
 	hSignature->resize(order_size_bytes * 2);
 	byte *pSignature = (byte*)hSignature->c_str();
 
-	if (!BN_bn2bin_padded(pSignature, order_size_bytes, ecdsa_sig.Get()->r)) {
+    const BIGNUM *pr;
+    const BIGNUM *ps;
+    ECDSA_SIG_get0(ecdsa_sig.Get(), &pr, &ps);
+    if (!BN_bn2binpad(pr, pSignature, order_size_bytes)) {
 		THROW_OPENSSL("BN_bn2bin_padded");
 	}
-	if (!BN_bn2bin_padded(pSignature + order_size_bytes, order_size_bytes, ecdsa_sig.Get()->s)) {
+    if (!BN_bn2binpad(ps, pSignature + order_size_bytes, order_size_bytes)) {
 		THROW_OPENSSL("BN_bn2bin_padded");
 	}
 
