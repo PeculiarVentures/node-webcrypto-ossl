@@ -95,7 +95,7 @@ NAN_METHOD(WKey::PublicExponent) {
         // NODE v10
         
         const BIGNUM *e;
-        RSA_get0_key(rsa, NULL, &e, NULL);
+        RSA_get0_key(rsa.Get(), NULL, &e, NULL);
 
 #endif
 
