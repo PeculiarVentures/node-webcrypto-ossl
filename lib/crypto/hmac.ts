@@ -64,7 +64,7 @@ export class HmacCrypto extends BaseCrypto {
                     const jwk: JsonWebKey = {
                         kty: "oct",
                         alg: "",
-                        key_ops: ["sign", "verify"],
+                        key_ops: key.usages,
                         k: "",
                         ext: true,
                     };

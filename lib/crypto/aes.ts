@@ -60,7 +60,7 @@ export class AesCrypto extends BaseCrypto {
                     const jwk: JsonWebKey = {
                         kty: "oct",
                         alg: "",
-                        key_ops: ["encrypt", "decrypt", "wrapKey", "unwrapKey"],
+                        key_ops: key.usages,
                         k: "",
                         ext: true,
                     };
