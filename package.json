@@ -41,7 +41,7 @@
     "mkdirp": "^0.5.1",
     "nan": "^2.10.0",
     "tslib": "^1.9.0",
-    "webcrypto-core": "^0.1.22"
+    "webcrypto-core": "^0.1.25"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.5.2",
