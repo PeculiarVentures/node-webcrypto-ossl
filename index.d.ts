@@ -1,5 +1,6 @@
 /// <reference types="node" />
 /// <reference types="webcrypto-core" />
+/// <reference lib="dom" />
 
 declare namespace NodeWebcryptoOpenSSL {
 
@@ -44,11 +45,6 @@ declare namespace NodeWebcryptoOpenSSL {
     enum RsaPublicExponent {
         RSA_3 = 0,
         RSA_F4 = 1,
-    }
-
-    enum KeyType {
-        PUBLIC = 0,
-        PRIVATE = 1,
     }
 
     class Key {
@@ -96,10 +92,10 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 
     class CryptoKey implements NativeCryptoKey {
-        public type: string;
+        public type: KeyType;
         public extractable: boolean;
         public algorithm: Algorithm;
-        public usages: string[];
+        public usages: KeyUsage[];
         public readonly native: AesKey | Key;
         private native_: AesKey | Key;
         constructor(key: AesKey | Key, alg: Algorithm, type: string, extractable: boolean, keyUsages: string[]);
@@ -173,7 +169,7 @@ declare namespace NodeWebcryptoOpenSSL {
          * Generates cryptographically random values
          * @param array Initialize array
          */
-        public getRandomValues(array: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null): Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null;
+        public getRandomValues<T extends Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | null>(array: T): T;
 
     }
 }
