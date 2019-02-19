@@ -2,7 +2,7 @@
 #include <string.h>
 #include <node.h>
 
-#if NODE_MODULE_VERSION < 60
+#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
 
 /* OpenSSL does not currently have BN_bn2bin_padded for
  * now we will use this copy of that function.
