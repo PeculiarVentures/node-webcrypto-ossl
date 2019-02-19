@@ -1,6 +1,6 @@
 {
   "name": "node-webcrypto-ossl",
-  "version": "1.0.41",
+  "version": "1.0.42",
   "repository": {
     "type": "git",
     "url": "https://github.com/PeculiarVentures/node-webcrypto-ossl.git"
