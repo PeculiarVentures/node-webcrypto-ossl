@@ -97,7 +97,7 @@ Handle<ScopedEVP_PKEY> JwkEc::To(int &key_type) {
 	LOG_INFO("set internal key");
 	Handle<ScopedEVP_PKEY> new_key(new ScopedEVP_PKEY(EVP_PKEY_new()));
 	EVP_PKEY_assign_EC_KEY(new_key->Get(), ec_key.Get());
-	ec_key.unref();
+    ec_key.unref();
 
 	return new_key;
 }

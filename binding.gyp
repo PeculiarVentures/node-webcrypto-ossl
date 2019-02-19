@@ -1,7 +1,8 @@
 {
     "variables": {
         'runtime%': 'node', 
-        'openssl_dir%': '<(node_root_dir)/deps/openssl/openssl'
+        'openssl_dir%': '<(node_root_dir)/deps/openssl/openssl',
+        'openssl_1_0_2%': 0
     },
     "targets": [
         {
@@ -62,6 +63,9 @@
             "conditions": [
                 [
                     'runtime != "node"', {
+                        'defines': [
+                            'OPENSSL_1_0_2=<(openssl_1_0_2)'
+                        ],
                         'conditions': [
                             [
                                 'OS == "win"', {

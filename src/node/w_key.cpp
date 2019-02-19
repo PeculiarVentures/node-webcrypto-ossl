@@ -86,7 +86,7 @@ NAN_METHOD(WKey::PublicExponent) {
 	else {
         ScopedRSA rsa(EVP_PKEY_get1_RSA(wkey->data->Get()));
 
-#if NODE_MODULE_VERSION < 60
+#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
         
         BIGNUM *e = rsa.Get()->e;
         

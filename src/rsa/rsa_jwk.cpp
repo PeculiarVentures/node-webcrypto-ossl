@@ -25,7 +25,7 @@ Handle<JwkRsa> JwkRsa::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	jwk->type = key_type;
 	LOG_INFO("Get RSA public key");
 
-#if NODE_MODULE_VERSION < 60
+#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
 
     jwk->n = BN_dup(rsa->n);
     jwk->e = BN_dup(rsa->e);
@@ -81,7 +81,7 @@ Handle<ScopedEVP_PKEY> JwkRsa::To(int &key_type) {
 
 	LOG_INFO("set public key");
 
-#if NODE_MODULE_VERSION < 60
+#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
     
     rsa_key->n = BN_dup(this->n.Get());
     rsa_key->e = BN_dup(this->e.Get());
