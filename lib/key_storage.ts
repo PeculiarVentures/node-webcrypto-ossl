@@ -52,7 +52,7 @@ function jwkBase64ToBuffer(jwk: IKeyStorageItem): IKeyStorageItem {
 
 /**
  * Manage keys in folder
- * 
+ *
  * @export
  * @class KeyStorage
  */
@@ -63,7 +63,7 @@ export class KeyStorage {
 
     /**
      * Creates an instance of KeyStorage.
-     * 
+     *
      * @param {string} directory Path to directory
      */
     constructor(directory: string) {
@@ -98,9 +98,9 @@ export class KeyStorage {
     }
 
     /**
-     * Returns a CryptoKey from storage by name 
-     * 
-     * @param {string} key Name of 
+     * Returns a CryptoKey from storage by name
+     *
+     * @param {string} key Name of
      * @returns {CryptoKey}
      */
     public getItem(key: string): CryptoKey | null {
@@ -133,8 +133,8 @@ export class KeyStorage {
     }
 
     /**
-     * Removes key from Storage 
-     * 
+     * Removes key from Storage
+     *
      * @param {string} key Name of key in Storage
      */
     public removeItem(key: string): void {
@@ -181,8 +181,8 @@ export class KeyStorage {
 
     /**
      * Read JWK file.
-     * If file doesn't have IKeyStorageItem data returns Null 
-     * 
+     * If file doesn't have IKeyStorageItem data returns Null
+     *
      * @protected
      * @param {string} file Path to file
      * @returns {IKeyStorageItem}
@@ -209,8 +209,8 @@ export class KeyStorage {
     }
 
     /**
-     * Read all files from folder and push Keys to internal field "keys" 
-     * 
+     * Read all files from folder and push Keys to internal field "keys"
+     *
      * @protected
      */
     protected readDirectory() {
@@ -234,8 +234,8 @@ export class KeyStorage {
     }
 
     /**
-     * Save file to directory  
-     * 
+     * Save file to directory
+     *
      * @protected
      * @param {IKeyStorageItem} key
      */
@@ -258,8 +258,8 @@ export class KeyStorage {
     }
 
     /**
-     * Returns amount fo key in storage 
-     * 
+     * Returns amount fo key in storage
+     *
      * @readonly
      * @type {number}
      */

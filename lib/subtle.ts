@@ -15,7 +15,7 @@ import { CryptoKey, CryptoKeyPair } from "./key";
 import * as native from "./native";
 
 /**
- * Prepare array of data before it's using 
+ * Prepare array of data before it's using
  * @param data Array which must be prepared
  */
 function PrepareData(data: NodeBufferSource): Buffer {
@@ -48,15 +48,15 @@ function ab2b(ab: NodeBufferSource) {
 export class SubtleCrypto extends webcrypto.SubtleCrypto {
     /**
      * Computes a digest
-     * 
+     *
      * > Note: Has difference from W3 WebCrypto API
      * > - Supports Buffer
-     * > - Supports SHA-1, SHA-224, SAH-256, SHA-384, SHA-512 algorithms 
-     * 
+     * > - Supports SHA-1, SHA-224, SAH-256, SHA-384, SHA-512 algorithms
+     *
      * @param {AlgorithmIdentifier} algorithm
      * @param {NodeSourceBuffer} data
      * @returns {PromiseLike<ArrayBuffer>}
-     * 
+     *
      * @memberOf SubtleCrypto
      */
     public digest(algorithm: AlgorithmIdentifier, data: NodeBufferSource): PromiseLike<ArrayBuffer> {

@@ -11,7 +11,7 @@ function b64_decode(b64url: string): Buffer {
 
 export abstract class RsaCrypto extends BaseCrypto {
 
-    public static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
+    public static generateKey(algorithm: any, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
             const size = algorithm.modulusLength;
             const exp = new Buffer(algorithm.publicExponent);
@@ -26,9 +26,9 @@ export abstract class RsaCrypto extends BaseCrypto {
                         reject(new WebCryptoError(`Rsa: Can not generate new key\n${err.message}`));
                     } else {
                         const prvUsages = ["sign", "decrypt", "unwrapKey"]
-                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
+                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage)) as KeyUsage[];
                         const pubUsages = ["verify", "encrypt", "wrapKey"]
-                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
+                            .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage)) as KeyUsage[];
                         resolve({
                             privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
                             publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages),
@@ -41,7 +41,7 @@ export abstract class RsaCrypto extends BaseCrypto {
         });
     }
 
-    public static importKey(format: string, keyData: JsonWebKey | Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<CryptoKey> {
         let keyType = native.KeyType.PUBLIC;
         const alg: any = algorithm;
         return new Promise((resolve, reject) => {
@@ -85,7 +85,7 @@ export abstract class RsaCrypto extends BaseCrypto {
                         keyType = native.KeyType.PRIVATE;
                         importFunction = native.Key.importPkcs8;
                     }
-                    importFunction(<Buffer>keyData, (err, key) => {
+                    importFunction(keyData as Buffer, (err, key) => {
                         try {
                             if (err) {
                                 reject(new WebCryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
@@ -110,7 +110,7 @@ export abstract class RsaCrypto extends BaseCrypto {
 
     public static exportKey(format: string, key: CryptoKey): PromiseLike<JsonWebKey | ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            const nativeKey = <native.Key>key.native;
+            const nativeKey = key.native as native.Key;
             const type = key.type === "public" ? native.KeyType.PUBLIC : native.KeyType.PRIVATE;
             switch (format.toLocaleLowerCase()) {
                 case "jwk":

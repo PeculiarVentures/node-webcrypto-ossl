@@ -45,7 +45,7 @@ class WebCrypto implements NativeCrypto {
                 throw error;
             }
             const bytes = crypto.randomBytes(array.byteLength);
-            (array as Uint8Array).set(new (<typeof Uint8Array>array.constructor)(bytes.buffer));
+            (array as Uint8Array).set(new (array.constructor as typeof Uint8Array)(bytes.buffer));
             return array;
         } else {
             throw new webcrypto.WebCryptoError(ERR_RANDOM_NO_VALUE, array);

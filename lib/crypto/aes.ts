@@ -11,7 +11,7 @@ function b64_decode(b64url: string): Buffer {
 
 export class AesCrypto extends BaseCrypto {
 
-    public static generateKey(algorithm: any, extractable: boolean, keyUsages: string[]): PromiseLike<any> {
+    public static generateKey(algorithm: any, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
             native.AesKey.generate(algorithm.length / 8, (err, key) => {
                 if (err) {
@@ -24,7 +24,7 @@ export class AesCrypto extends BaseCrypto {
         });
     }
 
-    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const formatLC = format.toLocaleLowerCase();
             let raw: Buffer;

@@ -69,7 +69,7 @@ export declare class Key {
      * @param keyType type of imported key (PRIVATE or PUBLIC)
      * @param callback callback function (err: Error, key: Key)
      */
-    public static importJwk(jwk: Object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
+    public static importJwk(jwk: object, keyType: KeyType, callback: (err: Error, key: Key) => void): void;
     /**
      * create Key from JWK data
      * @param jwk key in JWK format

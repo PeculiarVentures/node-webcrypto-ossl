@@ -49,7 +49,7 @@ function buf_pad(buf: Buffer, padSize: number = 0) {
 
 export class EcCrypto extends BaseCrypto {
 
-    public static generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKeyPair> {
+    public static generateKey(algorithm: Algorithm, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<CryptoKeyPair> {
         return new Promise((resolve, reject) => {
             const alg = algorithm as EcKeyGenParams;
             const namedCurve = nc2ssl(alg.namedCurve);
@@ -59,9 +59,9 @@ export class EcCrypto extends BaseCrypto {
                     reject(err);
                 } else {
                     const prvUsages = ["sign", "deriveKey", "deriveBits"]
-                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
+                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage)) as KeyUsage[];
                     const pubUsages = ["verify"]
-                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage));
+                        .filter((usage) => keyUsages.some((keyUsage) => keyUsage === usage)) as KeyUsage[];
                     resolve({
                         privateKey: new CryptoKey(key, algorithm, "private", extractable, prvUsages),
                         publicKey: new CryptoKey(key, algorithm, "public", true, pubUsages),
@@ -71,7 +71,7 @@ export class EcCrypto extends BaseCrypto {
         });
     }
 
-    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static importKey(format: string, keyData: JsonWebKey | NodeBufferSource, algorithm: string | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | DhImportKeyParams, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const formatLC = format.toLocaleLowerCase();
             const alg = algorithm as EcKeyImportParams;
@@ -307,7 +307,7 @@ export class EcCrypto extends BaseCrypto {
         });
     }
 
-    public static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: string[]): PromiseLike<CryptoKey> {
+    public static deriveKey(algorithm: Algorithm, baseKey: CryptoKey, derivedKeyType: Algorithm, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<CryptoKey> {
         return new Promise((resolve, reject) => {
             const algDerivedKeyType = derivedKeyType as AesDerivedKeyParams;
             const alg = algorithm as EcdhKeyDeriveParams;
