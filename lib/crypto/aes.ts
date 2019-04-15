@@ -6,7 +6,7 @@ import { CryptoKey } from "../key";
 import * as native from "../native";
 
 function b64_decode(b64url: string): Buffer {
-    return new Buffer(Base64Url.decode(b64url));
+    return Buffer.from(Base64Url.decode(b64url));
 }
 
 export class AesCrypto extends BaseCrypto {
@@ -111,11 +111,11 @@ export class AesCrypto extends BaseCrypto {
             switch (algorithm.name.toLowerCase()) {
                 case AlgorithmNames.AesGCM.toLowerCase(): {
                     const algGCM = algorithm as AesGcmParams;
-                    const iv = new Buffer(algorithm.iv as Uint8Array);
-                    const aad = algGCM.additionalData ? new Buffer(algGCM.additionalData as Uint8Array) : new Buffer(0);
+                    const iv = Buffer.from(algorithm.iv as Uint8Array);
+                    const aad = algGCM.additionalData ? Buffer.from(algGCM.additionalData as Uint8Array) : Buffer.alloc(0);
                     const tagLength = algGCM.tagLength || 128;
                     if (type) {
-                        nativeKey.encryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data2) => {
+                        nativeKey.encryptGcm(iv, data, aad || Buffer.alloc(0), tagLength / 8, (err, data2) => {
                             if (err) {
                                 reject(err);
                             } else {
@@ -123,7 +123,7 @@ export class AesCrypto extends BaseCrypto {
                             }
                         });
                     } else {
-                        nativeKey.decryptGcm(iv, data, aad || new Buffer(0), tagLength / 8, (err, data2) => {
+                        nativeKey.decryptGcm(iv, data, aad || Buffer.alloc(0), tagLength / 8, (err, data2) => {
                             if (err) {
                                 reject(err);
                             } else {
@@ -135,7 +135,7 @@ export class AesCrypto extends BaseCrypto {
                 }
                 case AlgorithmNames.AesCBC.toLowerCase(): {
                     const algCBC = "CBC";
-                    const iv = new Buffer(algorithm.iv as Uint8Array);
+                    const iv = Buffer.from(algorithm.iv as Uint8Array);
                     if (type) {
                         nativeKey.encrypt(algCBC, iv, data, (err, data2) => {
                             if (err) {
@@ -157,7 +157,7 @@ export class AesCrypto extends BaseCrypto {
                 }
                 case AlgorithmNames.AesCTR.toLowerCase(): {
                     const alg: AesCtrParams = algorithm as any;
-                    const counter = new Buffer(alg.counter as Uint8Array);
+                    const counter = Buffer.from(alg.counter as Uint8Array);
                     if (type) {
                         nativeKey.encryptCtr(data, counter, alg.length, (err, data2) => {
                             if (err) {

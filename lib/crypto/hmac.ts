@@ -11,7 +11,7 @@ import { CryptoKey } from "../key";
 import * as native from "../native";
 
 function b64_decode(b64url: string): Buffer {
-    return new Buffer(Base64Url.decode(b64url));
+    return Buffer.from(Base64Url.decode(b64url));
 }
 
 export class HmacCrypto extends BaseCrypto {

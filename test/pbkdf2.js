@@ -10,7 +10,7 @@ context("WebCrypto", () => {
     context("import", () => {
         ["", "password"].forEach(psw => {
             it(`value: ${psw || "empty"}`, done => {
-                webcrypto.subtle.importKey("raw", new Buffer(psw), "pbkdf2", false, ["deriveBits"])
+                webcrypto.subtle.importKey("raw", Buffer.from(psw), "pbkdf2", false, ["deriveBits"])
                     .then(key => {
                         assert.equal(!!key, true);
                         assert.equal(!!key.algorithm, true);
@@ -29,11 +29,11 @@ context("WebCrypto", () => {
     context("deriveBits", () => {
         [8, 16, 128, 256, 512].forEach(length => {
             it(`length:${length}`, done => {
-                webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", false, ["deriveBits"])
+                webcrypto.subtle.importKey("raw", Buffer.from("password"), "pbkdf2", false, ["deriveBits"])
                     .then(key => {
                         assert.equal(!!key, true);
                         return webcrypto.subtle.deriveBits(
-                            { name: "PBKDF2", salt: new Buffer("salt"), iterations: 8, hash: "SHA-1" },
+                            { name: "PBKDF2", salt: Buffer.from("salt"), iterations: 8, hash: "SHA-1" },
                             key,
                             length
                         );
@@ -51,11 +51,11 @@ context("WebCrypto", () => {
             context(name, () => {
                 [128, 192, 256].forEach(length => {
                     it(`length:${length}`, done => {
-                        webcrypto.subtle.importKey("raw", new Buffer("password"), "pbkdf2", false, ["deriveKey"])
+                        webcrypto.subtle.importKey("raw", Buffer.from("password"), "pbkdf2", false, ["deriveKey"])
                             .then(key => {
                                 assert.equal(!!key, true);
                                 return webcrypto.subtle.deriveKey(
-                                    { name: "PBKDF2", salt: new Buffer("salt"), iterations: 8, hash: "SHA-256" },
+                                    { name: "PBKDF2", salt: Buffer.from("salt"), iterations: 8, hash: "SHA-256" },
                                     key,
                                     { name, length },
                                     true,

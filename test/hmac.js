@@ -5,8 +5,8 @@ const checkAlgorithms = require('./helper').checkAlgorithms;
 const subtle = webcrypto.subtle;
 
 const keys = [];
-const message = new Buffer("test message");
-const message_error = new Buffer("test message!!!");
+const message = Buffer.from("test message");
+const message_error = Buffer.from("test message!!!");
 
 describe("WebCrypto", function () {
 

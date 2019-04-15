@@ -18,7 +18,7 @@ describe("WebCrypto digest", function () {
 
         var dataList = {
             ArrayBuffer: vector.data.buffer,
-            Buffer: new Buffer(vector.data),
+            Buffer: Buffer.from(vector.data),
             Uint8Array: vector.data,
             Uint16Array: new Uint16Array(vector.data.buffer),
             Uint32Array: new Uint32Array(vector.data.buffer),

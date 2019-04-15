@@ -6,7 +6,7 @@ import { CryptoKey } from "../key";
 import * as native from "../native";
 
 function b64_decode(b64url: string): Buffer {
-    return new Buffer(Base64Url.decode(b64url));
+    return Buffer.from(Base64Url.decode(b64url));
 }
 
 export abstract class RsaCrypto extends BaseCrypto {
@@ -14,7 +14,7 @@ export abstract class RsaCrypto extends BaseCrypto {
     public static generateKey(algorithm: any, extractable: boolean, keyUsages: KeyUsage[]): PromiseLike<any> {
         return new Promise((resolve, reject) => {
             const size = algorithm.modulusLength;
-            const exp = new Buffer(algorithm.publicExponent);
+            const exp = Buffer.from(algorithm.publicExponent);
             // convert exp
             let nExp: number = 0;
             if (exp.length === 3) {
@@ -301,7 +301,7 @@ export class RsaOAEP extends RsaCrypto {
 
             let label: Buffer | null = null;
             if (algorithm.label) {
-                label = new Buffer(algorithm.label as Uint8Array);
+                label = Buffer.from(algorithm.label as Uint8Array);
             }
 
             nativeKey.RsaOaepEncDec(alg, data, label, type, (err, res) => {

@@ -23,7 +23,7 @@ context("PBKDF2", () => {
     context("deriveBits", () => {
         vectors.forEach(vector => {
             it(`password:${vector.password || "empty"} hash:${vector.algorithm.hash}`, done => {
-                const raw = new Buffer(vector.password);
+                const raw = Buffer.from(vector.password);
                 subtle.importKey("raw", raw, vector.algorithm, false, ["deriveBits"])
                     .then((key) => {
                         return crypto.subtle.deriveBits(
@@ -34,7 +34,7 @@ context("PBKDF2", () => {
                         assert.equal(!!dBits, true);
                         assert.equal(dBits instanceof ArrayBuffer, true);
                         assert.equal(dBits.byteLength, 128 / 8);
-                        assert.equal(new Buffer(dBits).toString("base64"), vector.derivedBits);
+                        assert.equal(Buffer.from(dBits).toString("base64"), vector.derivedBits);
                     })
                     .then(done, done);
             });
@@ -44,7 +44,7 @@ context("PBKDF2", () => {
     context("deriveKey", () => {
         vectorsKey.forEach(vector => {
             it(`AES-CBC password:${vector.password || "empty"} hash:${vector.algorithm.hash}`, done => {
-                const raw = new Buffer(vector.password);
+                const raw = Buffer.from(vector.password);
                 let aes;
                 subtle.importKey("raw", raw, vector.algorithm, false, ["deriveKey"])
                     .then((key) => {
@@ -71,7 +71,7 @@ context("PBKDF2", () => {
                     .then(enc => {
                         assert.equal(!!enc, true);
                         assert.equal(enc instanceof ArrayBuffer, true);
-                        assert.equal(new Buffer(enc).toString("base64"), vector.encrypted);
+                        assert.equal(Buffer.from(enc).toString("base64"), vector.encrypted);
                     })
                     .then(done, done);
             });

@@ -26,7 +26,7 @@ describe("RSA-PSS Vectors", () => {
                         return subtle.verify(
                             signature.algorithm,
                             key,
-                            new Buffer(signature.signature, "base64"),
+                            Buffer.from(signature.signature, "base64"),
                             MSG
                         )
                             .then(res => {

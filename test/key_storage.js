@@ -20,7 +20,7 @@ var deleteFolderRecursive = function (path) {
 
 describe("Key storage", function () {
 
-    var TEST_MESSAGE = new Buffer("This is test message for crypto functions");
+    var TEST_MESSAGE = Buffer.from("This is test message for crypto functions");
     var KEYS = [{ name: "private" }, { name: "public" }, { name: "secret" }];
 
     before((done) => {
@@ -75,7 +75,7 @@ describe("Key storage", function () {
         assert.throws(() => {
             webcrypto.keyStorage.setItem("secret_key", key)
         });
-    })
+    });
 
     it("Set unknown key type", () => {
         const key = { type: "wrong type" };

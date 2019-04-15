@@ -36,12 +36,12 @@ function nc2ssl(nc: any) {
 }
 
 function b64_decode(b64url: string): Buffer {
-    return new Buffer(Base64Url.decode(b64url));
+    return Buffer.from(Base64Url.decode(b64url));
 }
 
 function buf_pad(buf: Buffer, padSize: number = 0) {
     if (padSize && Buffer.length < padSize) {
-        const pad = new Buffer(new Uint8Array(padSize - buf.length).map((v) => 0));
+        const pad = Buffer.from(new Uint8Array(padSize - buf.length).map((v) => 0));
         return Buffer.concat([pad, buf]);
     }
     return buf;
@@ -105,7 +105,7 @@ export class EcCrypto extends BaseCrypto {
                     const x = keyData.slice(1, keyLength + 1);
                     const y = keyData.slice(keyLength + 1, (keyLength * 2) + 1);
 
-                    data["kty"] = new Buffer("EC", "utf-8");
+                    data["kty"] = Buffer.from("EC", "utf-8");
                     data["crv"] = nc2ssl(alg.namedCurve.toUpperCase());
                     data["x"] = b64_decode(Base64Url.encode(buf_pad(x, keyLength)));
                     data["y"] = b64_decode(Base64Url.encode(buf_pad(y, keyLength)));

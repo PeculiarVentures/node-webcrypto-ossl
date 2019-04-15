@@ -4,8 +4,8 @@ var native = require("../buildjs/native");
 
 describe("native", function () {
 
-    var TEST_MESSAGE = new Buffer("Hello world");
-    var TEST_MESSAGE_WRONG = new Buffer("Hello world!!!");
+    var TEST_MESSAGE = Buffer.from("Hello world");
+    var TEST_MESSAGE_WRONG = Buffer.from("Hello world!!!");
 
     context("HMAC", () => {
 

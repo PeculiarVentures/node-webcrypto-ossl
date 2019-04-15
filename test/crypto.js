@@ -6,8 +6,8 @@ describe("WebCrypto", () => {
 
     it("get random values", () => {
         var buf = new Uint8Array(16);
-        var check = new Buffer(buf).toString("base64");
-        assert.notEqual(new Buffer(webcrypto.getRandomValues(buf)).toString("base64"), check, "Has no random values");
+        var check = Buffer.from(buf).toString("base64");
+        assert.notEqual(Buffer.from(webcrypto.getRandomValues(buf)).toString("base64"), check, "Has no random values");
     })
 
     it("get random values with large buffer", () => {

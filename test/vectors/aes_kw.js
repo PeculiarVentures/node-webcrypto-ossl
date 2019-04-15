@@ -26,7 +26,7 @@ context("Vectors", () => {
                         assert.equal(key.usages.length, 1);
                         assert.equal(key.usages[0], "unwrapKey");
 
-                        const wrappedKey = new Buffer(vector.wrappedKey, "base64");
+                        const wrappedKey = Buffer.from(vector.wrappedKey, "base64");
                         return subtle.unwrapKey("raw", wrappedKey, key, { name: "AES-KW" }, vector.algorithm, true, ["wrapKey"])
                     })
                     .then(key => {

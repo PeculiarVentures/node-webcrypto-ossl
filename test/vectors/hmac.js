@@ -73,7 +73,7 @@ describe("WebCrypto", () => {
             it(`hash:${vector.alg.hash} length:${vector.alg.length}`, done => {
                 subtle.importKey("jwk", vector.jwk, vector.alg, true, ["sign", "verify"])
                     .then(key => {
-                        return subtle.verify(vector.alg, key, new Buffer(vector.signature, "hex"), new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]))
+                        return subtle.verify(vector.alg, key, Buffer.from(vector.signature, "hex"), Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]))
                     })
                     .then(res => {
                         assert.equal(res, true);

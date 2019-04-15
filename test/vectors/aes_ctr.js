@@ -39,15 +39,15 @@ context("Vectors", () => {
                                 return crypto.subtle.encrypt(alg, key, data)
                                     .then((enc) => {
                                         assert.equal(Buffer.compare(
-                                            new Buffer(item.enc),
-                                            new Buffer(enc)
+                                            Buffer.from(item.enc),
+                                            Buffer.from(enc)
                                         ), 0)
                                         return crypto.subtle.decrypt(alg, key, enc)
                                     })
                                     .then((dec) => {
                                         assert.equal(Buffer.compare(
-                                            new Buffer(data),
-                                            new Buffer(dec)
+                                            Buffer.from(data),
+                                            Buffer.from(dec)
                                         ), 0)
                                     })
                                     .then(done, done);

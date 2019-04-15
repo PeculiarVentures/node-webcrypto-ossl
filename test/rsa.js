@@ -5,11 +5,12 @@ const checkAlgorithms = require('./helper').checkAlgorithms;
 
 describe("WebCrypto RSA", () => {
 
-    var TEST_MESSAGE = new Buffer("1234567890123456");
+    var TEST_MESSAGE = Buffer.from("1234567890123456");
     var KEYS = [
         { alg: "RSASSA-PKCS1-v1_5", usages: ["sign", "verify"] },
         { alg: "RSA-PSS", usages: ["sign", "verify"] },
-        { alg: "RSA-OAEP", usages: ["encrypt", "decrypt", "wrapKey", "unwrapKey"] },
+        { alg: "RSA-OAEP", usages: ["encrypt", "decrypt"] },
+        { alg: "RSA-OAEP", usages: ["wrapKey", "unwrapKey"] },
     ];
     var DIGEST = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
     var PUBLIC_EXPONENT = [new Uint8Array([3]), new Uint8Array([1, 0, 1])];
@@ -124,7 +125,7 @@ describe("WebCrypto RSA", () => {
                                 return webcrypto.subtle.decrypt({ name: key.publicKey.algorithm.name, label: label }, key.privateKey, enc)
                             })
                             .then(dec => {
-                                assert.equal(new Buffer(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is not valid")
+                                assert.equal(Buffer.from(dec).toString(), TEST_MESSAGE.toString(), "Decrypted message is not valid")
                             })
                             .then(done, done);
                     });

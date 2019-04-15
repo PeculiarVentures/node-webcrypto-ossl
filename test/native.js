@@ -4,7 +4,7 @@ var native = require("../buildjs/native");
 
 describe("native", function () {
 
-    var TEST_MESSAGE = new Buffer("Hello world");
+    var TEST_MESSAGE = Buffer.from("Hello world");
 
     function test_export(key, spki, done) {
         var export_fn, import_fn, error_text;
@@ -94,7 +94,7 @@ describe("native", function () {
     })
 
     function test_sign(key, md, done) {
-        var message = new Buffer("This is test message for crypto functions");
+        var message = Buffer.from("This is test message for crypto functions");
 
         key.sign(md, message, function (err, sig) {
             assert(sig != null, true, "Error on sign");
@@ -126,11 +126,11 @@ describe("native", function () {
     }
 
     it("encrypt RSA OAEP without label", function (done) {
-        test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), null, done);
+        test_rsa_oaep_enc_dec("sha1", Buffer.from("Hello world"), null, done);
     })
 
     it("encrypt RSA OAEP with label", function (done) {
-        test_rsa_oaep_enc_dec("sha1", new Buffer("Hello world"), new Buffer("1234567890"), done);
+        test_rsa_oaep_enc_dec("sha1", Buffer.from("Hello world"), Buffer.from("1234567890"), done);
     })
 
     it("generate EC secp256k1", function (done) {
@@ -255,12 +255,12 @@ describe("native", function () {
     })
 
     it("AES CBC encrypt 256", function (done) {
-        var msg = new Buffer("Hello world");
+        var msg = Buffer.from("Hello world");
         native.AesKey.generate(32, function (err, key) {
             assert(!err, true, `generate: ${err}`);
-            key.encrypt("CBC", new Buffer("1234567890123456"), msg, function (err, data) {
+            key.encrypt("CBC", Buffer.from("1234567890123456"), msg, function (err, data) {
                 assert(!err, true, `encrypt: ${err}`);
-                key.decrypt("CBC", new Buffer("1234567890123456"), data, function (err, m) {
+                key.decrypt("CBC", Buffer.from("1234567890123456"), data, function (err, m) {
                     assert(!err, true, `decrypt: ${err}`);
                     assert.equal(msg.toString(), m.toString());
                     done();
@@ -270,13 +270,13 @@ describe("native", function () {
     })
 
     it("AES CBC encrypt 256 error", function (done) {
-        var msg = new Buffer("Hello world");
+        var msg = Buffer.from("Hello world");
         native.AesKey.generate(32, function (err, key) {
             assert(!err, true, `generate: ${err}`);
-            key.encrypt("CBC", new Buffer("1234567890123456"), msg, function (err, data) {
+            key.encrypt("CBC", Buffer.from("1234567890123456"), msg, function (err, data) {
                 assert(!err, true, `encrypt: ${err}`);
                 data[0] += 1;
-                key.decrypt("CBC", new Buffer("1234567890123456"), data, function (err, m) {
+                key.decrypt("CBC", Buffer.from("1234567890123456"), data, function (err, m) {
                     assert(err, true, `must be error`);
                     done();
                 });
@@ -309,7 +309,7 @@ describe("native", function () {
         it("WrapKey small data", done => {
             native.AesKey.generate(32, (err, key) => {
                 assert(!err, true, `generate: ${err}`);
-                key.wrapKey(new Buffer("123456789012345"), (err, data) => {
+                key.wrapKey(Buffer.from("123456789012345"), (err, data) => {
                     assert(!!err, true);
                     done();
                 });
@@ -319,7 +319,7 @@ describe("native", function () {
         it("UnwrapKey small data", done => {
             native.AesKey.generate(32, (err, key) => {
                 assert(!err, true, `generate: ${err}`);
-                key.unwrapKey(new Buffer("12345678901234567890123"), (err, data) => {
+                key.unwrapKey(Buffer.from("12345678901234567890123"), (err, data) => {
                     assert(!!err, true);
                     done();
                 });
@@ -329,7 +329,7 @@ describe("native", function () {
         it("WrapKey data is not % 8", done => {
             native.AesKey.generate(32, (err, key) => {
                 assert(!err, true, `generate: ${err}`);
-                key.wrapKey(new Buffer("12345678901234567"), (err, data) => {
+                key.wrapKey(Buffer.from("12345678901234567"), (err, data) => {
                     assert(!!err, true);
                     done();
                 });
@@ -339,7 +339,7 @@ describe("native", function () {
         it("UnwrapKey data is not % 8", done => {
             native.AesKey.generate(32, (err, key) => {
                 assert(!err, true, `generate: ${err}`);
-                key.unwrapKey(new Buffer("1234567890123456789012346"), (err, data) => {
+                key.unwrapKey(Buffer.from("1234567890123456789012346"), (err, data) => {
                     assert(!!err, true);
                     done();
                 });
@@ -348,7 +348,7 @@ describe("native", function () {
 
         [128, 192, 256].forEach(length => {
             it(`wrap/unwrap length:${length}`, done => {
-                let MSG = new Buffer(length / 8);
+                let MSG = Buffer.alloc(length / 8);
                 native.AesKey.generate(length / 8, (err, key) => {
                     assert(!err, true, `generate: ${err}`);
                     key.wrapKey(MSG, (err, data) => {
@@ -366,12 +366,12 @@ describe("native", function () {
     });
 
     function test_encrypt_gcm(keySize, aad, tag, done) {
-        var msg = new Buffer("Hello world");
+        var msg = Buffer.from("Hello world");
         native.AesKey.generate(keySize, function (err, key) {
             assert(!err, true, `generate: ${err}`);
-            key.encryptGcm(new Buffer("1234567890123456"), msg, aad, tag, function (err, data) {
+            key.encryptGcm(Buffer.from("1234567890123456"), msg, aad, tag, function (err, data) {
                 assert(!err, true, `encrypt: ${err}`);
-                key.decryptGcm(new Buffer("1234567890123456"), data, aad, tag, function (err, m) {
+                key.decryptGcm(Buffer.from("1234567890123456"), data, aad, tag, function (err, m) {
                     assert(!err, true, `decrypt: ${err}`);
                     assert.equal(Buffer.compare(msg, m) == 0, true, "Decrypt: Decrypted data is not equal");
                     done();
@@ -381,19 +381,19 @@ describe("native", function () {
     }
 
     it("AES GCM encrypt 192 AAD, tag(16)", function (done) {
-        test_encrypt_gcm(24, new Buffer("1234567890123456"), 16, done);
+        test_encrypt_gcm(24, Buffer.from("1234567890123456"), 16, done);
     })
 
     it("AES GCM encrypt 192 no AAD, tag(4)", function (done) {
-        test_encrypt_gcm(24, new Buffer(""), 4, done);
+        test_encrypt_gcm(24, Buffer.from(""), 4, done);
     })
 
     it("AES GCM encrypt 256 AAD, tag(16)", function (done) {
-        test_encrypt_gcm(32, new Buffer("1234567890123456"), 16, done);
+        test_encrypt_gcm(32, Buffer.from("1234567890123456"), 16, done);
     })
 
     it("AES GCM encrypt 256 no AAD, tag(13)", function (done) {
-        test_encrypt_gcm(32, new Buffer(""), 13, done);
+        test_encrypt_gcm(32, Buffer.from(""), 13, done);
     })
 
     function test_digest(md, mdLen, done) {

@@ -64,13 +64,13 @@ describe("WebCrypto Aes", function () {
                     messages.forEach(message => {
                         it(`${message.name} message\t${key.name}`, done => {
                             var alg = { name: "AES-ECB" };
-                            webcrypto.subtle.encrypt(alg, key.key, new Buffer(message.data))
+                            webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                 .then(enc => {
                                     assert(!!enc, true, "Encrypted message is empty");
                                     return webcrypto.subtle.decrypt(alg, key.key, enc);
                                 })
                                 .then(dec => {
-                                    assert(new Buffer(dec).toString(), message.data, "Decrypted message is wrong");
+                                    assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                 })
                                 .then(done, done);
                         });
@@ -87,13 +87,13 @@ describe("WebCrypto Aes", function () {
                         [webcrypto.getRandomValues(new Uint8Array(16))].forEach(iv => {
                             it(`${message.name} message iv:${iv.length}\t${key.name}`, done => {
                                 var alg = { name: "AES-CBC", iv: iv };
-                                webcrypto.subtle.encrypt(alg, key.key, new Buffer(message.data))
+                                webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                     .then(enc => {
                                         assert(!!enc, true, "Encrypted message is empty");
                                         return webcrypto.subtle.decrypt(alg, key.key, enc);
                                     })
                                     .then(dec => {
-                                        assert(new Buffer(dec).toString(), message.data, "Decrypted message is wrong");
+                                        assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                     })
                                     .then(done, done);
                             });
@@ -111,13 +111,13 @@ describe("WebCrypto Aes", function () {
                         [webcrypto.getRandomValues(new Uint8Array(16))].forEach(iv => {
                             it(`${message.name} message counter:${iv.length}\t${key.name}`, done => {
                                 var alg = { name: "AES-CTR", counter: iv, length: 64 };
-                                webcrypto.subtle.encrypt(alg, key.key, new Buffer(message.data))
+                                webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                     .then(enc => {
                                         assert(!!enc, true, "Encrypted message is empty");
                                         return webcrypto.subtle.decrypt(alg, key.key, enc);
                                     })
                                     .then(dec => {
-                                        assert(new Buffer(dec).toString(), message.data, "Decrypted message is wrong");
+                                        assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                     })
                                     .then(done, done);
                             });
@@ -139,13 +139,13 @@ describe("WebCrypto Aes", function () {
                                 [32, 64, 96, 104, 112, 120, 128].forEach(tag => {
                                     it(`${message.name} message aad:${aad ? "+" : "-"} t:${tag}\t${key.name}`, done => {
                                         var alg = { name: "AES-GCM", iv: iv, aad: aad, tagLength: tag };
-                                        webcrypto.subtle.encrypt(alg, key.key, new Buffer(message.data))
+                                        webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                             .then(enc => {
                                                 assert(!!enc, true, "Encrypted message is empty");
                                                 return webcrypto.subtle.decrypt(alg, key.key, enc);
                                             })
                                             .then(dec => {
-                                                assert(new Buffer(dec).toString(), message.data, "Decrypted message is wrong");
+                                                assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                             })
                                             .then(done, done);
                                     });

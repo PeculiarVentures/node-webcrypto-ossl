@@ -5,7 +5,7 @@ const checkAlgorithms = require('./helper').checkAlgorithms;
 
 describe("WebCrypto EC", () => {
 
-    var TEST_MESSAGE = new Buffer("1234567890123456");
+    var TEST_MESSAGE = Buffer.from("1234567890123456");
     var KEYS = [
         { alg: "ECDSA", usages: ["sign", "verify"] },
         { alg: "ECDH", usages: ["deriveKey", "deriveBits"] },

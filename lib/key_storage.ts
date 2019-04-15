@@ -39,7 +39,7 @@ function jwkBase64ToBuffer(jwk: IKeyStorageItem): IKeyStorageItem {
         const attr = cpyJwk[i];
         if (reserved.indexOf(i) === -1 && typeof attr === "string") {
             try {
-                const buf = new Buffer(attr, "base64");
+                const buf = Buffer.from(attr, "base64");
                 cpyJwk[i] = buf;
             } catch (e) {
                 // console.log(e);
