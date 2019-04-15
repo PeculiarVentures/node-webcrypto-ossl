@@ -189,25 +189,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
     public encrypt(algorithm: any, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
         return super.encrypt.apply(this, arguments)
             .then(() => {
-                const alg = PrepareAlgorithm(algorithm);
-                const dataBytes = PrepareData(data);
-
-                let AlgClass: typeof BaseCrypto;
-                switch (alg.name.toLowerCase()) {
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = rsa.RsaOAEP;
-                        break;
-                    case AlgorithmNames.AesECB.toLowerCase():
-                    case AlgorithmNames.AesCBC.toLowerCase():
-                    case AlgorithmNames.AesCTR.toLowerCase():
-                    case AlgorithmNames.AesGCM.toLowerCase():
-                    case AlgorithmNames.AesKW.toLowerCase():
-                        AlgClass = aes.AesCrypto;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, alg.name);
-                }
-                return AlgClass.encrypt(alg, key, dataBytes);
+                return this.encryptDecrypt(algorithm, key, data, true);
             });
     }
 
@@ -215,25 +197,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
     public decrypt(algorithm: any, key: CryptoKey, data: NodeBufferSource): PromiseLike<ArrayBuffer> {
         return super.decrypt.apply(this, arguments)
             .then(() => {
-                const alg = PrepareAlgorithm(algorithm);
-                const dataBytes = PrepareData(data);
-
-                let AlgClass: typeof BaseCrypto;
-                switch (alg.name.toLowerCase()) {
-                    case AlgorithmNames.RsaOAEP.toLowerCase():
-                        AlgClass = rsa.RsaOAEP;
-                        break;
-                    case AlgorithmNames.AesECB.toLowerCase():
-                    case AlgorithmNames.AesCBC.toLowerCase():
-                    case AlgorithmNames.AesCTR.toLowerCase():
-                    case AlgorithmNames.AesGCM.toLowerCase():
-                    case AlgorithmNames.AesKW.toLowerCase():
-                        AlgClass = aes.AesCrypto;
-                        break;
-                    default:
-                        throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, alg.name);
-                }
-                return AlgClass.decrypt(alg, key, dataBytes);
+                return this.encryptDecrypt(algorithm, key, data, false);
             });
     }
 
@@ -245,9 +209,9 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         const alg = webcrypto.PrepareAlgorithm(wrapAlgorithm);
                         let dataBytes: Buffer;
                         if (!(exportedKey instanceof ArrayBuffer)) {
-                            dataBytes = new Buffer(JSON.stringify(exportedKey));
+                            dataBytes = Buffer.from(JSON.stringify(exportedKey));
                         } else {
-                            dataBytes = new Buffer(exportedKey);
+                            dataBytes = Buffer.from(exportedKey);
                         }
                         let CryptoClass: typeof BaseCrypto | undefined;
                         if (alg.name.toUpperCase() === webcrypto.AlgorithmNames.AesKW) {
@@ -257,7 +221,7 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         if (CryptoClass) {
                             return CryptoClass.encrypt(alg, wrappingKey, dataBytes);
                         } else {
-                            return this.encrypt(alg, wrappingKey, dataBytes);
+                            return this.encryptDecrypt(alg, wrappingKey, dataBytes, true);
                         }
                     });
             });
@@ -279,15 +243,15 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                         if (CryptoClass) {
                             return CryptoClass.decrypt(alg, unwrappingKey, dataBytes);
                         } else {
-                            return this.decrypt(alg, unwrappingKey, dataBytes);
+                            return this.encryptDecrypt(alg, unwrappingKey, dataBytes, false);
                         }
                     })
                     .then((decryptedKey) => {
                         let keyData: JsonWebKey | Buffer;
                         if (format === "jwk") {
-                            keyData = JSON.parse(new Buffer(decryptedKey).toString());
+                            keyData = JSON.parse(Buffer.from(decryptedKey).toString());
                         } else {
-                            keyData = new Buffer(decryptedKey);
+                            keyData = Buffer.from(decryptedKey);
                         }
                         return this.importKey(format as any, keyData as Buffer, unwrappedKeyAlgorithm as string, extractable, keyUsages);
                     });
@@ -421,6 +385,32 @@ export class SubtleCrypto extends webcrypto.SubtleCrypto {
                 }
                 return AlgClass.importKey(format, dataAny as Buffer, alg as any, extractable, keyUsages);
             });
+    }
+
+    protected encryptDecrypt(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource, encrypt: boolean) {
+        const alg = PrepareAlgorithm(algorithm);
+        const dataBytes = PrepareData(data);
+
+        let AlgClass: typeof BaseCrypto;
+        switch (alg.name.toLowerCase()) {
+            case AlgorithmNames.RsaOAEP.toLowerCase():
+                AlgClass = rsa.RsaOAEP;
+                break;
+            case AlgorithmNames.AesECB.toLowerCase():
+            case AlgorithmNames.AesCBC.toLowerCase():
+            case AlgorithmNames.AesCTR.toLowerCase():
+            case AlgorithmNames.AesGCM.toLowerCase():
+            case AlgorithmNames.AesKW.toLowerCase():
+                AlgClass = aes.AesCrypto;
+                break;
+            default:
+                throw new AlgorithmError(AlgorithmError.NOT_SUPPORTED, alg.name);
+        }
+        if (encrypt) {
+            return AlgClass.encrypt(alg, key, dataBytes);
+        } else {
+            return AlgClass.decrypt(alg, key, dataBytes);
+        }
     }
 
 }
