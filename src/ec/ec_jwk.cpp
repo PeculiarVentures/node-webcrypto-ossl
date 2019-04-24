@@ -35,16 +35,16 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	LOG_INFO("Get curve name");
 	jwk->crv = EC_GROUP_get_curve_name(group);
 
-	ScopedBIGNUM x, y;
+	BIGNUM *x, *y;
 	x = BN_CTX_get(ctx.Get());
 	y = BN_CTX_get(ctx.Get());
 
 	LOG_INFO("Get public key");
-	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x.Get(), y.Get(), ctx.Get())) {
+	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x, y, ctx.Get())) {
 		THROW_OPENSSL("EC_POINT_get_affine_coordinates_GFp");
 	}
-	jwk->x = BN_dup(x.Get());
-	jwk->y = BN_dup(y.Get());
+	jwk->x = BN_dup(x);
+	jwk->y = BN_dup(y);
 
 	if (key_type == NODESSL_KT_PRIVATE) {
 		const BIGNUM *d = EC_KEY_get0_private_key(const_cast<const EC_KEY*>(ec));
