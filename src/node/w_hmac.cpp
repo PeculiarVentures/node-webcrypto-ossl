@@ -2,7 +2,7 @@
 
 const char* WHmac::ClassName = "HmacKey";
 
-void WHmac::Init(v8::Handle<v8::Object> exports) {
+NAN_MODULE_INIT(WHmac::Init) {
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -16,10 +16,12 @@ void WHmac::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(tpl->GetFunction(), "generate", Generate);
-	Nan::SetMethod(tpl->GetFunction(), "import", Import);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generate", Generate);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "import", Import);
 
-	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
+    Nan::Set(target,
+             Nan::New(ClassName).ToLocalChecked(),
+             Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(WHmac::New) {
@@ -87,7 +89,7 @@ NAN_METHOD(WHmac::Sign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -127,7 +129,7 @@ NAN_METHOD(WHmac::Verify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");

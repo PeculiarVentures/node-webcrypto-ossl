@@ -1,10 +1,10 @@
 #include "node/common.h"
 
-#define SET_ENUM(obj, name, value)												\
-	obj->Set(Nan::New(#name).ToLocalChecked(), Nan::New<v8::Number>(value));	\
-	obj->Set(value, Nan::New(#name).ToLocalChecked());
+#define SET_ENUM(obj, name, value)												    \
+    Nan::Set(obj, Nan::New(#name).ToLocalChecked(), Nan::New<v8::Number>(value));	\
+    Nan::Set(obj, value, Nan::New(#name).ToLocalChecked());
 
-void EcNamedCurves(v8::Handle<v8::Object> target) {
+void EcNamedCurves(v8::Local<v8::Object> target) {
 	v8::Local<v8::Object> ecNamedCurves = Nan::New<v8::Object>();
 #define SET_NAMED_CURVE(namedCurve)												\
 	SET_ENUM(ecNamedCurves, namedCurve, NID_##namedCurve);
@@ -43,27 +43,27 @@ void EcNamedCurves(v8::Handle<v8::Object> target) {
 	SET_NAMED_CURVE(sect571k1);
 	SET_NAMED_CURVE(sect571r1);
 
-	target->Set(Nan::New("EcNamedCurves").ToLocalChecked(), ecNamedCurves);
+    Nan::Set(target, Nan::New("EcNamedCurves").ToLocalChecked(), ecNamedCurves);
 
 #undef SET_NAMED_CURVE
 }
 
-void RsaPublicExponent(v8::Handle<v8::Object> target) {
+void RsaPublicExponent(v8::Local<v8::Object> target) {
 	v8::Local<v8::Object> rsaPublicExponent = Nan::New<v8::Object>();
 
 	SET_ENUM(rsaPublicExponent, RSA_3, 0);
 	SET_ENUM(rsaPublicExponent, RSA_F4, 1);
 
-	target->Set(Nan::New("RsaPublicExponent").ToLocalChecked(), rsaPublicExponent);
+    Nan::Set(target, Nan::New("RsaPublicExponent").ToLocalChecked(), rsaPublicExponent);
 }
 
-void KeyType(v8::Handle<v8::Object> target) {
+void KeyType(v8::Local<v8::Object> target) {
 	v8::Local<v8::Object> keyType = Nan::New<v8::Object>();
 
 	SET_ENUM(keyType, PUBLIC, 0);
 	SET_ENUM(keyType, PRIVATE, 1);
 
-	target->Set(Nan::New("KeyType").ToLocalChecked(), keyType);
+    Nan::Set(target, Nan::New("KeyType").ToLocalChecked(), keyType);
 }
 
 NAN_MODULE_INIT(InitModule) {

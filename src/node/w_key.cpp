@@ -2,7 +2,7 @@
 
 const char* WKey::ClassName = "Key";
 
-void WKey::Init(v8::Handle<v8::Object> exports) {
+NAN_MODULE_INIT(WKey::Init) {
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New(WKey::ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -27,13 +27,15 @@ void WKey::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(tpl->GetFunction(), "generateRsa", GenerateRsa);
-	Nan::SetMethod(tpl->GetFunction(), "generateEc", GenerateEc);
-	Nan::SetMethod(tpl->GetFunction(), "importPkcs8", ImportPkcs8);
-	Nan::SetMethod(tpl->GetFunction(), "importJwk", ImportJwk);
-	Nan::SetMethod(tpl->GetFunction(), "importSpki", ImportSpki);
+    Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateRsa", GenerateRsa);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateEc", GenerateEc);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importPkcs8", ImportPkcs8);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importJwk", ImportJwk);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importSpki", ImportSpki);
 
-	exports->Set(Nan::New(WKey::ClassName).ToLocalChecked(), tpl->GetFunction());
+    Nan::Set(target,
+             Nan::New(WKey::ClassName).ToLocalChecked(),
+             Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(WKey::New) {
@@ -266,7 +268,7 @@ NAN_METHOD(WKey::ImportJwk) {
 
 	int key_type = Nan::To<int>(info[1]).FromJust();
 
-	v8::Local<v8::Object> v8Jwk = info[0]->ToObject();
+    v8::Local<v8::Object> v8Jwk = Nan::To<v8::Object>(info[0]).ToLocalChecked();
 	Nan::Utf8String v8Kty(Nan::Get(v8Jwk, Nan::New(JWK_ATTR_KTY).ToLocalChecked()).ToLocalChecked());
 
 	if (!(strcmp(*v8Kty, JWK_KTY_RSA) == 0 || strcmp(*v8Kty, JWK_KTY_EC) == 0)) {
@@ -349,7 +351,7 @@ NAN_METHOD(WKey::Sign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -398,7 +400,7 @@ NAN_METHOD(WKey::Verify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -452,7 +454,7 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -469,7 +471,7 @@ NAN_METHOD(WKey::RsaOaepEncDec) {
 	}
 
 	LOG_INFO("decrypt");
-	bool decrypt = info[3]->BooleanValue();
+    bool decrypt = Nan::To<bool>(info[3]).FromJust();
 
 	LOG_INFO("this->Key");
 	WKey *wKey = WKey::Unwrap<WKey>(info.This());
@@ -490,7 +492,7 @@ NAN_METHOD(WKey::RsaPssSign) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -523,7 +525,7 @@ NAN_METHOD(WKey::RsaPssVerify) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
+    Nan::Utf8String v8DigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
 	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
 	if (!md) {
 		Nan::ThrowError("Unknown digest name");
@@ -557,7 +559,7 @@ NAN_METHOD(WKey::EcdhDeriveKey) {
 	LOG_FUNC();
 
 	LOG_INFO("publicKey");
-	WKey *wPubKey = WKey::Unwrap<WKey>(info[0]->ToObject());
+    WKey *wPubKey = WKey::Unwrap<WKey>(Nan::To<v8::Object>(info[0]).ToLocalChecked());
 	Handle<ScopedEVP_PKEY> hPubKey = wPubKey->data;
 
 	LOG_INFO("derivedLen");
@@ -581,7 +583,7 @@ NAN_METHOD(WKey::EcdhDeriveBits) {
 	LOG_FUNC();
 
 	LOG_INFO("publicKey");
-	WKey *wPubKey = WKey::Unwrap<WKey>(info[0]->ToObject());
+    WKey *wPubKey = WKey::Unwrap<WKey>(Nan::To<v8::Object>(info[0]).ToLocalChecked());
 	Handle<ScopedEVP_PKEY> hPubKey = wPubKey->data;
 
 	LOG_INFO("lengthBits");

@@ -2,7 +2,7 @@
 
 Handle<std::string> v8Buffer_to_String(v8::Local<v8::Value> v8Buffer) {
 	LOG_FUNC();
-	return v8Buffer_to_String(v8Buffer->ToObject());
+    return v8Buffer_to_String(Nan::To<v8::Object>(v8Buffer).ToLocalChecked());
 }
 
 Handle<std::string> v8Buffer_to_String(v8::Local<v8::Object> v8Buffer) {

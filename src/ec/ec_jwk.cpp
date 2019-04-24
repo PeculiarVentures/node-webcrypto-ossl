@@ -30,17 +30,15 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 
 	point = EC_KEY_get0_public_key(const_cast<const EC_KEY*>(ec));
 	group = EC_KEY_get0_group(ec);
-	ctx = BN_CTX_new();
 
 	LOG_INFO("Get curve name");
 	jwk->crv = EC_GROUP_get_curve_name(group);
 
-	ScopedBIGNUM x, y;
-	x = BN_CTX_get(ctx.Get());
-	y = BN_CTX_get(ctx.Get());
+	ScopedBIGNUM x(BN_new());
+	ScopedBIGNUM y(BN_new());
 
 	LOG_INFO("Get public key");
-	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x.Get(), y.Get(), ctx.Get())) {
+	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x.Get(), y.Get(), NULL)) {
 		THROW_OPENSSL("EC_POINT_get_affine_coordinates_GFp");
 	}
 	jwk->x = BN_dup(x.Get());
