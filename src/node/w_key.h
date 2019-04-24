@@ -6,8 +6,8 @@
 #include "../ec/common.h"
 
 #define v8Object_get_BN(v8Obj, v8Param, RsaKey, RsaKeyParam) \
-	{unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()); \
-	RsaKey->RsaKeyParam = BN_bin2bn(v8Param, (int)node::Buffer::Length(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()->ToObject()), nullptr);}
+{unsigned char* v8Param = (unsigned char*)node::Buffer::Data(Nan::To<v8::Object>(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()).ToLocalChecked()); \
+    RsaKey->RsaKeyParam = BN_bin2bn(v8Param, (int)node::Buffer::Length(Nan::To<v8::Object>(Nan::Get(v8Obj, Nan::New(#v8Param).ToLocalChecked()).ToLocalChecked()).ToLocalChecked()), nullptr);}
 
 class WKey : public node::ObjectWrap {
 public:
@@ -22,7 +22,7 @@ public:
 
 	static const char* ClassName;
 
-	static void Init(v8::Handle<v8::Object> exports);
+	static NAN_MODULE_INIT(Init);
 	
 	static NAN_METHOD(New);
 	

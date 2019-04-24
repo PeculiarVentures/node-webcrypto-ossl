@@ -18,7 +18,7 @@ public:
 
 	static const char* ClassName;
 
-	static void Init(v8::Handle<v8::Object> exports);
+	static void Init(v8::Local<v8::Object> exports);
 	
 	static NAN_METHOD(New);
 	

@@ -2,7 +2,7 @@
 
 const char* WPbkdf2::ClassName = "Pbkdf2Key";
 
-void WPbkdf2::Init(v8::Handle<v8::Object> exports) {
+NAN_MODULE_INIT(WPbkdf2::Init) {
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -14,9 +14,11 @@ void WPbkdf2::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(tpl->GetFunction(), "importKey", ImportKey);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importKey", ImportKey);
 
-	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
+    Nan::Set(target,
+             Nan::New(ClassName).ToLocalChecked(),
+             Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(WPbkdf2::New) {
@@ -61,17 +63,17 @@ NAN_METHOD(WPbkdf2::DeriveBits) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
-	const EVP_MD *md = EVP_get_digestbyname(*v8DigestName);
+    Nan::Utf8String nanDigestName(Nan::To<v8::String>(info[0]).ToLocalChecked());
+	const EVP_MD *md = EVP_get_digestbyname(*nanDigestName);
 
 	LOG_INFO("salt");
 	Handle<std::string> salt = v8Buffer_to_String(info[1]);
 
 	LOG_INFO("iterations");
-	int iterations = Nan::To<v8::Number>(info[2]).ToLocalChecked()->Uint32Value();
+	int iterations = Nan::To<int>(info[2]).FromJust();
 
 	LOG_INFO("bits_length");
-	int bits_length= Nan::To<v8::Number>(info[3]).ToLocalChecked()->Uint32Value();
+	int bits_length= Nan::To<int>(info[3]).FromJust();
 
 	LOG_INFO("this->Key");
 	WPbkdf2 *that = WPbkdf2::Unwrap<WPbkdf2>(info.This());
@@ -85,8 +87,7 @@ NAN_METHOD(WPbkdf2::DeriveBits) {
 			Nan::New("Unsupported Key in use").ToLocalChecked()
 		};
 
-		// info[4].As<v8::Function>()->CallAsFunction(info.This(), 1, argv);
-		Nan::CallAsFunction(info[4]->ToObject(), info.This(), 1, argv);
+        Nan::CallAsFunction(Nan::To<v8::Object>(info[4]).ToLocalChecked(), info.This(), 1, argv);
 		return;
 	}
 

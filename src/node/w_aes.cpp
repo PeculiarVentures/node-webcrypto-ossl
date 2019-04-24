@@ -2,7 +2,7 @@
 
 const char* WAes::ClassName = "AesKey";
 
-void WAes::Init(v8::Handle<v8::Object> exports) {
+NAN_MODULE_INIT(WAes::Init) {
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -23,10 +23,12 @@ void WAes::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(tpl->GetFunction(), "generate", Generate);
-	Nan::SetMethod(tpl->GetFunction(), "import", Import);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generate", Generate);
+	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "import", Import);
 
-	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
+    Nan::Set(target,
+             Nan::New(ClassName).ToLocalChecked(),
+             Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(WAes::New) {
@@ -68,7 +70,7 @@ NAN_METHOD(WAes::Encrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("cipher");
-	Nan::Utf8String v8Cipher(info[0]->ToString());
+    Nan::Utf8String v8Cipher(Nan::To<v8::String>(info[0]).ToLocalChecked());
 
 	LOG_INFO("iv");
 	Handle<std::string> hIv = v8Buffer_to_String(info[1]);
@@ -101,7 +103,7 @@ NAN_METHOD(WAes::Decrypt) {
 	LOG_FUNC();
 
 	LOG_INFO("cipher");
-	Nan::Utf8String v8Cipher(info[0]->ToString());
+    Nan::Utf8String v8Cipher(Nan::To<v8::String>(info[0]).ToLocalChecked());
 
 	LOG_INFO("iv");
 	Handle<std::string> hIv = v8Buffer_to_String(info[1]);

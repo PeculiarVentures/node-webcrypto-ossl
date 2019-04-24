@@ -2,7 +2,7 @@
 
 const char* WCore::ClassName = "Core";
 
-void WCore::Init(v8::Handle<v8::Object> exports) {
+NAN_MODULE_INIT(WCore::Init) {
 	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -12,9 +12,11 @@ void WCore::Init(v8::Handle<v8::Object> exports) {
 	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(tpl->GetFunction(), "digest", Digest);
+    Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "digest", Digest);
 
-	exports->Set(Nan::New(ClassName).ToLocalChecked(), tpl->GetFunction());
+    Nan::Set(target,
+             Nan::New(ClassName).ToLocalChecked(),
+             Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_METHOD(WCore::New) {
@@ -43,8 +45,9 @@ NAN_METHOD(WCore::Digest) {
 	LOG_FUNC();
 
 	LOG_INFO("digestName");
-	Nan::Utf8String v8DigestName(info[0]->ToString());
-	Handle<std::string> hDigestName(new std::string(*v8DigestName));
+    v8::Local<v8::String> v8DigestName = Nan::To<v8::String>(info[0]).ToLocalChecked();
+    Nan::Utf8String nanDigestName(v8DigestName);
+	Handle<std::string> hDigestName(new std::string(*nanDigestName));
 
 	LOG_INFO("message");
 	Handle<std::string> hMessage = v8Buffer_to_String(info[1]);
