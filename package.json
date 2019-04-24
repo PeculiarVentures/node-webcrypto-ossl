@@ -39,17 +39,17 @@
   ],
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "nan": "^2.12.1",
+    "nan": "^2.13.2",
     "tslib": "^1.9.3",
     "webcrypto-core": "^0.1.26"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.12.18",
-    "coveralls": "^3.0.2",
-    "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
-    "pvtsutils": "^1.0.3",
-    "typescript": "^3.2.2"
+    "coveralls": "^3.0.3",
+    "mocha": "^6.1.4",
+    "nyc": "^14.0.0",
+    "pvtsutils": "^1.0.4",
+    "typescript": "^3.4.5"
   }
 }
