@@ -18,6 +18,7 @@ Handle<std::string> v8Buffer_to_String(v8::Local<v8::Object> v8Buffer) {
 }
 
 v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer) {
+    Nan::EscapableHandleScope scope;
 	LOG_FUNC();
 
 	LOG_INFO("Copy bio to buffer");
@@ -28,10 +29,11 @@ v8::Local<v8::Object> String_to_v8Buffer(Handle<std::string> hBuffer) {
 	char *buffer = node::Buffer::Data(v8Buffer);
 	memcpy(buffer, data, datalen);
 
-	return v8Buffer;
+	return scope.Escape(v8Buffer);
 }
 
 v8::Local<v8::Object> bn2buf(BIGNUM* bn) {
+    Nan::EscapableHandleScope scope;
 	LOG_FUNC();
 
 	int n = BN_num_bytes(bn);
@@ -42,10 +44,11 @@ v8::Local<v8::Object> bn2buf(BIGNUM* bn) {
 		THROW_OPENSSL("BN_bn2bin");
 	}
 
-	return v8Buf;
+	return scope.Escape(v8Buf);
 }
 
 v8::Local<v8::Object> bn2buf2(const BIGNUM* bn) {
+    Nan::EscapableHandleScope scope;
 	LOG_FUNC();
 
 	int n = BN_num_bytes(bn);
@@ -56,5 +59,5 @@ v8::Local<v8::Object> bn2buf2(const BIGNUM* bn) {
 		THROW_OPENSSL("BN_bn2bin");
 	}
 
-	return v8Buf;
+	return scope.Escape(v8Buf);
 }

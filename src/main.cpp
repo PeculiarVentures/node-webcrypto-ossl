@@ -49,6 +49,8 @@ void EcNamedCurves(v8::Local<v8::Object> target) {
 }
 
 void RsaPublicExponent(v8::Local<v8::Object> target) {
+    Nan::HandleScope scope;
+    
 	v8::Local<v8::Object> rsaPublicExponent = Nan::New<v8::Object>();
 
 	SET_ENUM(rsaPublicExponent, RSA_3, 0);
@@ -58,6 +60,8 @@ void RsaPublicExponent(v8::Local<v8::Object> target) {
 }
 
 void KeyType(v8::Local<v8::Object> target) {
+    Nan::HandleScope scope;
+    
 	v8::Local<v8::Object> keyType = Nan::New<v8::Object>();
 
 	SET_ENUM(keyType, PUBLIC, 0);
@@ -67,7 +71,6 @@ void KeyType(v8::Local<v8::Object> target) {
 }
 
 NAN_MODULE_INIT(InitModule) {
-
 	Nan::HandleScope scope;
 
 	OPENSSL_init();
