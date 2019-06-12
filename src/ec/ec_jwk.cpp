@@ -38,7 +38,14 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 	ScopedBIGNUM y(BN_new());
 
 	LOG_INFO("Get public key");
-	if (1 != EC_POINT_get_affine_coordinates_GFp(group, point, x.Get(), y.Get(), NULL)) {
+
+#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
+#define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates_GFp
+#else
+#define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates
+#endif
+
+	if (1 != EC_POINT_GET_AFFINE_COORDINATES(group, point, x.Get(), y.Get(), NULL)) {
 		THROW_OPENSSL("EC_POINT_get_affine_coordinates_GFp");
 	}
 	jwk->x = BN_dup(x.Get());
