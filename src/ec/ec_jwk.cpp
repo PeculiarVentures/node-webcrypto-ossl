@@ -1,3 +1,4 @@
+#include <openssl/ec.h>
 #include "ec_jwk.h"
 
 Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
@@ -39,7 +40,7 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 
 	LOG_INFO("Get public key");
 
-#if NODE_MODULE_VERSION < 60 || OPENSSL_1_0_2
+#if EC_F_EC_POINT_GET_AFFINE_COORDINATES_GFP
 #define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates_GFp
 #else
 #define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates
