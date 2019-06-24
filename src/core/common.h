@@ -1,6 +1,10 @@
 #ifndef OSSL_CORE_COMMON_H_INCLUDE
 #define OSSL_CORE_COMMON_H_INCLUDE
 
+#ifdef _WIN32
+#define __WINCRYPT_H__
+#endif
+
 #include <nan.h>
 
 #include "logger.h"
