@@ -66,11 +66,11 @@ describe("WebCrypto Aes", function () {
                             var alg = { name: "AES-ECB" };
                             webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                 .then(enc => {
-                                    assert(!!enc, true, "Encrypted message is empty");
+                                    assert.equal(!!enc, true, "Encrypted message is empty");
                                     return webcrypto.subtle.decrypt(alg, key.key, enc);
                                 })
                                 .then(dec => {
-                                    assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
+                                    assert.equal(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                 })
                                 .then(done, done);
                         });
@@ -89,11 +89,11 @@ describe("WebCrypto Aes", function () {
                                 var alg = { name: "AES-CBC", iv: iv };
                                 webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                     .then(enc => {
-                                        assert(!!enc, true, "Encrypted message is empty");
+                                        assert.equal(!!enc, true, "Encrypted message is empty");
                                         return webcrypto.subtle.decrypt(alg, key.key, enc);
                                     })
                                     .then(dec => {
-                                        assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
+                                        assert.equal(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                     })
                                     .then(done, done);
                             });
@@ -113,11 +113,11 @@ describe("WebCrypto Aes", function () {
                                 var alg = { name: "AES-CTR", counter: iv, length: 64 };
                                 webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                     .then(enc => {
-                                        assert(!!enc, true, "Encrypted message is empty");
+                                        assert.equal(!!enc, true, "Encrypted message is empty");
                                         return webcrypto.subtle.decrypt(alg, key.key, enc);
                                     })
                                     .then(dec => {
-                                        assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
+                                        assert.equal(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                     })
                                     .then(done, done);
                             });
@@ -141,11 +141,11 @@ describe("WebCrypto Aes", function () {
                                         var alg = { name: "AES-GCM", iv: iv, aad: aad, tagLength: tag };
                                         webcrypto.subtle.encrypt(alg, key.key, Buffer.from(message.data))
                                             .then(enc => {
-                                                assert(!!enc, true, "Encrypted message is empty");
+                                                assert.equal(!!enc, true, "Encrypted message is empty");
                                                 return webcrypto.subtle.decrypt(alg, key.key, enc);
                                             })
                                             .then(dec => {
-                                                assert(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
+                                                assert.equal(Buffer.from(dec).toString(), message.data, "Decrypted message is wrong");
                                             })
                                             .then(done, done);
                                     });

@@ -27,6 +27,7 @@ sudo: false
 os:
   - linux
   - osx
+  - windows
 
 osx_image: xcode7.2
 
