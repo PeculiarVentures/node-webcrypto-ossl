@@ -20,11 +20,11 @@ describe("native", function () {
         }
 
         export_fn.call(key, function (err, rawA) {
-            assert(!err, true, `${error_text}::Export: ${err}`);
+            assert.equal(!err, true, `${error_text}::Export: ${err}`);
             import_fn(rawA, function (err, key) {
-                assert(!err, true, `${error_text}::Import: ${err}`);
+                assert.equal(!err, true, `${error_text}::Import: ${err}`);
                 export_fn.call(key, function (err, rawB) {
-                    assert(!err, true, `${error_text}::Export: ${err}`);
+                    assert.equal(!err, true, `${error_text}::Export: ${err}`);
                     assert.equal(Buffer.compare(rawA, rawB), 0, `${error_text}::Export: export values are different`);
                     done();
                 });
@@ -34,21 +34,21 @@ describe("native", function () {
 
     it("generate RSA 1024,3", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             done();
         })
     })
 
     it("generate RSA 2048,F4", function (done) {
         native.Key.generateRsa(2048, native.RsaPublicExponent.RSA_F4, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             done();
         })
     }).timeout(30e3)
 
     it("generate RSA error", function (done) {
         native.Key.generateRsa(1024, 3, function (err, key) {
-            assert(err != null, true, "Must be error on key generation");
+            assert.equal(err != null, true, "Must be error on key generation");
             done();
         })
     })
@@ -56,11 +56,11 @@ describe("native", function () {
     it("jwk RSA private", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             key.exportJwk(native.KeyType.PRIVATE, function (err, jwk) {
-                assert(jwk != null, true, "Error on key export");
+                assert.equal(jwk != null, true, "Error on key export");
                 assert.equal(jwk.kty, "RSA");
                 assert.equal(jwk.d != null, true, "Key is not private");
                 native.Key.importJwk(jwk, native.KeyType.PRIVATE, function (err, key) {
-                    assert(key != null, true, "Error on key import");
+                    assert.equal(key != null, true, "Error on key import");
                     done();
                 })
             })
@@ -70,11 +70,11 @@ describe("native", function () {
     it("jwk RSA public", function (done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             key.exportJwk(native.KeyType.PUBLIC, function (err, jwk) {
-                assert(jwk != null, true, "Error on key export");
+                assert.equal(jwk != null, true, "Error on key export");
                 assert.equal(jwk.kty, "RSA");
                 assert.equal(jwk.d == null, true, "Key is private");
                 native.Key.importJwk(jwk, native.KeyType.PUBLIC, function (err, key) {
-                    assert(key != null, true, "Error on key import");
+                    assert.equal(key != null, true, "Error on key import");
                     done();
                 })
             })
@@ -97,9 +97,9 @@ describe("native", function () {
         var message = Buffer.from("This is test message for crypto functions");
 
         key.sign(md, message, function (err, sig) {
-            assert(sig != null, true, "Error on sign");
+            assert.equal(sig != null, true, "Error on sign");
             key.verify(md, message, sig, function (err, v) {
-                assert(v, true, "Signature is not valid");
+                assert.equal(v, true, "Signature is not valid");
                 done();
             })
         })
@@ -115,10 +115,10 @@ describe("native", function () {
     function test_rsa_oaep_enc_dec(md, message, label, done) {
         native.Key.generateRsa(1024, native.RsaPublicExponent.RSA_3, function (err, key) {
             key.RsaOaepEncDec(md, message, label, false, function (err, dec) {
-                assert(dec != null, true, "Error on encrypt");
+                assert.equal(dec != null, true, "Error on encrypt");
                 key.RsaOaepEncDec(md, dec, label, true, function (err, msg) {
-                    assert(msg != null, true, "Error on decrypt");
-                    assert(Buffer.compare(msg, message) === 0, true, "Wrong result value");
+                    assert.equal(msg != null, true, "Error on decrypt");
+                    assert.equal(Buffer.compare(msg, message) === 0, true, "Wrong result value");
                     done();
                 })
             })
@@ -135,14 +135,14 @@ describe("native", function () {
 
     it("generate EC secp256k1", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             done();
         })
     })
 
     function test_sign_ec(curve, md, done) {
         native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             test_sign(key, md, done);
         })
     }
@@ -161,9 +161,9 @@ describe("native", function () {
 
     function test_derive_key_ec(curve, keySize, done) {
         native.Key.generateEc(native.EcNamedCurves[curve], function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             key.EcdhDeriveKey(key, keySize, function (err, b) {
-                assert(b != null, true, "Error on key derive");
+                assert.equal(b != null, true, "Error on key derive");
                 // console.log(b.toString("hex"));
                 done();
             })
@@ -195,16 +195,16 @@ describe("native", function () {
 
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
             key.exportJwk(keyType, function (err, jwkA) {
-                assert(!err, true, "Export: " + err);
+                assert.equal(!err, true, "Export: " + err);
                 assert.equal(jwkA.kty, "EC", "Export: Wrong key type value");
                 assert.equal(jwkA.crv == curve, true, "Export: Wrong curve name value");
                 assert.equal(jwkA.x != null, true, "Export: X is missing");
                 assert.equal(jwkA.y != null, true, "Export: Y is missing");
                 assert.equal(jwkA.d != null, keyType == native.KeyType.PRIVATE, "Export: Key is missing");
                 native.Key.importJwk(jwkA, keyType, function (err, key) {
-                    assert(!err, true, "Import: " + err);
+                    assert.equal(!err, true, "Import: " + err);
                     key.exportJwk(keyType, function (err, jwkB) {
-                        assert(!err, true, "Export: " + err);
+                        assert.equal(!err, true, "Export: " + err);
                         assert.equal(jwk_equal(jwkA, jwkB), true, "export values are different");
                         done();
                     });
@@ -235,21 +235,21 @@ describe("native", function () {
 
     it("AES generate 128", function (done) {
         native.AesKey.generate(16, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             done();
         });
     })
 
     it("AES generate 196", function (done) {
         native.AesKey.generate(24, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             done();
         });
     })
 
     it("AES generate 256", function (done) {
         native.AesKey.generate(32, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             done();
         });
     })
@@ -257,11 +257,11 @@ describe("native", function () {
     it("AES CBC encrypt 256", function (done) {
         var msg = Buffer.from("Hello world");
         native.AesKey.generate(32, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             key.encrypt("CBC", Buffer.from("1234567890123456"), msg, function (err, data) {
-                assert(!err, true, `encrypt: ${err}`);
+                assert.equal(!err, true, `encrypt: ${err}`);
                 key.decrypt("CBC", Buffer.from("1234567890123456"), data, function (err, m) {
-                    assert(!err, true, `decrypt: ${err}`);
+                    assert.equal(!err, true, `decrypt: ${err}`);
                     assert.equal(msg.toString(), m.toString());
                     done();
                 });
@@ -272,12 +272,12 @@ describe("native", function () {
     it("AES CBC encrypt 256 error", function (done) {
         var msg = Buffer.from("Hello world");
         native.AesKey.generate(32, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             key.encrypt("CBC", Buffer.from("1234567890123456"), msg, function (err, data) {
-                assert(!err, true, `encrypt: ${err}`);
+                assert.equal(!err, true, `encrypt: ${err}`);
                 data[0] += 1;
                 key.decrypt("CBC", Buffer.from("1234567890123456"), data, function (err, m) {
-                    assert(err, true, `must be error`);
+                    assert.equal(!!err, true, `must be error`);
                     done();
                 });
             });
@@ -287,15 +287,15 @@ describe("native", function () {
     it("AES export", function (done) {
         var raw;
         native.AesKey.generate(32, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             key.export(function (err, r) {
-                assert(!err, true, `export: ${err}`);
-                assert(r.length, 32, `export: wrong key length`);
+                assert.equal(!err, true, `export: ${err}`);
+                assert.equal(r.length, 32, `export: wrong key length`);
                 raw = r;
                 native.AesKey.import(r, function (err, key) {
-                    assert(!err, true, `import: ${err}`);
+                    assert.equal(!err, true, `import: ${err}`);
                     key.export(function (err, r) {
-                        assert(!err, true, `export: ${err}`);
+                        assert.equal(!err, true, `export: ${err}`);
                         assert.equal(Buffer.compare(raw, r) == 0, true, "exported data is not equal");
                         done();
                     });
@@ -308,9 +308,9 @@ describe("native", function () {
 
         it("WrapKey small data", done => {
             native.AesKey.generate(32, (err, key) => {
-                assert(!err, true, `generate: ${err}`);
+                assert.equal(!err, true, `generate: ${err}`);
                 key.wrapKey(Buffer.from("123456789012345"), (err, data) => {
-                    assert(!!err, true);
+                    assert.equal(!!err, true);
                     done();
                 });
             });
@@ -318,9 +318,9 @@ describe("native", function () {
 
         it("UnwrapKey small data", done => {
             native.AesKey.generate(32, (err, key) => {
-                assert(!err, true, `generate: ${err}`);
+                assert.equal(!err, true, `generate: ${err}`);
                 key.unwrapKey(Buffer.from("12345678901234567890123"), (err, data) => {
-                    assert(!!err, true);
+                    assert.equal(!!err, true);
                     done();
                 });
             });
@@ -328,9 +328,9 @@ describe("native", function () {
 
         it("WrapKey data is not % 8", done => {
             native.AesKey.generate(32, (err, key) => {
-                assert(!err, true, `generate: ${err}`);
+                assert.equal(!err, true, `generate: ${err}`);
                 key.wrapKey(Buffer.from("12345678901234567"), (err, data) => {
-                    assert(!!err, true);
+                    assert.equal(!!err, true);
                     done();
                 });
             });
@@ -338,9 +338,9 @@ describe("native", function () {
 
         it("UnwrapKey data is not % 8", done => {
             native.AesKey.generate(32, (err, key) => {
-                assert(!err, true, `generate: ${err}`);
+                assert.equal(!err, true, `generate: ${err}`);
                 key.unwrapKey(Buffer.from("1234567890123456789012346"), (err, data) => {
-                    assert(!!err, true);
+                    assert.equal(!!err, true);
                     done();
                 });
             });
@@ -350,12 +350,12 @@ describe("native", function () {
             it(`wrap/unwrap length:${length}`, done => {
                 let MSG = Buffer.alloc(length / 8);
                 native.AesKey.generate(length / 8, (err, key) => {
-                    assert(!err, true, `generate: ${err}`);
+                    assert.equal(!err, true, `generate: ${err}`);
                     key.wrapKey(MSG, (err, data) => {
-                        assert(!err, true, "Cannot wrap key");
+                        assert.equal(!err, true, "Cannot wrap key");
                         key.unwrapKey(data, (err, data) => {
-                            assert(!err, true, "Cannot unwrap key");
-                            assert(data.toString("hex"), MSG.toString("hex"), "Cannot unwrap key");
+                            assert.equal(!err, true, "Cannot unwrap key");
+                            assert.equal(data.toString("hex"), MSG.toString("hex"), "Cannot unwrap key");
                             done();
                         });
                     });
@@ -368,11 +368,11 @@ describe("native", function () {
     function test_encrypt_gcm(keySize, aad, tag, done) {
         var msg = Buffer.from("Hello world");
         native.AesKey.generate(keySize, function (err, key) {
-            assert(!err, true, `generate: ${err}`);
+            assert.equal(!err, true, `generate: ${err}`);
             key.encryptGcm(Buffer.from("1234567890123456"), msg, aad, tag, function (err, data) {
-                assert(!err, true, `encrypt: ${err}`);
+                assert.equal(!err, true, `encrypt: ${err}`);
                 key.decryptGcm(Buffer.from("1234567890123456"), data, aad, tag, function (err, m) {
-                    assert(!err, true, `decrypt: ${err}`);
+                    assert.equal(!err, true, `decrypt: ${err}`);
                     assert.equal(Buffer.compare(msg, m) == 0, true, "Decrypt: Decrypted data is not equal");
                     done();
                 });
@@ -465,7 +465,7 @@ describe("native", function () {
 
     it("EC deriveBits P-256 256", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             key.EcdhDeriveBits(key, 256, function (err, bits) {
                 if (!err)
                     assert.equal(bits.length, 256 / 8);
@@ -476,7 +476,7 @@ describe("native", function () {
 
     it("EC deriveBits P-256 128", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             key.EcdhDeriveBits(key, 128, function (err, bits) {
                 if (!err)
                     assert.equal(bits.length, 128 / 8);
@@ -487,7 +487,7 @@ describe("native", function () {
 
     it("EC deriveBits P-256 512, error", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp256k1, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             key.EcdhDeriveBits(key, 512, function (err, bits) {
                 assert.equal(!!err, true, "Should be error");
                 done();
@@ -497,7 +497,7 @@ describe("native", function () {
 
     it("EC deriveBits P-521 528, error", function (done) {
         native.Key.generateEc(native.EcNamedCurves.secp521r1, function (err, key) {
-            assert(key != null, true, "Error on key generation");
+            assert.equal(key != null, true, "Error on key generation");
             key.EcdhDeriveBits(key, 528, function (err, bits) {
                 if (!err)
                     assert.equal(bits.length, 528 / 8);
