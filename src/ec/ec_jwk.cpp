@@ -40,10 +40,10 @@ Handle<JwkEc> JwkEc::From(Handle<ScopedEVP_PKEY> pkey, int &key_type) {
 
 	LOG_INFO("Get public key");
 
-#if EC_F_EC_POINT_GET_AFFINE_COORDINATES_GFP
-#define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates_GFp
-#else
+#if OPENSSL_VERSION_NUMBER > 0x10101000L
 #define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates
+#else
+#define EC_POINT_GET_AFFINE_COORDINATES EC_POINT_get_affine_coordinates_GFp
 #endif
 
 	if (1 != EC_POINT_GET_AFFINE_COORDINATES(group, point, x.Get(), y.Get(), NULL)) {
