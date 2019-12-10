@@ -132,7 +132,7 @@ webcrypto.subtle.generateKey({
 
 To get key from KeyStorage
 ```javascript
-var rsaKey = webcrypto.getItem("prvRSA-1024");
+var rsaKey = webcrypto.keyStorage.getItem("prvRSA-1024");
 ```
 
 ## Threat Model
