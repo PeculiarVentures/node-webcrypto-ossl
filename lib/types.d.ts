@@ -1,1 +1,0 @@
-type NodeBufferSource = BufferSource | Buffer;

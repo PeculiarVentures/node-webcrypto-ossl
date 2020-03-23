@@ -1,21 +1,20 @@
 {
   "name": "node-webcrypto-ossl",
-  "version": "1.0.48",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/PeculiarVentures/node-webcrypto-ossl.git"
   },
   "description": "A WebCrypto Polyfill for Node in TypeScript built on OpenSSL",
-  "main": "buildjs/webcrypto.js",
+  "main": "buildjs/index.js",
+  "module": "buildjs/index.es.js",
   "types": "index.d.ts",
   "scripts": {
-    "clean": "rm -rf build/ buildjs/ coverage/ .nyc_output/ npm-debug.log npm-debug.log.*",
     "prepare": "npm run build",
     "test": "mocha",
-    "build": "npm run build:es5",
-    "build:es5": "tsc",
-    "build:source": "tsc --sourceMap",
-    "build:es2015": "tsc --module es2015 --target es2015",
+    "clear": "rimraf buildjs",
+    "build": "rollup -c",
+    "rebuild": "npm run clear && npm run build",
     "pub": "npm version patch && npm publish && git push",
     "sync": "git ac && git pull --rebase && git push",
     "coverage": "nyc npm test",
@@ -38,18 +37,50 @@
     "secp256k1"
   ],
   "dependencies": {
-    "mkdirp": "^0.5.1",
-    "nan": "^2.13.2",
-    "tslib": "^1.9.3",
-    "webcrypto-core": "^0.1.26"
+    "mkdirp": "^1.0.3",
+    "nan": "^2.14.0",
+    "tslib": "^1.11.1",
+    "webcrypto-core": "^1.0.18"
   },
   "devDependencies": {
-    "@types/mkdirp": "^0.5.2",
-    "@types/node": "^10.12.18",
-    "coveralls": "^3.0.3",
-    "mocha": "^6.1.4",
-    "nyc": "^14.0.0",
-    "pvtsutils": "^1.0.4",
-    "typescript": "^3.4.5"
+    "@peculiar/webcrypto-test": "^1.0.1",
+    "@types/mkdirp": "^1.0.0",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^12.12.30",
+    "@types/rimraf": "^2.0.3",
+    "coveralls": "^3.0.9",
+    "mocha": "^7.1.0",
+    "nyc": "^15.0.0",
+    "pvtsutils": "^1.0.10",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.1.0",
+    "rollup-plugin-typescript2": "^0.26.0",
+    "ts-node": "^8.7.0",
+    "typescript": "^3.8.3"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "include": [
+      "lib/**/*.ts"
+    ],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ]
+  },
+  "mocha": {
+    "require": "ts-node/register",
+    "extension": [
+      "ts"
+    ],
+    "watch-files": [
+      "test/**/*.ts"
+    ]
   }
 }

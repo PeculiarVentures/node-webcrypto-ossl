@@ -12,15 +12,9 @@
         "object-literal-sort-keys": false,
         "no-bitwise": false,
         "forin": false,
-        "max-line-length": [
-            false
-        ],
-        "max-classes-per-file": [
-            false
-        ],
-        "no-console": [
-            false
-        ],
+        "max-line-length": false,
+        "max-classes-per-file": false,
+        "no-console": false,
         "no-namespace": false
     }
 }

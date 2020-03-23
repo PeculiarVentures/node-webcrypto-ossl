@@ -8,8 +8,10 @@
 build
 
 test*.js
+/test
 
 # build
-lib
+/lib
 ts*.json
 **/*.map
+rollup.config.js
