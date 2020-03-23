@@ -1,6 +1,6 @@
+import * as native from "native";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";
-import * as native from "../../native";
 import { EcCrypto } from "./crypto";
 import type { EcPrivateKey } from "./private_key";
 import type { EcPublicKey } from "./public_key";

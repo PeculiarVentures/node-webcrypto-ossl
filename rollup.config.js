@@ -1,4 +1,6 @@
-import typescript from "rollup-plugin-typescript2";
+import path from "path";
+import alias from "@rollup/plugin-alias";
+import typescript from "@rollup/plugin-typescript";
 // @ts-ignore
 import pkg from "./package.json";
 
@@ -9,7 +11,13 @@ const banner = [
   "",
 ].join("\n");
 const input = "lib/index.ts";
-const external = Object.keys(pkg.dependencies);
+const external = [
+  "crypto",
+  "os",
+  "path",
+  "fs",
+  ...Object.keys(pkg.dependencies)
+];
 
 
 export default [
@@ -18,16 +26,16 @@ export default [
     input,
     plugins: [
       typescript({
-        check: true,
-        clean: true,
-        tsconfigOverride: {
-          compilerOptions: {
-            module: "ES2015",
-          }
-        }
+        module: "ES2015",
+        removeComments: true,
+      }),
+      alias({
+        entries: [
+          { find: "native", replacement: "../../../build/Release/nodessl.node" },
+        ]
       }),
     ],
-    external,
+    external: (name) => external.includes(name) || path.basename(name) === "nodessl.node",
     output: [
       {
         banner,

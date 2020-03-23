@@ -1,6 +1,6 @@
+import * as native from "native";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";
-import * as native from "../../native";
 import { PbkdfCryptoKey } from "./key";
 
 export class Pbkdf2Provider extends core.Pbkdf2Provider {

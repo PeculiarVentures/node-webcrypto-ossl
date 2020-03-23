@@ -1,5 +1,5 @@
+import * as native from "native";
 import * as core from "webcrypto-core";
-import * as native from "../../native";
 
 export class ShaCrypto {
 

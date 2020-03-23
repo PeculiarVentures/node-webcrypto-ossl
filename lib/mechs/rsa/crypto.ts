@@ -1,7 +1,7 @@
+import * as native from "native";
 import { Convert } from "pvtsutils";
 import * as core from "webcrypto-core";
 import { CryptoKey, CryptoKeyStorage } from "../../keys";
-import * as native from "../../native";
 import { RsaPrivateKey } from "./private_key";
 import { RsaPublicKey } from "./public_key";
 

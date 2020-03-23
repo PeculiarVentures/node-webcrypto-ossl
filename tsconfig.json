@@ -5,7 +5,6 @@
         "strictNullChecks": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "buildjs",
         "removeComments": true,
         "declaration": false,
         "sourceMap": false,

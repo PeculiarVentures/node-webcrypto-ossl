@@ -1,7 +1,7 @@
+import * as native from "native";
 import * as core from "webcrypto-core";
 import { CryptoKey } from "../../keys";
 import { CryptoKeyStorage } from "../../keys";
-import * as native from "../../native";
 import { EcCrypto } from "./crypto";
 
 export class EcdhProvider extends core.EcdhProvider {

@@ -1,6 +1,6 @@
+import type { AesKey } from "native";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";
-import type { AesKey } from "../../native";
 import { AesCrypto } from "./crypto";
 import { AesCryptoKey } from "./key";
 

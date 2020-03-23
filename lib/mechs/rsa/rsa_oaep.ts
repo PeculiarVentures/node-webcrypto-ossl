@@ -1,6 +1,6 @@
+import * as native from "native";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";
-import * as native from "../../native";
 import { RsaCrypto } from "./crypto";
 import { RsaPrivateKey } from "./private_key";
 import { RsaPublicKey } from "./public_key";
