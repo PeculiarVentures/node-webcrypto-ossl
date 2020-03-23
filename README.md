@@ -71,19 +71,22 @@ mocha
 | AES-ECB <sub>2</sub> |      X      |         |       X       |             |        X        |         X         |         |
 | AES-GCM           |      X      |         |       X       |             |        X        |         X         |         |
 | AES-KW            |      X      |         |       X       |             |                 |         X         |         |
+| AES-CMAC          |      X      |         |       X       |      X      |                 |                   |         |
 | ECDSA             |      X      |         |       X       |      X      |                 |                   |         |
 | ECDH              |      X      |         |       X       |             |                 |                   |    X    |
 | HMAC              |      X      |         |       X       |      X      |                 |                   |         |
 | PBKDF2            |             |         |       X       |             |                 |                   |    X    |
+| DES-CBC           |      X      |         |       X       |             |        X        |         X         |         |
+| DES-EDE3-CBC      |      X      |         |       X       |             |        X        |         X         |         |
 
 <sub>2 ECB support is not defined by the WebCrypto specifications. Use of ECB in a safe way is hard, it was added for the purpose of enabling interoperability with an existing system. We recommend against its use unless needed for interoperability.</sub>
 
 ## Using
 
 ```javascript
-var WebCrypto = require("node-webcrypto-ossl");
+const { Crypto } = require("node-webcrypto-ossl");
 
-var webcrypto = new WebCrypto();
+const crypto = new Crypto();
 ```
 
 ## Elliptic curve secp256k1
@@ -97,9 +100,9 @@ var webcrypto = new WebCrypto();
 To use KeyStorage you should init WebCrypto with `directory` option. If `directory` option is missing then `keyStorage` is `null`
 
 ```javascript
-var WebCrypto = require("node-webcrypto-ossl");
+const { Crypto } = require("node-webcrypto-ossl");
 
-var webcrypto = new WebCrypto({
+const crypto = new Crypto({
   directory: "key_storage"
 })
 ```
@@ -110,7 +113,7 @@ KeyStorage implements interface of [W3 Storage](https://developer.mozilla.org/en
 var keyStorage = webcrypto.keyStorage;
 
 // generating RSA key
-webcrypto.subtle.generateKey({
+crypto.subtle.generateKey({
     name: "RSASSA-PKCS1-v1_5",
     modulusLength: 1024,
     publicExponent: new Uint8Array([1, 0, 1]),

@@ -1,19 +1,18 @@
 {
     "compilerOptions": {
-        "target": "esnext",
+        "target": "es2015",
         "noUnusedLocals": true,
         "strictNullChecks": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "outDir": "buildjs",
         "removeComments": true,
         "declaration": false,
         "sourceMap": false,
         "importHelpers": true,
-        "noImplicitAny": true
-    },
-    "exclude": [
-        "node_modules",
-        "test"
-    ]
+        "noImplicitAny": true,
+        "baseUrl": ".",
+        "paths": {
+            "native": ["build/Release/nodessl.node"]
+          }
+    }
 }
