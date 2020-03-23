@@ -1,3 +1,6 @@
+// tslint:disable-next-line: no-reference
+/// <reference path="../../native.d.ts" />
+
 import type { AesKey } from "native";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";

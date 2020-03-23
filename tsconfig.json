@@ -9,6 +9,10 @@
         "declaration": false,
         "sourceMap": false,
         "importHelpers": true,
-        "noImplicitAny": true
+        "noImplicitAny": true,
+        "baseUrl": ".",
+        "paths": {
+            "native": ["build/Release/nodessl.node"]
+          }
     }
 }
