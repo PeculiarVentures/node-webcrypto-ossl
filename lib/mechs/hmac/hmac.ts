@@ -2,19 +2,18 @@ import * as native from "native";
 import { Convert } from "pvtsutils";
 import * as core from "webcrypto-core";
 import { CryptoKeyStorage } from "../../keys";
-import { ShaCrypto } from "../sha/crypto";
 import { HmacCryptoKey } from "./key";
 
 export class HmacProvider extends core.HmacProvider {
 
   public async onGenerateKey(algorithm: HmacKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
     return new Promise((resolve, reject) => {
-      const length = algorithm.length || ShaCrypto.size(algorithm.hash as Algorithm);
+      const length = algorithm.length || this.getDefaultLength((algorithm.hash as Algorithm).name);
       native.HmacKey.generate(length, (err, key) => {
         if (err) {
           reject(err);
         } else {
-          const hmacKey = HmacCryptoKey.create(algorithm, "secret", extractable, keyUsages);
+          const hmacKey = HmacCryptoKey.create({...algorithm, length} as HmacKeyAlgorithm, "secret", extractable, keyUsages);
           hmacKey.native = key;
           resolve(CryptoKeyStorage.setItem(hmacKey));
         }
