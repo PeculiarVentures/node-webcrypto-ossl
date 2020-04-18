@@ -8,7 +8,7 @@ export class HmacProvider extends core.HmacProvider {
 
   public async onGenerateKey(algorithm: HmacKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
     return new Promise((resolve, reject) => {
-      const length = algorithm.length || this.getDefaultLength((algorithm.hash as Algorithm).name);
+      const length = (algorithm.length || this.getDefaultLength((algorithm.hash as Algorithm).name)) >> 3 << 3;
       native.HmacKey.generate(length, (err, key) => {
         if (err) {
           reject(err);
