@@ -44,7 +44,7 @@
     "nan": "^2.14.0",
     "pvtsutils": "^1.0.10",
     "tslib": "^1.11.1",
-    "webcrypto-core": "^1.0.20"
+    "webcrypto-core": "^1.0.21"
   },
   "devDependencies": {
     "@peculiar/webcrypto-test": "^1.0.6",
