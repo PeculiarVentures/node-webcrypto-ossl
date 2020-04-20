@@ -90,7 +90,7 @@ export class KeyStorage {
             if (item !== "." && item !== "..") {
                 const file = path.join(this.directory, item);
                 const stat = fs.statSync(file);
-                if (stat.isFile) {
+                if (stat.isFile()) {
                     fs.unlinkSync(file);
                 }
             }
@@ -223,7 +223,7 @@ export class KeyStorage {
             if (item !== "." && item !== "..") {
                 const file = path.join(this.directory, item);
                 const stat = fs.statSync(file);
-                if (stat.isFile) {
+                if (stat.isFile()) {
                     const key = this.readFile(file);
                     if (key) {
                         this.keys[key.name] = key;
