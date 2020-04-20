@@ -60,11 +60,6 @@ Handle<std::string> AES_CTR_encrypt
         THROW_ERROR("Wrong size of 'counter'");
     }
 
-	LOG_INFO("length");
-	if (length < 1 || length > 128) {
-		THROW_ERROR("Incorrect value 'length'. Must be between 1 and 128.");
-	}
-
 	AES_KEY aesKey;
 	if (AES_set_encrypt_key(key, keylen << 3, &aesKey)) {
 		THROW_OPENSSL("AES_set_encrypt_key");
