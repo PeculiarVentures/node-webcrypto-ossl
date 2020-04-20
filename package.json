@@ -38,18 +38,18 @@
     "secp256k1"
   ],
   "dependencies": {
-    "mkdirp": "^0.5.1",
-    "nan": "^2.13.2",
-    "tslib": "^1.9.3",
-    "webcrypto-core": "^0.1.26"
+    "mkdirp": "^0.5.5",
+    "nan": "^2.14.0",
+    "tslib": "^1.11.1",
+    "webcrypto-core": "^0.1.27"
   },
   "devDependencies": {
     "@types/mkdirp": "^0.5.2",
-    "@types/node": "^10.12.18",
-    "coveralls": "^3.0.3",
-    "mocha": "^6.1.4",
-    "nyc": "^14.0.0",
-    "pvtsutils": "^1.0.4",
-    "typescript": "^3.4.5"
+    "@types/node": "^10.17.20",
+    "coveralls": "^3.0.11",
+    "mocha": "^6.2.3",
+    "nyc": "^14.1.1",
+    "pvtsutils": "^1.0.10",
+    "typescript": "^3.8.3"
   }
 }
