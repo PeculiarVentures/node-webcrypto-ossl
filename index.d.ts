@@ -174,7 +174,7 @@ declare namespace NodeWebcryptoOpenSSL {
     }
 }
 
-declare const NodeWebCrypto: typeof NodeWebcryptoOpenSSL.WebCrypto;
+declare const NodeWebCrypto: { Crypto: typeof NodeWebcryptoOpenSSL.WebCrypto };
 
 declare module "node-webcrypto-ossl" {
     export = NodeWebCrypto;
