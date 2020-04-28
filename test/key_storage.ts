@@ -11,6 +11,11 @@ const crypto = new Crypto({
 
 context("Crypto key storage", () => {
 
+  if (!crypto.keyStorage) {
+    throw new Error("crypto.keyStorage is null");
+  }
+  const keyStorage = crypto.keyStorage;
+
   after((done) => {
     rimraf(tmpDir, done);
   });
@@ -20,10 +25,10 @@ context("Crypto key storage", () => {
       const alg: EcKeyGenParams = { name: "ECDSA", namedCurve: "P-256" };
       const keys = await crypto.subtle.generateKey(alg, false, ["sign", "verify"]) as CryptoKeyPair;
 
-      const index1 = await crypto.keyStorage.setItem(keys.privateKey);
-      const index2 = await crypto.keyStorage.setItem(keys.publicKey);
+      const index1 = await keyStorage.setItem(keys.privateKey);
+      const index2 = await keyStorage.setItem(keys.publicKey);
 
-      const indexes = await crypto.keyStorage.keys();
+      const indexes = await keyStorage.keys();
       assert.equal(indexes.includes(index1), true);
       assert.equal(indexes.includes(index2), true);
     });
@@ -32,12 +37,12 @@ context("Crypto key storage", () => {
       const alg: AesKeyGenParams = { name: "AES-CBC", length: 128 };
       const key = await crypto.subtle.generateKey(alg, false, ["encrypt", "decrypt"]) as CryptoKey;
 
-      const index = await crypto.keyStorage.setItem(key);
+      const index = await keyStorage.setItem(key);
 
-      const indexes = await crypto.keyStorage.keys();
+      const indexes = await keyStorage.keys();
       assert.equal(indexes.includes(index), true);
 
-      crypto.keyStorage.hasItem(key);
+      keyStorage.hasItem(key);
     });
   });
 
@@ -45,10 +50,10 @@ context("Crypto key storage", () => {
     const alg: AesKeyGenParams = { name: "AES-CBC", length: 128 };
     const key = await crypto.subtle.generateKey(alg, false, ["encrypt", "decrypt"]) as CryptoKey;
 
-    const index = await crypto.keyStorage.setItem(key);
-    await crypto.keyStorage.removeItem(index);
+    const index = await keyStorage.setItem(key);
+    await keyStorage.removeItem(index);
 
-    const indexes = await crypto.keyStorage.keys();
+    const indexes = await keyStorage.keys();
     assert.equal(indexes.includes(index), false);
   });
 
@@ -61,15 +66,15 @@ context("Crypto key storage", () => {
     };
     const keys = await crypto.subtle.generateKey(alg, false, ["sign", "verify"]) as CryptoKeyPair;
 
-    const index1 = await crypto.keyStorage.setItem(keys.privateKey);
-    await crypto.keyStorage.setItem(keys.publicKey);
+    const index1 = await keyStorage.setItem(keys.privateKey);
+    await keyStorage.setItem(keys.publicKey);
 
-    const index = await crypto.keyStorage.indexOf(keys.privateKey);
+    const index = await keyStorage.indexOf(keys.privateKey);
     assert.equal(index, index1);
 
-    await crypto.keyStorage.clear();
+    await keyStorage.clear();
 
-    const indexes = await crypto.keyStorage.keys();
+    const indexes = await keyStorage.keys();
     assert.equal(indexes.length, 0);
   });
 

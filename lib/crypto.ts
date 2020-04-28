@@ -1,7 +1,5 @@
 // Core
 import * as crypto from "crypto";
-import * as os from "os";
-import * as path from "path";
 import * as core from "webcrypto-core";
 
 // Local
@@ -17,7 +15,7 @@ export interface CryptoOptions {
  */
 export class Crypto extends core.Crypto {
 
-  public keyStorage: CryptoKeyStorage;
+  public keyStorage?: CryptoKeyStorage;
 
   public subtle = new SubtleCrypto();
   /**
@@ -26,7 +24,9 @@ export class Crypto extends core.Crypto {
   constructor(options?: CryptoOptions) {
     super();
 
-    this.keyStorage = new CryptoKeyStorage(this, options?.directory ?? path.join(os.homedir(), ".node-webcrypto-ossl"));
+    if (options?.directory) {
+      this.keyStorage = new CryptoKeyStorage(this, options.directory);
+    }
   }
 
   /**
