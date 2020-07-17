@@ -43,25 +43,25 @@
     "mkdirp": "^1.0.4",
     "nan": "^2.14.1",
     "pvtsutils": "^1.0.10",
-    "tslib": "^1.11.2",
-    "webcrypto-core": "^1.1.0"
+    "tslib": "^1.13.0",
+    "webcrypto-core": "^1.1.2"
   },
   "devDependencies": {
     "@peculiar/webcrypto-test": "^1.0.6",
-    "@rollup/plugin-alias": "^3.1.0",
-    "@rollup/plugin-typescript": "^4.1.1",
-    "@types/mkdirp": "^1.0.0",
+    "@rollup/plugin-alias": "^3.1.1",
+    "@rollup/plugin-typescript": "^4.1.2",
+    "@types/mkdirp": "^1.0.1",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^12.12.38",
+    "@types/node": "^12.12.50",
     "@types/rimraf": "^2.0.4",
     "coveralls": "^3.1.0",
-    "mocha": "^7.1.2",
-    "nyc": "^15.0.1",
+    "mocha": "^7.2.0",
+    "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.8.2",
-    "ts-node": "^8.10.1",
+    "rollup": "^2.21.0",
+    "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.7"
   },
   "nyc": {
     "extension": [
