@@ -129,7 +129,7 @@ crypto.subtle.generateKey({
      * saving private RSA key to KeyStorage
      * creates file ./key_storage/prvRSA-1024.json
      */
-    keyStorage.setItem("prvRSA-1024", keyPairs.privateKey);
+    keyStorage.setItem(keyPairs.privateKey, "prvRSA-1024");
   })
 ```
 
