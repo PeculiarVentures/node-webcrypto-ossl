@@ -65,7 +65,7 @@ export class CryptoKeyStorage implements core.CryptoKeyStorage {
     return this.items.get(item) || null;
   }
 
-  public async setItem(item: globalThis.CryptoKey): Promise<string> {
+  public async setItem(item: globalThis.CryptoKey, id?: string): Promise<string> {
     const subtle = this.crypto.subtle as any;
     const provider = subtle.getProvider(item.algorithm.name) as core.ProviderCrypto;
     const jwk = await provider.onExportKey("jwk", item) as JsonWebKey;
@@ -75,9 +75,9 @@ export class CryptoKeyStorage implements core.CryptoKeyStorage {
       // RSA keys
       algorithm.hash = keyAlgorithm.hash;
     }
-    const id = Convert.ToHex(this.crypto.getRandomValues(new Uint8Array(10)));
+    const name = id || Convert.ToHex(this.crypto.getRandomValues(new Uint8Array(10)));
     this.writeFile(
-      id,
+      name,
       {
         algorithm,
         extractable: item.extractable,
@@ -87,9 +87,9 @@ export class CryptoKeyStorage implements core.CryptoKeyStorage {
       });
 
     // add to weak map
-    this.items.set(item, id);
+    this.items.set(item, name);
 
-    return id;
+    return name;
   }
 
   public async hasItem(item: globalThis.CryptoKey): Promise<boolean> {

@@ -83,8 +83,8 @@ mocha
 
 ## Using
 
-```javascript
-const { Crypto } = require("node-webcrypto-ossl");
+```js
+import { Crypto } from "node-webcrypto-ossl";
 
 const crypto = new Crypto();
 ```
@@ -109,11 +109,9 @@ const crypto = new Crypto({
 
 KeyStorage implements interface of [W3 Storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage)
 
-```javascript
-var keyStorage = webcrypto.keyStorage;
-
+```js
 // generating RSA key
-crypto.subtle.generateKey({
+const keys = await crypto.subtle.generateKey({
     name: "RSASSA-PKCS1-v1_5",
     modulusLength: 1024,
     publicExponent: new Uint8Array([1, 0, 1]),
@@ -123,19 +121,18 @@ crypto.subtle.generateKey({
   },
     false,
     ["sign", "verify"]
-  )
-  .then(function(keyPairs){
-    /** 
-     * saving private RSA key to KeyStorage
-     * creates file ./key_storage/prvRSA-1024.json
-     */
-    keyStorage.setItem(keyPairs.privateKey, "prvRSA-1024");
-  })
+  );
+
+/** 
+ * saving private RSA key to KeyStorage
+ * creates file ./key_storage/prvRSA-1024
+ */
+await crypto.keyStorage.setItem(keyPairs.privateKey, "prvRSA-1024");
 ```
 
 To get key from KeyStorage
-```javascript
-var rsaKey = webcrypto.keyStorage.getItem("prvRSA-1024");
+```js
+var rsaKey = await webcrypto.keyStorage.getItem("prvRSA-1024");
 ```
 
 ## Threat Model

@@ -2,6 +2,7 @@ import type { CryptoKeyStorage as CoreCryptoKeyStorage } from "webcrypto-core";
 
 interface CryptoKeyStorage extends CoreCryptoKeyStorage {
     readonly directory: string;
+    setItem(item: globalThis.CryptoKey, id?: string): Promise<string>;
 }
 
 export interface CryptoOptions {
