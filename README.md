@@ -7,7 +7,7 @@
 
 [![NPM](https://nodei.co/npm/node-webcrypto-ossl.png)](https://nodei.co/npm/node-webcrypto-ossl/)
 
-We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography available in browser is [Web Crypto](http://caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfill for WebCrypto based on OpenSSL.
+We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography available in browser is [Web Crypto](http://caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfill for WebCrypto based on OpenSSL since at the time Node did not have a native WebCrypto implementation. As of Node 15 however they have added such a interface so you may not need this module any longer.
 
 ## Table Of Contents
 
