@@ -1,7 +1,7 @@
 # node-webcrypto-ossl
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/PeculiarVentures/node-webcrypto-ossl/master/LICENSE)
-[![Build Status](https://travis-ci.org/PeculiarVentures/node-webcrypto-ossl.svg?branch=master)](https://travis-ci.org/PeculiarVentures/node-webcrypto-ossl)
+![test](https://github.com/PeculiarVentures/node-webcrypto-ossl/workflows/test/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/PeculiarVentures/node-webcrypto-ossl/badge.svg?branch=master)](https://coveralls.io/github/PeculiarVentures/node-webcrypto-ossl?branch=master)
 [![npm version](https://badge.fury.io/js/node-webcrypto-ossl.svg)](https://badge.fury.io/js/node-webcrypto-ossl)
 
