@@ -9,7 +9,6 @@
   "main": "buildjs/index.js",
   "module": "buildjs/index.es.js",
   "types": "index.d.ts",
-  "type": "commonjs",
   "scripts": {
     "prepare": "npm run build",
     "test": "mocha",
