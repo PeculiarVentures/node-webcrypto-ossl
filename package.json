@@ -86,7 +86,8 @@
     ],
     "reporter": [
       "text-summary",
-      "html"
+      "html",
+      "lcov"
     ]
   },
   "mocha": {
