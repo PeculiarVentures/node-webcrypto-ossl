@@ -1,7 +1,9 @@
+import { AsnParser } from "@peculiar/asn1-schema";
 import * as native from "native";
 import { Convert } from "pvtsutils";
 import * as core from "webcrypto-core";
 import { CryptoKey, CryptoKeyStorage } from "../../keys";
+import { getOidByNamedCurve } from "./helper";
 import { EcPrivateKey } from "./private_key";
 import { EcPublicKey } from "./public_key";
 
@@ -231,6 +233,33 @@ export class EcCrypto {
               if (err) {
                 reject(new core.CryptoError(`ImportKey: Can not import key for ${format}\n${err.message}`));
               } else {
+                let parameters: core.asn1.ParametersType | undefined;
+                if (formatLC === "spki") {
+                  // spki
+                  const keyInfo = AsnParser.parse(new Uint8Array(keyData as ArrayBuffer), core.asn1.PublicKeyInfo);
+
+                  parameters = keyInfo.publicKeyAlgorithm.parameters;
+                } else {
+                  // pkcs8
+                  const keyInfo = AsnParser.parse(new Uint8Array(keyData as ArrayBuffer), core.asn1.PrivateKeyInfo);
+
+                  parameters = keyInfo.privateKeyAlgorithm.parameters;
+                }
+
+                if (!parameters) {
+                  throw new core.CryptoError("Key info doesn't have required parameters");
+                }
+                let namedCurveIdentifier = "";
+                try {
+                  namedCurveIdentifier = AsnParser.parse(parameters, core.asn1.ObjectIdentifier).value;
+                } catch (e) {
+                  throw new core.CryptoError("Cannot read key info parameters");
+                }
+
+                if (getOidByNamedCurve(algorithm.namedCurve) !== namedCurveIdentifier) {
+                  throw new core.CryptoError("Key info parameter doesn't match to named curve");
+                }
+
                 const Key: typeof CryptoKey = formatLC === "pkcs8" ? EcPrivateKey : EcPublicKey;
                 const ecKey = Key.create(algorithm, formatLC === "pkcs8" ? "private" : "public", extractable, keyUsages);
                 ecKey.native = key;

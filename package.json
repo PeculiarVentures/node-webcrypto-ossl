@@ -40,29 +40,30 @@
     "secp256k1"
   ],
   "dependencies": {
+    "@peculiar/asn1-schema": "^2.0.36",
     "mkdirp": "^1.0.4",
-    "nan": "^2.14.1",
-    "pvtsutils": "^1.0.11",
-    "tslib": "^2.0.1",
-    "webcrypto-core": "^1.1.6"
+    "nan": "^2.14.2",
+    "pvtsutils": "^1.1.7",
+    "tslib": "^2.2.0",
+    "webcrypto-core": "^1.2.0"
   },
   "devDependencies": {
-    "@peculiar/webcrypto-test": "^1.0.6",
-    "@rollup/plugin-alias": "^3.1.1",
-    "@rollup/plugin-typescript": "^4.1.2",
+    "@peculiar/webcrypto-test": "^1.0.7",
+    "@rollup/plugin-alias": "^3.1.2",
+    "@rollup/plugin-typescript": "^8.2.1",
     "@types/mkdirp": "^1.0.1",
-    "@types/mocha": "^8.0.1",
-    "@types/node": "^12.12.54",
-    "@types/rimraf": "^2.0.4",
+    "@types/mocha": "^8.2.0",
+    "@types/node": "^12.19.12",
+    "@types/rimraf": "^3.0.0",
     "coveralls": "^3.1.0",
-    "mocha": "^8.1.1",
+    "mocha": "^9.0.0",
     "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.23.1",
-    "ts-node": "^8.10.2",
+    "rollup": "^2.51.1",
+    "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.9.0",
     "tslint": "^6.1.3",
-    "typescript": "^3.9.7"
+    "typescript": "^4.3.2"
   },
   "nyc": {
     "extension": [
