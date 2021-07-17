@@ -33,6 +33,7 @@ We wanted to be able to write Javascript that used crypto on both the client and
 ### npm
 
 ```
+# Depends on python and openssl
 npm install node-webcrypto-ossl;
 ```
 
