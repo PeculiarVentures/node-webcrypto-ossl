@@ -145,7 +145,7 @@ Handle<std::string> ScopedAES::unwrap(Handle<std::string> data) {
 	res->resize(len);
 
 	if (AES_unwrap_key(&aes_key, nullptr, (byte*)res->c_str(), (const byte*)data->c_str(), (unsigned int)data->length()) < 0)
-		THROW_OPENSSL("AES_set_decrypt_key");
+		THROW_OPENSSL("AES_unwrap_key");
 
 	return res;
 }
