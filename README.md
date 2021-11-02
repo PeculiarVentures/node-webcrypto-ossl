@@ -7,6 +7,18 @@
 
 [![NPM](https://nodei.co/npm/node-webcrypto-ossl.png)](https://nodei.co/npm/node-webcrypto-ossl/)
 
+## Deprecated
+
+__`node-webcrypto-ossl` was created in 2015 because at the time the Node team did not feel the need to have two crypto interfaces and they already had one before WebCrypto was defined.__
+
+__That position has since changed since Node16.x (2021-10-26) there is a LTS build of Node that supports the WebCrypto interface.__
+
+__We have also since created [@peculiar/webcrypto](https://www.npmjs.com/package/@peculiar/webcrypto) which no longer has the direct dependency on OpenSSL which makes it much easier to support in the wild. This package supports a number of algorithms that are not supported by standards compliant webcrypto implementations.__
+
+__This allows applications to retain maximal code compatibility with standards while maintaining interoperability with systems that rely on these other algorithms. For those who have this requirement we recommend moving to [@peculiar/webcrypto](https://www.npmjs.com/package/@peculiar/webcrypto).__
+
+## About
+
 We wanted to be able to write Javascript that used crypto on both the client and the server but we did not want to rely on Javascript implementations of crypto. The only native cryptography available in browser is [Web Crypto](http://caniuse.com/#search=cryptography), this resulted in us creating a `node-webcrypto-ossl` a native polyfill for WebCrypto based on OpenSSL since at the time Node did not have a native WebCrypto implementation. As of [Node 15](https://nodejs.org/api/webcrypto.html) however they have added such a interface so you may not need this module any longer.
 
 ## Table Of Contents
@@ -33,7 +45,7 @@ We wanted to be able to write Javascript that used crypto on both the client and
 ### npm
 
 ```
-npm install node-webcrypto-ossl;
+npm install node-webcrypto-ossl
 ```
 
 ### Clone Repo
